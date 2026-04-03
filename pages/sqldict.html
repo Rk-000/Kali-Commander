@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sqldict - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles specific to Sqldict */
+        .sqldict-option-group {
+            background: rgba(15, 95, 168, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid #00CFFF;
+        }
+        .sqldict-option-title {
+            color: #00CFFF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .db-badge {
+            display: inline-block;
+            background: rgba(15, 95, 168, 0.3);
+            border: 1px solid #1E88E5;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin: 4px;
+            font-size: 0.9rem;
+            color: #E6F0FA;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .db-badge:hover {
+            background: rgba(15, 95, 168, 0.5);
+            border-color: #00CFFF;
+        }
+        .db-badge.selected {
+            background: rgba(0, 207, 255, 0.3);
+            border-color: #00CFFF;
+        }
+        .db-icon {
+            font-size: 1.2rem;
+            margin-right: 8px;
+        }
+        .wordlist-preview {
+            background: #0A1F33;
+            border: 1px solid #00CFFF;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #00CFFF;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .wordlist-item {
+            padding: 2px 5px;
+            border-bottom: 1px solid #0F5FA8;
+        }
+        .wordlist-item:hover {
+            background: rgba(15, 95, 168, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=database-assessment">Database Assessment</a>
+            <span class="separator">›</span>
+            <span class="current">Sqldict</span>
+        </div>
+
+        <!-- Tool Header -->
+        <div class="tool-header">
+            <h1>SQLDICT</h1>
+            <p>Dictionary Attack Tool for Databases - Brute force database passwords using wordlists</p>
+        </div>
+
+        <!-- Database Selection -->
+        <div class="section">
+            <div class="section-title">
+                <span>🗄️</span> DATABASE SELECTION
+            </div>
+
+            <div class="sqldict-option-group">
+                <div class="sqldict-option-title">
+                    <span>🎯</span> DATABASE TYPE
+                </div>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+                    <div class="db-badge selected" id="db-mysql">
+                        <span class="db-icon">🐬</span> MySQL
+                    </div>
+                    <div class="db-badge" id="db-postgresql">
+                        <span class="db-icon">🐘</span> PostgreSQL
+                    </div>
+                    <div class="db-badge" id="db-oracle">
+                        <span class="db-icon">🔮</span> Oracle
+                    </div>
+                    <div class="db-badge" id="db-mssql">
+                        <span class="db-icon">🪟</span> MSSQL
+                    </div>
+                    <div class="db-badge" id="db-sqlite">
+                        <span class="db-icon">📁</span> SQLite
+                    </div>
+                    <div class="db-badge" id="db-mariadb">
+                        <span class="db-icon">🌸</span> MariaDB
+                    </div>
+                    <div class="db-badge" id="db-mongodb">
+                        <span class="db-icon">🍃</span> MongoDB
+                    </div>
+                    <div class="db-badge" id="db-redis">
+                        <span class="db-icon">📀</span> Redis
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Target Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🎯</span> TARGET CONFIGURATION
+            </div>
+
+            <div class="sqldict-option-group">
+                <div class="sqldict-option-title">
+                    <span>🌐</span> CONNECTION DETAILS
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Host</label>
+                        <input type="text" class="input-field" id="host" value="localhost" placeholder="localhost or 127.0.0.1">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Port</label>
+                        <input type="number" class="input-field" id="port" value="3306" min="1" max="65535">
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Database Name</label>
+                        <input type="text" class="input-field" id="database" placeholder="mysql">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Username</label>
+                        <input type="text" class="input-field" id="username" value="root">
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="ssl">
+                        <label class="checkbox-label" for="ssl">Use SSL Connection</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sqldict-option-group">
+                <div class="sqldict-option-title">
+                    <span>📋</span> CONNECTION STRING
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Custom Connection String</label>
+                    <input type="text" class="input-field" id="conn_string" placeholder="mysql://user:pass@localhost:3306/db">
+                </div>
+                <small style="color: #2A6FAF;">Overrides host/port/database settings</small>
+            </div>
+        </div>
+
+        <!-- Authentication Modes -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔐</span> AUTHENTICATION MODES
+            </div>
+
+            <div class="sqldict-option-group">
+                <div class="sqldict-option-title">
+                    <span>⚡</span> AUTHENTICATION TYPES
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="auth_password" checked>
+                        <label class="checkbox-label" for="auth_password">Password Authentication</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="auth_native">
+                        <label class="checkbox-label" for="auth_native">Native Authentication</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="auth_sha256">
+                        <label class="checkbox-label" for="auth_sha256">SHA256 Authentication</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="auth_ldap">
+                        <label class="checkbox-label" for="auth_ldap">LDAP Authentication</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="auth_kerberos">
+                        <label class="checkbox-label" for="auth_kerberos">Kerberos Authentication</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sqldict-option-group">
+                <div class="sqldict-option-title">
+                    <span>🔑</span> PASSWORD OPTIONS
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Single Password</label>
+                        <input type="text" class="input-field" id="password" placeholder="Try single password">
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <span class="checkbox-flag">OR</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wordlist Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📚</span> WORDLIST CONFIGURATION
+            </div>
+
+            <div class="sqldict-option-group">
+                <div class="sqldict-option-title">
+                    <span>📄</span> WORDLIST SELECTION
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Wordlist Path</label>
+                    <input type="text" class="input-field" id="wordlist" value="/usr/share/wordlists/rockyou.txt">
+                    <button class="btn btn-secondary" style="margin-top: 5px;">Browse</button>
+                </div>
+
+                <div class="checkbox-grid" style="margin-top: 15px;">
+                    <div class="checkbox-item">
+                        <input type="radio" name="wordlist_type" id="wl_file" value="file" checked>
+                        <label class="checkbox-label" for="wl_file">File Wordlist</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="wordlist_type" id="wl_stdin" value="stdin">
+                        <label class="checkbox-label" for="wl_stdin">STDIN</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="wordlist_type" id="wl_generate" value="generate">
+                        <label class="checkbox-label" for="wl_generate">Generate</label>
+                    </div>
+                </div>
+
+                <div id="generate_options" style="display: none; margin-top: 15px;">
+                    <div class="output-row">
+                        <div class="input-group">
+                            <label class="input-label">Charset</label>
+                            <input type="text" class="input-field" id="charset" value="abcdefghijklmnopqrstuvwxyz0123456789">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Min Length</label>
+                            <input type="number" class="input-field" id="min_len" value="1" min="1" max="20">
+                        </div>
+                    </div>
+                    <div class="output-row" style="margin-top: 15px;">
+                        <div class="input-group">
+                            <label class="input-label">Max Length</label>
+                            <input type="number" class="input-field" id="max_len" value="8" min="1" max="20">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="wordlist-preview" style="margin-top: 15px;">
+                    <div class="wordlist-item">password123</div>
+                    <div class="wordlist-item">admin</div>
+                    <div class="wordlist-item">root</div>
+                    <div class="wordlist-item">123456</div>
+                    <div class="wordlist-item">qwerty</div>
+                    <div class="wordlist-item">letmein</div>
+                    <div class="wordlist-item">monkey</div>
+                    <div class="wordlist-item">dragon</div>
+                </div>
+            </div>
+
+            <div class="sqldict-option-group">
+                <div class="sqldict-option-title">
+                    <span>🔧</span> WORDLIST OPTIONS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="ignore_case">
+                        <label class="checkbox-label" for="ignore_case">Ignore Case</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="remove_duplicates" checked>
+                        <label class="checkbox-label" for="remove_duplicates">Remove Duplicates</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="trim_whitespace" checked>
+                        <label class="checkbox-label" for="trim_whitespace">Trim Whitespace</label>
+                    </div>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Skip Lines</label>
+                    <input type="text" class="input-field" id="skip_lines" placeholder="10,20-30">
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> PERFORMANCE
+            </div>
+
+            <div class="sqldict-option-group">
+                <div class="sqldict-option-title">
+                    <span>⚡</span> THREADING
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Threads</label>
+                        <input type="number" class="input-field" id="threads" value="5" min="1" max="50">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Retries</label>
+                        <input type="number" class="input-field" id="retries" value="2" min="0" max="10">
+                    </div>
+                </div>
+            </div>
+
+            <div class="sqldict-option-group">
+                <div class="sqldict-option-title">
+                    <span>⏱️</span> TIMING
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Connection Timeout</label>
+                        <input type="number" class="input-field" id="conn_timeout" value="5" min="1" max="60">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Read Timeout</label>
+                        <input type="number" class="input-field" id="read_timeout" value="5" min="1" max="60">
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Delay (ms)</label>
+                        <input type="number" class="input-field" id="delay" value="0" min="0" max="10000">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚙️</span> ADVANCED OPTIONS
+            </div>
+
+            <div class="sqldict-option-group">
+                <div class="sqldict-option-title">
+                    <span>🎯</span> ACCOUNT LOCKOUT
+                </div>
+                
+                <div class="checkbox-item">
+                    <input type="checkbox" id="account_lockout">
+                    <label class="checkbox-label" for="account_lockout">Detect Account Lockout</label>
+                </div>
+
+                <div id="lockout_options" style="display: none; margin-top: 15px;">
+                    <div class="output-row">
+                        <div class="input-group">
+                            <label class="input-label">Max Attempts</label>
+                            <input type="number" class="input-field" id="max_attempts" value="5" min="1" max="100">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Lockout Time (sec)</label>
+                            <input type="number" class="input-field" id="lockout_time" value="300" min="1" max="3600">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sqldict-option-group">
+                <div class="sqldict-option-title">
+                    <span>📝</span> LOGGING
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="log_attempts">
+                        <label class="checkbox-label" for="log_attempts">Log All Attempts</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="log_success">
+                        <label class="checkbox-label" for="log_success">Log Success Only</label>
+                    </div>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Log File</label>
+                    <input type="text" class="input-field" id="log_file" value="/var/log/sqldict.log">
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📊</span> OUTPUT CONFIGURATION
+            </div>
+
+            <div class="sqldict-option-group">
+                <div class="sqldict-option-title">
+                    <span>📁</span> OUTPUT FORMATS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_txt">
+                        <label class="checkbox-label" for="output_txt">Text Output</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_csv">
+                        <label class="checkbox-label" for="output_csv">CSV Output</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_json">
+                        <label class="checkbox-label" for="output_json">JSON Output</label>
+                    </div>
+                </div>
+
+                <div id="output_filename_container" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Output Filename</label>
+                    <input type="text" class="input-field" id="output_filename" placeholder="sqldict_results">
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <label class="input-label">Output Directory</label>
+                    <input type="text" class="input-field" id="output_dir" value="/home/kali/sqldict/">
+                </div>
+            </div>
+
+            <div class="sqldict-option-group">
+                <div class="sqldict-option-title">
+                    <span>⚡</span> VERBOSITY
+                </div>
+                
+                <select class="file-type-select" id="verbosity">
+                    <option value="0">Quiet (show only success)</option>
+                    <option value="1">Normal</option>
+                    <option value="2">Verbose</option>
+                    <option value="3">Debug</option>
+                </select>
+            </div>
+
+            <div class="sqldict-option-group">
+                <div class="sqldict-option-title">
+                    <span>⏹️</span> STOP CONDITIONS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="stop_on_success" checked>
+                        <label class="checkbox-label" for="stop_on_success">Stop on First Success</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="stop_on_lockout">
+                        <label class="checkbox-label" for="stop_on_lockout">Stop on Account Lockout</label>
+                    </div>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Max Successes</label>
+                    <input type="number" class="input-field" id="max_success" value="0" min="0" max="100">
+                    <small>0 = unlimited</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CUSTOM OPTIONS
+            </div>
+            <div class="input-group">
+                <label class="input-label">Additional flags (space separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="--debug --no-color">
+            </div>
+        </div>
+
+        <!-- Save/Load Panel -->
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Configuration name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Configuration</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+        
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <!-- Command Preview -->
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">sqldict</div>
+            <div class="command-info" id="commandInfo">No target configured</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand">
+                <span>📋</span> COPY COMMAND
+            </button>
+            <button class="btn btn-secondary" id="clearAll">
+                <span>🗑️</span> CLEAR ALL
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ============ COMMAND BUILDER FOR SQLDICT ============
+            
+            // State
+            let state = {
+                db_type: 'mysql',
+                host: 'localhost',
+                port: 3306,
+                database: '',
+                username: 'root',
+                password: '',
+                conn_string: '',
+                ssl: false,
+                auth_types: {
+                    password: true,
+                    native: false,
+                    sha256: false,
+                    ldap: false,
+                    kerberos: false
+                },
+                wordlist: '/usr/share/wordlists/rockyou.txt',
+                wordlist_type: 'file',
+                charset: 'abcdefghijklmnopqrstuvwxyz0123456789',
+                min_len: 1,
+                max_len: 8,
+                ignore_case: false,
+                remove_duplicates: true,
+                trim_whitespace: true,
+                skip_lines: '',
+                threads: 5,
+                retries: 2,
+                conn_timeout: 5,
+                read_timeout: 5,
+                delay: 0,
+                account_lockout: false,
+                max_attempts: 5,
+                lockout_time: 300,
+                log_attempts: false,
+                log_success: false,
+                log_file: '/var/log/sqldict.log',
+                output: {
+                    txt: false,
+                    csv: false,
+                    json: false,
+                    filename: ''
+                },
+                output_dir: '/home/kali/sqldict/',
+                verbosity: '1',
+                stop_on_success: true,
+                stop_on_lockout: false,
+                max_success: 0,
+                customFlags: ''
+            };
+
+            // DOM Elements
+            // Database selection
+            const dbMySQL = document.getElementById('db-mysql');
+            const dbPostgreSQL = document.getElementById('db-postgresql');
+            const dbOracle = document.getElementById('db-oracle');
+            const dbMSSQL = document.getElementById('db-mssql');
+            const dbSQLite = document.getElementById('db-sqlite');
+            const dbMariaDB = document.getElementById('db-mariadb');
+            const dbMongoDB = document.getElementById('db-mongodb');
+            const dbRedis = document.getElementById('db-redis');
+            
+            // Target
+            const host = document.getElementById('host');
+            const port = document.getElementById('port');
+            const database = document.getElementById('database');
+            const username = document.getElementById('username');
+            const password = document.getElementById('password');
+            const connString = document.getElementById('conn_string');
+            const ssl = document.getElementById('ssl');
+            
+            // Auth types
+            const authPassword = document.getElementById('auth_password');
+            const authNative = document.getElementById('auth_native');
+            const authSha256 = document.getElementById('auth_sha256');
+            const authLdap = document.getElementById('auth_ldap');
+            const authKerberos = document.getElementById('auth_kerberos');
+            
+            // Wordlist
+            const wordlist = document.getElementById('wordlist');
+            const wlFile = document.getElementById('wl_file');
+            const wlStdin = document.getElementById('wl_stdin');
+            const wlGenerate = document.getElementById('wl_generate');
+            const generateOptions = document.getElementById('generate_options');
+            const charset = document.getElementById('charset');
+            const minLen = document.getElementById('min_len');
+            const maxLen = document.getElementById('max_len');
+            const ignoreCase = document.getElementById('ignore_case');
+            const removeDuplicates = document.getElementById('remove_duplicates');
+            const trimWhitespace = document.getElementById('trim_whitespace');
+            const skipLines = document.getElementById('skip_lines');
+            
+            // Performance
+            const threads = document.getElementById('threads');
+            const retries = document.getElementById('retries');
+            const connTimeout = document.getElementById('conn_timeout');
+            const readTimeout = document.getElementById('read_timeout');
+            const delay = document.getElementById('delay');
+            
+            // Advanced
+            const accountLockout = document.getElementById('account_lockout');
+            const lockoutOptions = document.getElementById('lockout_options');
+            const maxAttempts = document.getElementById('max_attempts');
+            const lockoutTime = document.getElementById('lockout_time');
+            const logAttempts = document.getElementById('log_attempts');
+            const logSuccess = document.getElementById('log_success');
+            const logFile = document.getElementById('log_file');
+            
+            // Output
+            const outputTxt = document.getElementById('output_txt');
+            const outputCsv = document.getElementById('output_csv');
+            const outputJson = document.getElementById('output_json');
+            const outputFilename = document.getElementById('output_filename');
+            const outputFilenameContainer = document.getElementById('output_filename_container');
+            const outputDir = document.getElementById('output_dir');
+            const verbosity = document.getElementById('verbosity');
+            const stopOnSuccess = document.getElementById('stop_on_success');
+            const stopOnLockout = document.getElementById('stop_on_lockout');
+            const maxSuccess = document.getElementById('max_success');
+            
+            const customFlags = document.getElementById('customFlags');
+
+            // ============ EVENT LISTENERS ============
+
+            // Database selection
+            function selectDB(dbType) {
+                const dbs = [dbMySQL, dbPostgreSQL, dbOracle, dbMSSQL, dbSQLite, dbMariaDB, dbMongoDB, dbRedis];
+                dbs.forEach(db => db.classList.remove('selected'));
+                
+                if (dbType === 'mysql') {
+                    dbMySQL.classList.add('selected');
+                    port.value = 3306;
+                }
+                if (dbType === 'postgresql') {
+                    dbPostgreSQL.classList.add('selected');
+                    port.value = 5432;
+                }
+                if (dbType === 'oracle') {
+                    dbOracle.classList.add('selected');
+                    port.value = 1521;
+                }
+                if (dbType === 'mssql') {
+                    dbMSSQL.classList.add('selected');
+                    port.value = 1433;
+                }
+                if (dbType === 'sqlite') {
+                    dbSQLite.classList.add('selected');
+                    port.value = 0;
+                }
+                if (dbType === 'mariadb') {
+                    dbMariaDB.classList.add('selected');
+                    port.value = 3306;
+                }
+                if (dbType === 'mongodb') {
+                    dbMongoDB.classList.add('selected');
+                    port.value = 27017;
+                }
+                if (dbType === 'redis') {
+                    dbRedis.classList.add('selected');
+                    port.value = 6379;
+                }
+                
+                state.db_type = dbType;
+                updateCommand();
+            }
+
+            dbMySQL.addEventListener('click', () => selectDB('mysql'));
+            dbPostgreSQL.addEventListener('click', () => selectDB('postgresql'));
+            dbOracle.addEventListener('click', () => selectDB('oracle'));
+            dbMSSQL.addEventListener('click', () => selectDB('mssql'));
+            dbSQLite.addEventListener('click', () => selectDB('sqlite'));
+            dbMariaDB.addEventListener('click', () => selectDB('mariadb'));
+            dbMongoDB.addEventListener('click', () => selectDB('mongodb'));
+            dbRedis.addEventListener('click', () => selectDB('redis'));
+
+            // Target
+            host.addEventListener('input', (e) => { state.host = e.target.value; updateCommand(); });
+            port.addEventListener('input', (e) => { state.port = parseInt(e.target.value) || 3306; updateCommand(); });
+            database.addEventListener('input', (e) => { state.database = e.target.value; updateCommand(); });
+            username.addEventListener('input', (e) => { state.username = e.target.value; updateCommand(); });
+            password.addEventListener('input', (e) => { state.password = e.target.value; updateCommand(); });
+            connString.addEventListener('input', (e) => { state.conn_string = e.target.value; updateCommand(); });
+            ssl.addEventListener('change', (e) => { state.ssl = e.target.checked; updateCommand(); });
+
+            // Auth types
+            authPassword.addEventListener('change', (e) => { state.auth_types.password = e.target.checked; updateCommand(); });
+            authNative.addEventListener('change', (e) => { state.auth_types.native = e.target.checked; updateCommand(); });
+            authSha256.addEventListener('change', (e) => { state.auth_types.sha256 = e.target.checked; updateCommand(); });
+            authLdap.addEventListener('change', (e) => { state.auth_types.ldap = e.target.checked; updateCommand(); });
+            authKerberos.addEventListener('change', (e) => { state.auth_types.kerberos = e.target.checked; updateCommand(); });
+
+            // Wordlist
+            wordlist.addEventListener('input', (e) => { state.wordlist = e.target.value; updateCommand(); });
+            
+            wlFile.addEventListener('change', (e) => { 
+                if(e.target.checked) {
+                    state.wordlist_type = 'file';
+                    generateOptions.style.display = 'none';
+                    updateCommand();
+                }
+            });
+            
+            wlStdin.addEventListener('change', (e) => { 
+                if(e.target.checked) {
+                    state.wordlist_type = 'stdin';
+                    generateOptions.style.display = 'none';
+                    updateCommand();
+                }
+            });
+            
+            wlGenerate.addEventListener('change', (e) => { 
+                if(e.target.checked) {
+                    state.wordlist_type = 'generate';
+                    generateOptions.style.display = 'block';
+                    updateCommand();
+                }
+            });
+
+            charset.addEventListener('input', (e) => { state.charset = e.target.value; updateCommand(); });
+            minLen.addEventListener('input', (e) => { state.min_len = parseInt(e.target.value) || 1; updateCommand(); });
+            maxLen.addEventListener('input', (e) => { state.max_len = parseInt(e.target.value) || 8; updateCommand(); });
+            ignoreCase.addEventListener('change', (e) => { state.ignore_case = e.target.checked; updateCommand(); });
+            removeDuplicates.addEventListener('change', (e) => { state.remove_duplicates = e.target.checked; updateCommand(); });
+            trimWhitespace.addEventListener('change', (e) => { state.trim_whitespace = e.target.checked; updateCommand(); });
+            skipLines.addEventListener('input', (e) => { state.skip_lines = e.target.value; updateCommand(); });
+
+            // Performance
+            threads.addEventListener('input', (e) => { state.threads = parseInt(e.target.value) || 5; updateCommand(); });
+            retries.addEventListener('input', (e) => { state.retries = parseInt(e.target.value) || 2; updateCommand(); });
+            connTimeout.addEventListener('input', (e) => { state.conn_timeout = parseInt(e.target.value) || 5; updateCommand(); });
+            readTimeout.addEventListener('input', (e) => { state.read_timeout = parseInt(e.target.value) || 5; updateCommand(); });
+            delay.addEventListener('input', (e) => { state.delay = parseInt(e.target.value) || 0; updateCommand(); });
+
+            // Advanced
+            accountLockout.addEventListener('change', (e) => { 
+                state.account_lockout = e.target.checked;
+                lockoutOptions.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            maxAttempts.addEventListener('input', (e) => { state.max_attempts = parseInt(e.target.value) || 5; updateCommand(); });
+            lockoutTime.addEventListener('input', (e) => { state.lockout_time = parseInt(e.target.value) || 300; updateCommand(); });
+            
+            logAttempts.addEventListener('change', (e) => { 
+                state.log_attempts = e.target.checked;
+                if(e.target.checked) state.log_success = false;
+                updateCommand();
+            });
+            logSuccess.addEventListener('change', (e) => { 
+                state.log_success = e.target.checked;
+                if(e.target.checked) state.log_attempts = false;
+                updateCommand();
+            });
+            logFile.addEventListener('input', (e) => { state.log_file = e.target.value; updateCommand(); });
+
+            // Output
+            outputTxt.addEventListener('change', (e) => { state.output.txt = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputCsv.addEventListener('change', (e) => { state.output.csv = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputJson.addEventListener('change', (e) => { state.output.json = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputFilename.addEventListener('input', (e) => { state.output.filename = e.target.value; updateCommand(); });
+            outputDir.addEventListener('input', (e) => { state.output_dir = e.target.value; updateCommand(); });
+            verbosity.addEventListener('change', (e) => { state.verbosity = e.target.value; updateCommand(); });
+            stopOnSuccess.addEventListener('change', (e) => { state.stop_on_success = e.target.checked; updateCommand(); });
+            stopOnLockout.addEventListener('change', (e) => { state.stop_on_lockout = e.target.checked; updateCommand(); });
+            maxSuccess.addEventListener('input', (e) => { state.max_success = parseInt(e.target.value) || 0; updateCommand(); });
+
+            function updateOutputVisibility() {
+                const anyOutput = state.output.txt || state.output.csv || state.output.json;
+                outputFilenameContainer.style.display = anyOutput ? 'block' : 'none';
+            }
+
+            // Custom flags
+            customFlags.addEventListener('input', (e) => { state.customFlags = e.target.value; updateCommand(); });
+
+            // ============ COMMAND GENERATION ============
+
+            function generateCommand() {
+                let command = 'sqldict';
+                const parts = [];
+
+                // Database type
+                parts.push(`-t ${state.db_type}`);
+
+                // Connection details
+                if (state.conn_string) {
+                    parts.push(`-c "${state.conn_string}"`);
+                } else {
+                    parts.push(`-h ${state.host}`);
+                    parts.push(`-P ${state.port}`);
+                    if (state.database) parts.push(`-d ${state.database}`);
+                    parts.push(`-u ${state.username}`);
+                }
+
+                // Password
+                if (state.password) {
+                    parts.push(`-p "${state.password}"`);
+                }
+
+                // SSL
+                if (state.ssl) {
+                    parts.push('--ssl');
+                }
+
+                // Auth types
+                const authList = [];
+                if (state.auth_types.password) authList.push('password');
+                if (state.auth_types.native) authList.push('native');
+                if (state.auth_types.sha256) authList.push('sha256');
+                if (state.auth_types.ldap) authList.push('ldap');
+                if (state.auth_types.kerberos) authList.push('kerberos');
+                
+                if (authList.length > 0 && authList.length < 5) {
+                    parts.push(`--auth ${authList.join(',')}`);
+                }
+
+                // Wordlist
+                if (state.wordlist_type === 'file' && state.wordlist) {
+                    parts.push(`-w ${state.wordlist}`);
+                } else if (state.wordlist_type === 'stdin') {
+                    parts.push('-w -');
+                } else if (state.wordlist_type === 'generate') {
+                    parts.push(`--generate ${state.charset}:${state.min_len}-${state.max_len}`);
+                }
+
+                // Wordlist options
+                if (state.ignore_case) parts.push('--ignore-case');
+                if (!state.remove_duplicates) parts.push('--keep-duplicates');
+                if (!state.trim_whitespace) parts.push('--keep-spaces');
+                if (state.skip_lines) parts.push(`--skip-lines ${state.skip_lines}`);
+
+                // Performance
+                if (state.threads !== 5) parts.push(`-T ${state.threads}`);
+                if (state.retries !== 2) parts.push(`-r ${state.retries}`);
+                if (state.conn_timeout !== 5) parts.push(`--conn-timeout ${state.conn_timeout}`);
+                if (state.read_timeout !== 5) parts.push(`--read-timeout ${state.read_timeout}`);
+                if (state.delay > 0) parts.push(`--delay ${state.delay}`);
+
+                // Account lockout
+                if (state.account_lockout) {
+                    parts.push('--detect-lockout');
+                    if (state.max_attempts !== 5) parts.push(`--max-attempts ${state.max_attempts}`);
+                    if (state.lockout_time !== 300) parts.push(`--lockout-time ${state.lockout_time}`);
+                }
+
+                // Logging
+                if (state.log_attempts) parts.push('--log-attempts');
+                if (state.log_success) parts.push('--log-success');
+                if (state.log_file) parts.push(`--log-file ${state.log_file}`);
+
+                // Output
+                if (state.output.filename) {
+                    if (state.output.txt) parts.push(`-o ${state.output_dir}${state.output.filename}.txt`);
+                    if (state.output.csv) parts.push(`-o ${state.output_dir}${state.output.filename}.csv`);
+                    if (state.output.json) parts.push(`-o ${state.output_dir}${state.output.filename}.json`);
+                }
+
+                // Verbosity
+                if (state.verbosity === '0') parts.push('-q');
+                if (state.verbosity === '2') parts.push('-v');
+                if (state.verbosity === '3') parts.push('-v -v');
+
+                // Stop conditions
+                if (state.stop_on_success) parts.push('--stop-on-success');
+                if (state.stop_on_lockout) parts.push('--stop-on-lockout');
+                if (state.max_success > 0) parts.push(`--max-success ${state.max_success}`);
+
+                // Custom flags
+                if (state.customFlags) {
+                    const customParts = state.customFlags.trim().split(/\s+/);
+                    customParts.forEach(part => parts.push(part));
+                }
+
+                return command + ' ' + parts.join(' ');
+            }
+
+            function generateExplanation() {
+                const explanations = [];
+                
+                const dbNames = {
+                    'mysql': 'MySQL',
+                    'postgresql': 'PostgreSQL',
+                    'oracle': 'Oracle',
+                    'mssql': 'MSSQL',
+                    'sqlite': 'SQLite',
+                    'mariadb': 'MariaDB',
+                    'mongodb': 'MongoDB',
+                    'redis': 'Redis'
+                };
+                explanations.push(`DB: ${dbNames[state.db_type]}`);
+                
+                if (state.conn_string) {
+                    explanations.push(`Connection: ${state.conn_string}`);
+                } else {
+                    explanations.push(`Target: ${state.host}:${state.port}`);
+                    if (state.database) explanations.push(`DB: ${state.database}`);
+                    explanations.push(`User: ${state.username}`);
+                }
+                
+                if (state.password) {
+                    explanations.push('Single password');
+                } else {
+                    const wordlistName = state.wordlist.split('/').pop();
+                    explanations.push(`Wordlist: ${wordlistName}`);
+                }
+                
+                if (state.threads > 5) explanations.push(`Threads: ${state.threads}`);
+                if (state.account_lockout) explanations.push('Lockout detection');
+                
+                const outputFormats = [];
+                if (state.output.txt) outputFormats.push('TXT');
+                if (state.output.csv) outputFormats.push('CSV');
+                if (state.output.json) outputFormats.push('JSON');
+                
+                if (outputFormats.length > 0) {
+                    explanations.push(`Output: ${outputFormats.join(', ')}`);
+                }
+                
+                return explanations.length > 0 
+                    ? `Dictionary attack: ${explanations.join(' • ')}`
+                    : 'No attack parameters configured';
+            }
+
+            function updateCommand() {
+                document.getElementById('commandPreview').textContent = generateCommand();
+                document.getElementById('commandInfo').textContent = generateExplanation();
+            }
+
+            // ============ SAVE/LOAD FUNCTIONS ============
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved.sqldict) saved.sqldict = [];
+                
+                saved.sqldict.push({
+                    name: name,
+                    state: { ...state },
+                    timestamp: new Date().toISOString()
+                });
+                
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved.sqldict || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved.sqldict && saved.sqldict[index]) {
+                    saved.sqldict.splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function loadStateIntoSavedCommands(savedState) {
+                // Restore state
+                state = JSON.parse(JSON.stringify(savedState));
+                
+                // Update UI
+                selectDB(state.db_type || 'mysql');
+                host.value = state.host || 'localhost';
+                port.value = state.port || 3306;
+                database.value = state.database || '';
+                username.value = state.username || 'root';
+                password.value = state.password || '';
+                connString.value = state.conn_string || '';
+                ssl.checked = state.ssl || false;
+                
+                authPassword.checked = state.auth_types.password !== false;
+                authNative.checked = state.auth_types.native || false;
+                authSha256.checked = state.auth_types.sha256 || false;
+                authLdap.checked = state.auth_types.ldap || false;
+                authKerberos.checked = state.auth_types.kerberos || false;
+                
+                wordlist.value = state.wordlist || '/usr/share/wordlists/rockyou.txt';
+                
+                if (state.wordlist_type === 'file') wlFile.checked = true;
+                if (state.wordlist_type === 'stdin') wlStdin.checked = true;
+                if (state.wordlist_type === 'generate') wlGenerate.checked = true;
+                
+                generateOptions.style.display = state.wordlist_type === 'generate' ? 'block' : 'none';
+                charset.value = state.charset || 'abcdefghijklmnopqrstuvwxyz0123456789';
+                minLen.value = state.min_len || 1;
+                maxLen.value = state.max_len || 8;
+                ignoreCase.checked = state.ignore_case || false;
+                removeDuplicates.checked = state.remove_duplicates !== false;
+                trimWhitespace.checked = state.trim_whitespace !== false;
+                skipLines.value = state.skip_lines || '';
+                
+                threads.value = state.threads || 5;
+                retries.value = state.retries || 2;
+                connTimeout.value = state.conn_timeout || 5;
+                readTimeout.value = state.read_timeout || 5;
+                delay.value = state.delay || 0;
+                
+                accountLockout.checked = state.account_lockout || false;
+                lockoutOptions.style.display = state.account_lockout ? 'block' : 'none';
+                maxAttempts.value = state.max_attempts || 5;
+                lockoutTime.value = state.lockout_time || 300;
+                
+                logAttempts.checked = state.log_attempts || false;
+                logSuccess.checked = state.log_success || false;
+                logFile.value = state.log_file || '/var/log/sqldict.log';
+                
+                outputTxt.checked = state.output.txt || false;
+                outputCsv.checked = state.output.csv || false;
+                outputJson.checked = state.output.json || false;
+                outputFilename.value = state.output.filename || '';
+                updateOutputVisibility();
+                outputDir.value = state.output_dir || '/home/kali/sqldict/';
+                verbosity.value = state.verbosity || '1';
+                stopOnSuccess.checked = state.stop_on_success !== false;
+                stopOnLockout.checked = state.stop_on_lockout || false;
+                maxSuccess.value = state.max_success || 0;
+                
+                customFlags.value = state.customFlags || '';
+                
+                updateCommand();
+            }
+
+            function updateSavedCommandsList() {
+                const saved = loadSavedCommands();
+                const container = document.getElementById('savedCommandsList');
+                
+                if (saved.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-saved')) {
+                            const index = item.dataset.index;
+                            const cmd = saved[index];
+                            loadStateIntoSavedCommands(cmd.state);
+                            Utils.showNotification(`Loaded: ${cmd.name}`, 'success');
+                        }
+                    });
+                });
+                
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = btn.dataset.index;
+                        deleteSavedCommand(index);
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            // ============ BUTTON HANDLERS ============
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value;
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this configuration', 'warning');
+                    return;
+                }
+                
+                saveCommand(name);
+                Utils.showNotification('✅ Configuration saved!', 'success');
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', () => {
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const command = generateCommand();
+                try {
+                    await navigator.clipboard.writeText(command);
+                    Utils.showNotification('✅ Command copied to clipboard!', 'success');
+                } catch (err) {
+                    Utils.showNotification('❌ Failed to copy command', 'error');
+                }
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                // Reset state
+                state = {
+                    db_type: 'mysql',
+                    host: 'localhost',
+                    port: 3306,
+                    database: '',
+                    username: 'root',
+                    password: '',
+                    conn_string: '',
+                    ssl: false,
+                    auth_types: { password: true, native: false, sha256: false, ldap: false, kerberos: false },
+                    wordlist: '/usr/share/wordlists/rockyou.txt',
+                    wordlist_type: 'file',
+                    charset: 'abcdefghijklmnopqrstuvwxyz0123456789',
+                    min_len: 1,
+                    max_len: 8,
+                    ignore_case: false,
+                    remove_duplicates: true,
+                    trim_whitespace: true,
+                    skip_lines: '',
+                    threads: 5,
+                    retries: 2,
+                    conn_timeout: 5,
+                    read_timeout: 5,
+                    delay: 0,
+                    account_lockout: false,
+                    max_attempts: 5,
+                    lockout_time: 300,
+                    log_attempts: false,
+                    log_success: false,
+                    log_file: '/var/log/sqldict.log',
+                    output: { txt: false, csv: false, json: false, filename: '' },
+                    output_dir: '/home/kali/sqldict/',
+                    verbosity: '1',
+                    stop_on_success: true,
+                    stop_on_lockout: false,
+                    max_success: 0,
+                    customFlags: ''
+                };
+                
+                // Reset UI
+                selectDB('mysql');
+                host.value = 'localhost';
+                port.value = 3306;
+                database.value = '';
+                username.value = 'root';
+                password.value = '';
+                connString.value = '';
+                ssl.checked = false;
+                
+                authPassword.checked = true;
+                authNative.checked = false;
+                authSha256.checked = false;
+                authLdap.checked = false;
+                authKerberos.checked = false;
+                
+                wordlist.value = '/usr/share/wordlists/rockyou.txt';
+                wlFile.checked = true;
+                wlStdin.checked = false;
+                wlGenerate.checked = false;
+                generateOptions.style.display = 'none';
+                charset.value = 'abcdefghijklmnopqrstuvwxyz0123456789';
+                minLen.value = 1;
+                maxLen.value = 8;
+                ignoreCase.checked = false;
+                removeDuplicates.checked = true;
+                trimWhitespace.checked = true;
+                skipLines.value = '';
+                
+                threads.value = 5;
+                retries.value = 2;
+                connTimeout.value = 5;
+                readTimeout.value = 5;
+                delay.value = 0;
+                
+                accountLockout.checked = false;
+                lockoutOptions.style.display = 'none';
+                maxAttempts.value = 5;
+                lockoutTime.value = 300;
+                
+                logAttempts.checked = false;
+                logSuccess.checked = false;
+                logFile.value = '/var/log/sqldict.log';
+                
+                outputTxt.checked = false;
+                outputCsv.checked = false;
+                outputJson.checked = false;
+                outputFilenameContainer.style.display = 'none';
+                outputFilename.value = '';
+                outputDir.value = '/home/kali/sqldict/';
+                verbosity.value = '1';
+                stopOnSuccess.checked = true;
+                stopOnLockout.checked = false;
+                maxSuccess.value = 0;
+                
+                customFlags.value = '';
+                
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            // Initial update
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

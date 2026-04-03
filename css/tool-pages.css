@@ -1,0 +1,436 @@
+/* ========================================
+   tool-pages.css - Command Builder Interface
+   Contains: Tool pages, command builder, checkboxes, preview
+   ======================================== */
+
+/* TOOL PAGE CONTAINER */
+.tool-page {
+    max-width: 1300px;
+    margin: 0 auto;
+}
+
+/* BREADCRUMB NAVIGATION */
+.breadcrumb {
+    padding: 25px 0;
+    color: #2A6FAF;
+    font-size: 0.95rem;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.breadcrumb a {
+    color: #1E88E5;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb a:hover {
+    color: #00CFFF;
+}
+
+.breadcrumb .separator {
+    margin: 0 12px;
+    color: #0F5FA8;
+}
+
+.breadcrumb .current {
+    color: #00CFFF;
+}
+
+/* TOOL HEADER */
+.tool-header {
+    background: linear-gradient(90deg, #0F5FA8, #1E88E5, #00CFFF);
+    padding: 35px 30px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    position: relative;
+    border: 2px solid #0F5FA8;
+}
+
+.tool-header h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 3.5rem;
+    color: #E6F0FA;
+    margin: 0;
+    letter-spacing: 2px;
+}
+
+.tool-header p {
+    color: #E6F0FA;
+    font-size: 1.1rem;
+    margin-top: 10px;
+    opacity: 0.95;
+}
+
+/* SECTION STYLES */
+.section {
+    background: rgba(15, 95, 168, 0.1);
+    backdrop-filter: blur(10px);
+    border: 2px solid #0F5FA8;
+    border-radius: 16px;
+    padding: 25px;
+    margin-bottom: 25px;
+    transition: all 0.3s ease;
+}
+
+.section:hover {
+    border-color: #1E88E5;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.section-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.3rem;
+    color: #00CFFF;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 2px solid #0F5FA8;
+    padding-bottom: 12px;
+}
+
+.section-title span {
+    font-size: 1.5rem;
+}
+
+/* INPUT FIELDS */
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-label {
+    display: block;
+    color: #1E88E5;
+    margin-bottom: 8px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+}
+
+.input-field {
+    width: 100%;
+    padding: 14px 18px;
+    background: rgba(10, 31, 51, 0.9);
+    border: 2px solid #0F5FA8;
+    border-radius: 10px;
+    color: #E6F0FA;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: #00CFFF;
+    background: #0A1F33;
+}
+
+.input-field::placeholder {
+    color: #2A6FAF;
+    opacity: 0.7;
+}
+
+/* CHECKBOX GRID */
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 15px;
+    background: rgba(15, 95, 168, 0.15);
+    border: 1px solid #0F5FA8;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.checkbox-item:hover {
+    background: rgba(15, 95, 168, 0.3);
+    border-color: #1E88E5;
+    transform: translateX(3px);
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #00CFFF;
+}
+
+.checkbox-label {
+    color: #E6F0FA;
+    font-size: 0.95rem;
+    cursor: pointer;
+    flex: 1;
+}
+
+.checkbox-flag {
+    color: #2A6FAF;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* CUSTOM OPTIONS SECTION */
+.custom-options {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    border: 1px dashed #1E88E5;
+}
+
+/* OUTPUT CONFIGURATION */
+.output-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 15px;
+    align-items: end;
+}
+
+.file-type-select {
+    padding: 14px 18px;
+    background: rgba(10, 31, 51, 0.9);
+    border: 2px solid #0F5FA8;
+    border-radius: 10px;
+    color: #E6F0FA;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.file-type-select:hover {
+    border-color: #1E88E5;
+}
+
+.file-type-select option {
+    background: #0A1F33;
+    color: #E6F0FA;
+}
+
+/* COMMAND PREVIEW */
+.command-preview {
+    background: #0A1F33;
+    border: 3px solid #00CFFF;
+    border-radius: 16px;
+    padding: 25px;
+    margin: 30px 0;
+    position: relative;
+}
+
+.command-preview::before {
+    content: '⚡ GENERATED COMMAND';
+    position: absolute;
+    top: -15px;
+    left: 20px;
+    background: #00CFFF;
+    color: #0A1F33;
+    padding: 5px 20px;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.command-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem;
+    color: #00CFFF;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    border: 1px solid #0F5FA8;
+    word-break: break-all;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.command-info {
+    color: #2A6FAF;
+    font-size: 0.95rem;
+    padding: 12px;
+    background: rgba(15, 95, 168, 0.2);
+    border-radius: 8px;
+    border-left: 4px solid #1E88E5;
+}
+
+/* ACTION BUTTONS */
+.action-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin: 30px 0;
+}
+
+.btn {
+    padding: 16px 35px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: #0F5FA8;
+    color: #E6F0FA;
+    border: 2px solid #00CFFF;
+}
+
+.btn-primary:hover {
+    background: #1E88E5;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: #1E88E5;
+    border: 2px solid #1E88E5;
+}
+
+.btn-secondary:hover {
+    color: #00CFFF;
+    border-color: #00CFFF;
+    transform: translateY(-2px);
+}
+
+/* SAVE PANEL */
+.save-panel {
+    background: linear-gradient(135deg, #0F5FA8, #1E88E5);
+    border-radius: 16px;
+    padding: 25px;
+    margin: 20px 0;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+    border: 2px solid #00CFFF;
+}
+
+.save-panel input {
+    flex: 2;
+    min-width: 250px;
+    background: #0A1F33;
+    border: 2px solid #00CFFF;
+}
+
+/* SAVED COMMANDS LIST */
+.saved-commands {
+    background: #0A1F33;
+    border: 2px solid #1E88E5;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.saved-command-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid #0F5FA8;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.saved-command-item:hover {
+    background: rgba(15, 95, 168, 0.3);
+    padding-left: 20px;
+}
+
+.saved-command-name {
+    color: #00CFFF;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+}
+
+.saved-command-preview {
+    font-size: 0.8rem;
+    color: #2A6FAF;
+    margin-top: 4px;
+}
+
+.delete-saved {
+    color: #ff6b6b;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: all 0.2s ease;
+}
+
+.delete-saved:hover {
+    background: rgba(255, 68, 68, 0.2);
+}
+
+/* TOOLTIPS */
+[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+[data-tooltip]:before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 12px;
+    background: #0F5FA8;
+    color: #E6F0FA;
+    font-size: 0.8rem;
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap;
+    border-radius: 6px;
+    border: 1px solid #00CFFF;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    z-index: 2000;
+}
+
+[data-tooltip]:hover:before {
+    opacity: 1;
+    visibility: visible;
+    bottom: calc(100% + 5px);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .tool-header h1 {
+        font-size: 2.5rem;
+    }
+    
+    .output-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .checkbox-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

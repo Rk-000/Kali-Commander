@@ -1,0 +1,223 @@
+/* ========================================
+   categories.css - Category Cards & Dropdown Styles
+   Contains: Category cards, headers, dropdowns, tool items
+   Mix of Option A (gradient header) and Option C (floating panel)
+   ======================================== */
+
+/* CATEGORY CARD - Floating Panel (Option C) */
+.category-card {
+    background: linear-gradient(135deg, rgba(15, 95, 168, 0.15), rgba(30, 136, 229, 0.1));
+    border: 2px solid #0F5FA8;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    position: relative;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    isolation: isolate;
+}
+
+.category-card:hover {
+    transform: translateY(-8px);
+    border-color: #1E88E5;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    z-index: 10;
+}
+
+/* CATEGORY HEADER - Full-width gradient (Option A) */
+.category-header {
+    background: linear-gradient(90deg, #0F5FA8, #1E88E5, #00CFFF);
+    margin: -2px -2px 20px -2px;
+    padding: 25px 25px 20px 25px;
+    border-radius: 18px 18px 0 0;
+    position: relative;
+    border-bottom: 3px solid #0F5FA8;
+}
+
+.category-header h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.4rem;
+    color: #E6F0FA;
+    margin: 0;
+    letter-spacing: 1px;
+}
+
+.category-header .category-icon {
+    font-size: 2.2rem;
+    margin-right: 15px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* CATEGORY DESCRIPTION */
+.category-description {
+    color: #E6F0FA;
+    font-size: 0.95rem;
+    margin: 15px 0;
+    line-height: 1.6;
+    opacity: 0.9;
+    padding: 0 5px;
+}
+
+/* CATEGORY STATS */
+.category-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 12px 15px;
+    background: rgba(15, 95, 168, 0.25);
+    border-radius: 12px;
+    border: 1px solid #1E88E5;
+}
+
+.category-stats .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #E6F0FA;
+    font-size: 0.95rem;
+}
+
+.category-stats .stat-value {
+    color: #00CFFF;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* DROPDOWN CONTAINER */
+.category-dropdown {
+    position: relative;
+    width: 100%;
+    z-index: 100;
+}
+
+/* DROPDOWN BUTTON */
+.dropdown-btn {
+    background: transparent;
+    border: 2px solid #0F5FA8;
+    color: #E6F0FA;
+    padding: 14px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    z-index: 5;
+}
+
+.dropdown-btn:hover {
+    background: #0F5FA8;
+    border-color: #1E88E5;
+}
+
+.dropdown-btn::after {
+    content: '▼';
+    font-size: 0.8rem;
+    color: #00CFFF;
+    transition: transform 0.3s ease;
+}
+
+.dropdown-btn.active::after {
+    transform: rotate(180deg);
+}
+
+/* DROPDOWN CONTENT - Appears above everything */
+.dropdown-content {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    width: 100%;
+    background: #0A1F33;
+    border: 2px solid #1E88E5;
+    border-radius: 12px;
+    padding: 12px 0;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    overflow: visible;
+}
+
+.dropdown-content.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: all;
+}
+
+/* TOOL ITEMS IN DROPDOWN */
+.tool-item {
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #E6F0FA;
+    border-left: 4px solid transparent;
+    position: relative;
+    z-index: 1001;
+}
+
+.tool-item:hover {
+    background: rgba(15, 95, 168, 0.3);
+    border-left-color: #00CFFF;
+    padding-left: 25px;
+}
+
+.tool-item .tool-icon {
+    font-size: 1.5rem;
+    width: 30px;
+    text-align: center;
+    color: #00CFFF;
+}
+
+.tool-item .tool-name {
+    flex: 1;
+    font-weight: 500;
+}
+
+.tool-item .tool-badge {
+    background: #0F5FA8;
+    color: #E6F0FA;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-family: 'JetBrains Mono', monospace;
+    border: 1px solid #1E88E5;
+}
+
+/* ANIMATIONS */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-10px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* RESPONSIVE ADJUSTMENTS */
+@media (max-width: 768px) {
+    .category-header h3 {
+        font-size: 1.2rem;
+    }
+    
+    .tool-item {
+        padding: 10px 15px;
+    }
+    
+    .tool-item .tool-icon {
+        font-size: 1.2rem;
+    }
+}

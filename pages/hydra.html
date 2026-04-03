@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hydra - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .hydra-panel,
+        .option-cluster {
+            background: rgba(15, 95, 168, 0.08);
+            border-left: 3px solid #00CFFF;
+        }
+        .tool-chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px;
+        }
+        .tool-chip {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid #1E88E5;
+            background: rgba(15,95,168,0.22);
+            color: #E6F0FA;
+            font-size: 0.82rem;
+            letter-spacing: 0.4px;
+        }
+        .tool-note {
+            margin-top: 12px;
+            color: #9CC8F3;
+            font-size: 0.95rem;
+        }
+        .insight-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+        .insight-card {
+            background: rgba(10,31,51,0.85);
+            border: 1px solid #0F5FA8;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .insight-card .eyebrow {
+            color: #2A6FAF;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 8px;
+        }
+        .insight-card .value {
+            color: #E6F0FA;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            line-height: 1.45;
+        }
+        .preset-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .preset-btn {
+            background: rgba(15,95,168,0.18);
+            color: #E6F0FA;
+            border: 1px solid #1E88E5;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.92rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .preset-btn:hover {
+            transform: translateY(-2px);
+            border-color: #00CFFF;
+            background: rgba(15,95,168,0.30);
+        }
+        .section-topline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .section-topline .section-title {
+            margin-bottom: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .cluster-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .mini-btn {
+            background: transparent;
+            color: #9CC8F3;
+            border: 1px solid #1E88E5;
+            padding: 7px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+        }
+        .mini-btn:hover {
+            color: #00CFFF;
+            border-color: #00CFFF;
+        }
+        .cluster-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 14px;
+        }
+        .option-card {
+            background: rgba(10,31,51,0.45);
+            border: 1px solid rgba(30,136,229,0.35);
+            border-radius: 10px;
+            padding: 12px;
+        }
+        .option-card:hover {
+            border-color: #00CFFF;
+        }
+        .option-card .checkbox-item {
+            background: transparent;
+            border: none;
+            padding: 0;
+            align-items: flex-start;
+        }
+        .option-card .checkbox-item:hover {
+            transform: none;
+            background: transparent;
+        }
+        .value-wrap {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed rgba(30,136,229,0.45);
+        }
+        .value-wrap .input-field {
+            padding: 12px 14px;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 768px) {
+            .section-topline {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .cluster-actions {
+                width: 100%;
+            }
+            .mini-btn {
+                flex: 1;
+            }
+            .cluster-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=password-attacks">Password Attacks</a>
+            <span class="separator">›</span>
+            <span class="current">Hydra</span>
+        </div>
+
+        <div class="tool-header">
+            <h1>HYDRA</h1>
+            <p>Network logon cracker</p>
+            <div class="tool-chip-row"><span class="tool-chip">Brute Force</span><span class="tool-chip">Service Login</span><span class="tool-chip">Credential Testing</span></div>
+            
+        </div>
+
+        <div class="section hydra-panel">
+            <div class="section-title"><span>🐍</span> OPERATOR SNAPSHOT</div>
+            <div class="insight-grid">
+                <div class="insight-card">
+                    <div class="eyebrow">Primary Focus</div>
+                    <div class="value">Brute Force</div>
+                </div>
+                <div class="insight-card">
+                    <div class="eyebrow">Quick Start</div>
+                    <div class="value">SSH Audit</div>
+                </div>
+                <div class="insight-card">
+                    <div class="eyebrow">Output Base</div>
+                    <div class="value">/home/kali/creds/</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title"><span>📌</span> TARGET SPECIFICATION</div>
+            <div class="input-group">
+                <label class="input-label">Target host or service endpoint</label>
+                <input type="text" class="input-field" id="target" placeholder="192.168.1.10 ssh">
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title"><span>⚙️</span> QUICK PRESETS</div>
+            <div class="preset-row"><button type="button" class="preset-btn" data-preset="SSH Audit"><span>🔐</span>SSH Audit</button><button type="button" class="preset-btn" data-preset="Web Form Spray"><span>🌍</span>Web Form Spray</button><button type="button" class="preset-btn" data-preset="Fast Password Check"><span>⚡</span>Fast Password Check</button></div>
+        </div>
+
+        
+        <div class="section option-cluster" id="section-services">
+            <div class="section-topline">
+                <div class="section-title"><span>🌐</span> SERVICE TARGETING</div>
+                <div class="cluster-actions"><button type="button" class="mini-btn select-all">All</button><button type="button" class="mini-btn clear-all">Clear</button></div>
+            </div>
+            <div class="cluster-grid">
+                
+        <div class="option-card" data-section="services" data-flag="-s">
+            <label class="checkbox-item" data-tooltip="Set a non-default service port">
+                <input type="checkbox" class="option-checkbox" data-section="services" data-flag="-s" data-has-value="true">
+                <span class="checkbox-label">Port Override</span>
+                <span class="checkbox-flag">-s</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="services" data-flag="-s" placeholder="22" value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="services" data-flag="-S">
+            <label class="checkbox-item" data-tooltip="Wrap the connection in SSL/TLS">
+                <input type="checkbox" class="option-checkbox" data-section="services" data-flag="-S" >
+                <span class="checkbox-label">Use SSL/TLS</span>
+                <span class="checkbox-flag">-S</span>
+            </label>
+            
+        </div>
+    
+        <div class="option-card" data-section="services" data-flag="-l">
+            <label class="checkbox-item" data-tooltip="Test a single username">
+                <input type="checkbox" class="option-checkbox" data-section="services" data-flag="-l" data-has-value="true">
+                <span class="checkbox-label">Single Username</span>
+                <span class="checkbox-flag">-l</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="services" data-flag="-l" placeholder="admin" value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="services" data-flag="-L">
+            <label class="checkbox-item" data-tooltip="Path to username list">
+                <input type="checkbox" class="option-checkbox" data-section="services" data-flag="-L" data-has-value="true">
+                <span class="checkbox-label">Username List</span>
+                <span class="checkbox-flag">-L</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="services" data-flag="-L" placeholder="/usr/share/wordlists/usernames.txt" value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="services" data-flag="-e">
+            <label class="checkbox-item" data-tooltip="Test empty and username-based passwords">
+                <input type="checkbox" class="option-checkbox" data-section="services" data-flag="-e" >
+                <span class="checkbox-label">Try Null/Reverse Passwords</span>
+                <span class="checkbox-flag">-e</span>
+            </label>
+            
+        </div>
+    
+            </div>
+        </div>
+    
+        <div class="section option-cluster" id="section-credentials">
+            <div class="section-topline">
+                <div class="section-title"><span>🔑</span> PASSWORD SOURCES</div>
+                <div class="cluster-actions"><button type="button" class="mini-btn select-all">All</button><button type="button" class="mini-btn clear-all">Clear</button></div>
+            </div>
+            <div class="cluster-grid">
+                
+        <div class="option-card" data-section="credentials" data-flag="-p">
+            <label class="checkbox-item" data-tooltip="Test a single password">
+                <input type="checkbox" class="option-checkbox" data-section="credentials" data-flag="-p" data-has-value="true">
+                <span class="checkbox-label">Single Password</span>
+                <span class="checkbox-flag">-p</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="credentials" data-flag="-p" placeholder="Password123!" value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="credentials" data-flag="-P">
+            <label class="checkbox-item" data-tooltip="Path to password list">
+                <input type="checkbox" class="option-checkbox" data-section="credentials" data-flag="-P" data-has-value="true">
+                <span class="checkbox-label">Password List</span>
+                <span class="checkbox-flag">-P</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="credentials" data-flag="-P" placeholder="/usr/share/wordlists/rockyou.txt" value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="credentials" data-flag="-C">
+            <label class="checkbox-item" data-tooltip="user:pass combo list">
+                <input type="checkbox" class="option-checkbox" data-section="credentials" data-flag="-C" data-has-value="true">
+                <span class="checkbox-label">Colon-Separated Combo File</span>
+                <span class="checkbox-flag">-C</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="credentials" data-flag="-C" placeholder="/path/to/combos.txt" value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="credentials" data-flag="-u">
+            <label class="checkbox-item" data-tooltip="Iterate user-first instead of password-first">
+                <input type="checkbox" class="option-checkbox" data-section="credentials" data-flag="-u" >
+                <span class="checkbox-label">Loop Users First</span>
+                <span class="checkbox-flag">-u</span>
+            </label>
+            
+        </div>
+    
+        <div class="option-card" data-section="credentials" data-flag="-x">
+            <label class="checkbox-item" data-tooltip="Generate password patterns">
+                <input type="checkbox" class="option-checkbox" data-section="credentials" data-flag="-x" data-has-value="true">
+                <span class="checkbox-label">Bruteforce Pattern</span>
+                <span class="checkbox-flag">-x</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="credentials" data-flag="-x" placeholder="1:4:a" value="">
+            </div>
+        
+        </div>
+    
+            </div>
+        </div>
+    
+        <div class="section option-cluster" id="section-execution">
+            <div class="section-topline">
+                <div class="section-title"><span>⚡</span> EXECUTION CONTROL</div>
+                <div class="cluster-actions"><button type="button" class="mini-btn select-all">All</button><button type="button" class="mini-btn clear-all">Clear</button></div>
+            </div>
+            <div class="cluster-grid">
+                
+        <div class="option-card" data-section="execution" data-flag="-t">
+            <label class="checkbox-item" data-tooltip="Parallel task count">
+                <input type="checkbox" class="option-checkbox" data-section="execution" data-flag="-t" data-has-value="true">
+                <span class="checkbox-label">Tasks</span>
+                <span class="checkbox-flag">-t</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="execution" data-flag="-t" placeholder="16" value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="execution" data-flag="-w">
+            <label class="checkbox-item" data-tooltip="Wait time for responses">
+                <input type="checkbox" class="option-checkbox" data-section="execution" data-flag="-w" data-has-value="true">
+                <span class="checkbox-label">Response Timeout</span>
+                <span class="checkbox-flag">-w</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="execution" data-flag="-w" placeholder="30" value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="execution" data-flag="-f">
+            <label class="checkbox-item" data-tooltip="Exit after first valid pair per host">
+                <input type="checkbox" class="option-checkbox" data-section="execution" data-flag="-f" >
+                <span class="checkbox-label">Stop After First Hit</span>
+                <span class="checkbox-flag">-f</span>
+            </label>
+            
+        </div>
+    
+        <div class="option-card" data-section="execution" data-flag="-F">
+            <label class="checkbox-item" data-tooltip="Exit after first found credential">
+                <input type="checkbox" class="option-checkbox" data-section="execution" data-flag="-F" >
+                <span class="checkbox-label">Stop On Any Success</span>
+                <span class="checkbox-flag">-F</span>
+            </label>
+            
+        </div>
+    
+        <div class="option-card" data-section="execution" data-flag="-V">
+            <label class="checkbox-item" data-tooltip="Show attempts and responses">
+                <input type="checkbox" class="option-checkbox" data-section="execution" data-flag="-V" >
+                <span class="checkbox-label">Verbose Results</span>
+                <span class="checkbox-flag">-V</span>
+            </label>
+            
+        </div>
+    
+            </div>
+        </div>
+    
+        <div class="section option-cluster" id="section-evasion">
+            <div class="section-topline">
+                <div class="section-title"><span>👻</span> STEALTH &amp; ROUTING</div>
+                <div class="cluster-actions"><button type="button" class="mini-btn select-all">All</button><button type="button" class="mini-btn clear-all">Clear</button></div>
+            </div>
+            <div class="cluster-grid">
+                
+        <div class="option-card" data-section="evasion" data-flag="-I">
+            <label class="checkbox-item" data-tooltip="Start a clean session">
+                <input type="checkbox" class="option-checkbox" data-section="evasion" data-flag="-I" >
+                <span class="checkbox-label">Ignore Restore File</span>
+                <span class="checkbox-flag">-I</span>
+            </label>
+            
+        </div>
+    
+        <div class="option-card" data-section="evasion" data-flag="-R">
+            <label class="checkbox-item" data-tooltip="Resume from a restore file">
+                <input type="checkbox" class="option-checkbox" data-section="evasion" data-flag="-R" >
+                <span class="checkbox-label">Restore Session</span>
+                <span class="checkbox-flag">-R</span>
+            </label>
+            
+        </div>
+    
+        <div class="option-card" data-section="evasion" data-flag="-m">
+            <label class="checkbox-item" data-tooltip="Pass module-specific options">
+                <input type="checkbox" class="option-checkbox" data-section="evasion" data-flag="-m" data-has-value="true">
+                <span class="checkbox-label">Per-Service Option</span>
+                <span class="checkbox-flag">-m</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="evasion" data-flag="-m" placeholder="/login" value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="evasion" data-flag="-M">
+            <label class="checkbox-item" data-tooltip="List of targets to spray">
+                <input type="checkbox" class="option-checkbox" data-section="evasion" data-flag="-M" data-has-value="true">
+                <span class="checkbox-label">Target List</span>
+                <span class="checkbox-flag">-M</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="evasion" data-flag="-M" placeholder="/path/to/targets.txt" value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="evasion" data-flag="-o">
+            <label class="checkbox-item" data-tooltip="Write cracked logins to file">
+                <input type="checkbox" class="option-checkbox" data-section="evasion" data-flag="-o" data-has-value="true">
+                <span class="checkbox-label">Results File</span>
+                <span class="checkbox-flag">-o</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="evasion" data-flag="-o" placeholder="hydra_results.txt" value="">
+            </div>
+        
+        </div>
+    
+            </div>
+        </div>
+    
+
+        <div class="section">
+            <div class="section-title"><span>📁</span> OUTPUT CONFIGURATION</div>
+            <div class="output-row">
+                <div class="input-group">
+                    <label class="input-label">Output Path</label>
+                    <input type="text" class="input-field" id="outputPath" value="/home/kali/creds/">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Filename</label>
+                    <input type="text" class="input-field" id="outputFile" placeholder="hydra_session">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">File Type</label>
+                    <select class="file-type-select" id="fileType">
+                        <option value=".txt">.txt (Text)</option>
+<option value=".log">.log (Log)</option>
+<option value=".json">.json (JSON)</option>
+<option value=".csv">.csv (CSV)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title"><span>⚡</span> CUSTOM OPTIONS</div>
+            <div class="input-group">
+                <label class="input-label">Additional flags (space separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="--extra-flag --another-flag">
+            </div>
+        </div>
+
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Command name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Command</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">hydra</div>
+            <div class="command-info" id="commandInfo">No options selected - will run default command</div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand"><span>📋</span> COPY COMMAND</button>
+            <button class="btn btn-secondary" id="clearAll"><span>🗑️</span> CLEAR ALL</button>
+        </div>
+
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/command-builder.js"></script>
+    <script src="../js/utils.js"></script>
+    <script>
+        const pageConfig = {"command": "hydra", "targetLabel": "Target host or service endpoint", "targetPlaceholder": "192.168.1.10 ssh", "outputPath": "/home/kali/creds/", "tags": ["Brute Force", "Service Login", "Credential Testing"], "sections": [{"key": "services", "title": "SERVICE TARGETING", "icon": "\ud83c\udf10", "options": [{"flag": "-s", "name": "Port Override", "description": "Set a non-default service port", "hasValue": true, "placeholder": "22"}, {"flag": "-S", "name": "Use SSL/TLS", "description": "Wrap the connection in SSL/TLS"}, {"flag": "-l", "name": "Single Username", "description": "Test a single username", "hasValue": true, "placeholder": "admin"}, {"flag": "-L", "name": "Username List", "description": "Path to username list", "hasValue": true, "placeholder": "/usr/share/wordlists/usernames.txt"}, {"flag": "-e", "name": "Try Null/Reverse Passwords", "description": "Test empty and username-based passwords"}]}, {"key": "credentials", "title": "PASSWORD SOURCES", "icon": "\ud83d\udd11", "options": [{"flag": "-p", "name": "Single Password", "description": "Test a single password", "hasValue": true, "placeholder": "Password123!"}, {"flag": "-P", "name": "Password List", "description": "Path to password list", "hasValue": true, "placeholder": "/usr/share/wordlists/rockyou.txt"}, {"flag": "-C", "name": "Colon-Separated Combo File", "description": "user:pass combo list", "hasValue": true, "placeholder": "/path/to/combos.txt"}, {"flag": "-u", "name": "Loop Users First", "description": "Iterate user-first instead of password-first"}, {"flag": "-x", "name": "Bruteforce Pattern", "description": "Generate password patterns", "hasValue": true, "placeholder": "1:4:a"}]}, {"key": "execution", "title": "EXECUTION CONTROL", "icon": "\u26a1", "options": [{"flag": "-t", "name": "Tasks", "description": "Parallel task count", "hasValue": true, "placeholder": "16"}, {"flag": "-w", "name": "Response Timeout", "description": "Wait time for responses", "hasValue": true, "placeholder": "30"}, {"flag": "-f", "name": "Stop After First Hit", "description": "Exit after first valid pair per host"}, {"flag": "-F", "name": "Stop On Any Success", "description": "Exit after first found credential"}, {"flag": "-V", "name": "Verbose Results", "description": "Show attempts and responses"}]}, {"key": "evasion", "title": "STEALTH & ROUTING", "icon": "\ud83d\udc7b", "options": [{"flag": "-I", "name": "Ignore Restore File", "description": "Start a clean session"}, {"flag": "-R", "name": "Restore Session", "description": "Resume from a restore file"}, {"flag": "-m", "name": "Per-Service Option", "description": "Pass module-specific options", "hasValue": true, "placeholder": "/login"}, {"flag": "-M", "name": "Target List", "description": "List of targets to spray", "hasValue": true, "placeholder": "/path/to/targets.txt"}, {"flag": "-o", "name": "Results File", "description": "Write cracked logins to file", "hasValue": true, "placeholder": "hydra_results.txt"}]}], "presets": [{"name": "SSH Audit", "icon": "\ud83d\udd10", "selections": [["services", "-s", "22"], ["credentials", "-L", "/usr/share/wordlists/usernames.txt"], ["credentials", "-P", "/usr/share/wordlists/rockyou.txt"], ["execution", "-t", "8"], ["execution", "-V", null]]}, {"name": "Web Form Spray", "icon": "\ud83c\udf0d", "selections": [["services", "-S", null], ["services", "-s", "443"], ["evasion", "-m", "/login"], ["credentials", "-L", "/usr/share/wordlists/usernames.txt"], ["credentials", "-P", "/usr/share/wordlists/rockyou.txt"]]}, {"name": "Fast Password Check", "icon": "\u26a1", "selections": [["services", "-l", "admin"], ["credentials", "-P", "/usr/share/wordlists/rockyou.txt"], ["execution", "-t", "32"], ["execution", "-F", null]]}]};
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const builder = new CommandBuilder(pageConfig.command, { options: {} });
+            const targetInput = document.getElementById('target');
+            const outputPath = document.getElementById('outputPath');
+            const outputFile = document.getElementById('outputFile');
+            const fileType = document.getElementById('fileType');
+            const customFlags = document.getElementById('customFlags');
+
+            function collectSelectedOptions() {
+                const selected = {};
+                document.querySelectorAll('.option-checkbox').forEach(cb => {
+                    if (!cb.checked) return;
+                    const section = cb.dataset.section;
+                    const flag = cb.dataset.flag;
+                    const hasValue = cb.dataset.hasValue === 'true';
+                    if (!selected[section]) selected[section] = [];
+                    const item = { flag, hasValue };
+                    if (hasValue) {
+                        const input = document.querySelector(`.value-input[data-section="${section}"][data-flag="${CSS.escape(flag)}"]`);
+                        if (input && input.value.trim()) {
+                            item.value = input.value.trim();
+                        }
+                    }
+                    selected[section].push(item);
+                });
+                return selected;
+            }
+
+            function updateCommand() {
+                builder.setTarget(targetInput.value || '');
+                builder.setOutput(outputPath.value || pageConfig.outputPath, outputFile.value || '', fileType.value || '.txt');
+                builder.setCustomFlags(customFlags.value || '');
+                builder.selectedOptions = collectSelectedOptions();
+                document.getElementById('commandPreview').textContent = builder.generateCommand();
+                const selectedCount = Object.values(builder.selectedOptions).reduce((n, arr) => n + arr.length, 0);
+                let info = builder.generateExplanation();
+                if (selectedCount > 0) {
+                    info += ` • Presets available: ${pageConfig.presets.length}`;
+                }
+                document.getElementById('commandInfo').textContent = info;
+            }
+
+            function snapshotState() {
+                const inputs = {};
+                document.querySelectorAll('.value-input').forEach(input => {
+                    inputs[`${input.dataset.section}::${input.dataset.flag}`] = input.value;
+                });
+                const checks = {};
+                document.querySelectorAll('.option-checkbox').forEach(cb => {
+                    checks[`${cb.dataset.section}::${cb.dataset.flag}`] = cb.checked;
+                });
+                return {
+                    target: targetInput.value,
+                    outputPath: outputPath.value,
+                    outputFile: outputFile.value,
+                    fileType: fileType.value,
+                    customFlags: customFlags.value,
+                    inputs,
+                    checks
+                };
+            }
+
+            function loadSnapshot(state) {
+                targetInput.value = state.target || '';
+                outputPath.value = state.outputPath || pageConfig.outputPath;
+                outputFile.value = state.outputFile || '';
+                fileType.value = state.fileType || fileType.value;
+                customFlags.value = state.customFlags || '';
+
+                document.querySelectorAll('.option-checkbox').forEach(cb => {
+                    const key = `${cb.dataset.section}::${cb.dataset.flag}`;
+                    cb.checked = !!(state.checks && state.checks[key]);
+                    const wrap = cb.closest('.option-card').querySelector('.value-wrap');
+                    if (wrap) wrap.style.display = cb.checked ? 'block' : 'none';
+                });
+                document.querySelectorAll('.value-input').forEach(input => {
+                    const key = `${input.dataset.section}::${input.dataset.flag}`;
+                    input.value = state.inputs && state.inputs[key] ? state.inputs[key] : (input.defaultValue || '');
+                });
+                updateCommand();
+            }
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved[pageConfig.command]) saved[pageConfig.command] = [];
+                const existingIndex = saved[pageConfig.command].findIndex(item => item.name === name);
+                const entry = {
+                    name,
+                    command: builder.generateCommand(),
+                    state: snapshotState(),
+                    timestamp: new Date().toISOString()
+                };
+                if (existingIndex >= 0) saved[pageConfig.command][existingIndex] = entry;
+                else saved[pageConfig.command].push(entry);
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved[pageConfig.command] || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved[pageConfig.command] && saved[pageConfig.command][index]) {
+                    saved[pageConfig.command].splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function updateSavedCommandsList() {
+                const container = document.getElementById('savedCommandsList');
+                const saved = loadSavedCommands();
+                if (!saved.length) {
+                    container.style.display = 'none';
+                    container.innerHTML = '';
+                    return;
+                }
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (e.target.classList.contains('delete-saved')) return;
+                        const index = parseInt(item.dataset.index, 10);
+                        loadSnapshot(saved[index].state);
+                        Utils.showNotification(`Loaded: ${saved[index].name}`, 'success');
+                    });
+                });
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteSavedCommand(parseInt(btn.dataset.index, 10));
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            function applyPreset(name) {
+                const preset = pageConfig.presets.find(item => item.name === name);
+                if (!preset) return;
+                document.querySelectorAll('.option-checkbox').forEach(cb => {
+                    cb.checked = false;
+                    const wrap = cb.closest('.option-card').querySelector('.value-wrap');
+                    if (wrap) wrap.style.display = 'none';
+                });
+                preset.selections.forEach(([section, flag, value]) => {
+                    const checkbox = document.querySelector(`.option-checkbox[data-section="${section}"][data-flag="${CSS.escape(flag)}"]`);
+                    if (!checkbox) return;
+                    checkbox.checked = true;
+                    const wrap = checkbox.closest('.option-card').querySelector('.value-wrap');
+                    if (wrap) {
+                        wrap.style.display = 'block';
+                        const input = wrap.querySelector('.value-input');
+                        if (input && value !== null && value !== undefined) input.value = value;
+                    }
+                });
+                updateCommand();
+                Utils.showNotification(`Preset applied: ${name}`, 'success');
+            }
+
+            document.querySelectorAll('.option-checkbox').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    const wrap = cb.closest('.option-card').querySelector('.value-wrap');
+                    if (wrap) wrap.style.display = cb.checked ? 'block' : 'none';
+                    updateCommand();
+                });
+            });
+            document.querySelectorAll('.value-input').forEach(input => input.addEventListener('input', updateCommand));
+            [targetInput, outputPath, outputFile, fileType, customFlags].forEach(el => el.addEventListener('input', updateCommand));
+            fileType.addEventListener('change', updateCommand);
+
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
+            });
+
+            document.querySelectorAll('.option-cluster').forEach(sectionEl => {
+                const allBtn = sectionEl.querySelector('.select-all');
+                const clearBtn = sectionEl.querySelector('.clear-all');
+                allBtn?.addEventListener('click', () => {
+                    sectionEl.querySelectorAll('.option-checkbox').forEach(cb => {
+                        cb.checked = true;
+                        const wrap = cb.closest('.option-card').querySelector('.value-wrap');
+                        if (wrap) wrap.style.display = 'block';
+                    });
+                    updateCommand();
+                });
+                clearBtn?.addEventListener('click', () => {
+                    sectionEl.querySelectorAll('.option-checkbox').forEach(cb => {
+                        cb.checked = false;
+                        const wrap = cb.closest('.option-card').querySelector('.value-wrap');
+                        if (wrap) wrap.style.display = 'none';
+                    });
+                    updateCommand();
+                });
+            });
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value.trim();
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this command', 'warning');
+                    return;
+                }
+                saveCommand(name);
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+                Utils.showNotification('✅ Command saved!', 'success');
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', updateSavedCommandsList);
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const ok = await builder.copyToClipboard();
+                Utils.showNotification(ok ? '✅ Command copied to clipboard!' : '❌ Failed to copy command', ok ? 'success' : 'error');
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                targetInput.value = '';
+                outputPath.value = pageConfig.outputPath;
+                outputFile.value = '';
+                customFlags.value = '';
+                document.querySelectorAll('.option-checkbox').forEach(cb => {
+                    cb.checked = false;
+                    const wrap = cb.closest('.option-card').querySelector('.value-wrap');
+                    if (wrap) wrap.style.display = 'none';
+                });
+                document.querySelectorAll('.value-input').forEach(input => {
+                    input.value = input.defaultValue || '';
+                });
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

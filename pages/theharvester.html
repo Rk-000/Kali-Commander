@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>theHarvester - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles specific to theHarvester */
+        .source-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .source-item {
+            background: rgba(15, 95, 168, 0.1);
+            border: 1px solid #0F5FA8;
+            border-radius: 6px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .source-item:hover {
+            background: rgba(15, 95, 168, 0.3);
+            border-color: #1E88E5;
+        }
+        .source-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #00CFFF;
+        }
+        .source-item label {
+            flex: 1;
+            cursor: pointer;
+            color: #E6F0FA;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=information-gathering">Information Gathering</a>
+            <span class="separator">›</span>
+            <span class="current">theHarvester</span>
+        </div>
+
+        <!-- Tool Header -->
+        <div class="tool-header">
+            <h1>THEHARVESTER</h1>
+            <p>Email, subdomain and people harvester - OSINT tool for gathering information from public sources</p>
+        </div>
+
+        <!-- Target Input -->
+        <div class="section">
+            <div class="section-title">
+                <span>📌</span> TARGET SPECIFICATION
+            </div>
+            <div class="input-group">
+                <label class="input-label">Domain to search</label>
+                <input type="text" class="input-field" id="target" placeholder="example.com" value="">
+                <small style="color: #2A6FAF; margin-top: 5px; display: block;">Enter the domain you want to gather information about</small>
+            </div>
+        </div>
+
+        <!-- Data Sources -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔧</span> DATA SOURCES
+            </div>
+            <div class="source-group" id="sources-container">
+                <div class="source-item">
+                    <input type="checkbox" id="source_baidu" value="baidu">
+                    <label for="source_baidu">Baidu</label>
+                </div>
+                <div class="source-item">
+                    <input type="checkbox" id="source_bing" value="bing">
+                    <label for="source_bing">Bing</label>
+                </div>
+                <div class="source-item">
+                    <input type="checkbox" id="source_duckduckgo" value="duckduckgo">
+                    <label for="source_duckduckgo">DuckDuckGo</label>
+                </div>
+                <div class="source-item">
+                    <input type="checkbox" id="source_google" value="google">
+                    <label for="source_google">Google</label>
+                </div>
+                <div class="source-item">
+                    <input type="checkbox" id="source_linkedin" value="linkedin">
+                    <label for="source_linkedin">LinkedIn</label>
+                </div>
+                <div class="source-item">
+                    <input type="checkbox" id="source_twitter" value="twitter">
+                    <label for="source_twitter">Twitter/X</label>
+                </div>
+                <div class="source-item">
+                    <input type="checkbox" id="source_yahoo" value="yahoo">
+                    <label for="source_yahoo">Yahoo</label>
+                </div>
+                <div class="source-item">
+                    <input type="checkbox" id="source_all" value="all">
+                    <label for="source_all">All Sources</label>
+                </div>
+                <div class="source-item">
+                    <input type="checkbox" id="source_custom" value="custom">
+                    <label for="source_custom">Custom Source</label>
+                </div>
+            </div>
+            <div id="custom-source-container" style="display: none; margin-top: 15px;">
+                <label class="input-label">Custom Source Name</label>
+                <input type="text" class="input-field" id="custom-source" placeholder="e.g., shodan, crtsh, pgp">
+                <small style="color: #2A6FAF; margin-top: 5px; display: block;">Enter a specific source (shodan, crtsh, pgp, etc.)</small>
+            </div>
+        </div>
+
+        <!-- Search Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔍</span> SEARCH OPTIONS
+            </div>
+            
+            <div class="checkbox-grid">
+                <!-- Limit Results -->
+                <div class="checkbox-item">
+                    <input type="checkbox" id="option_limit">
+                    <label class="checkbox-label" for="option_limit">Limit Results</label>
+                    <span class="checkbox-flag">-l</span>
+                </div>
+                
+                <!-- Start Result -->
+                <div class="checkbox-item">
+                    <input type="checkbox" id="option_start">
+                    <label class="checkbox-label" for="option_start">Start from result</label>
+                    <span class="checkbox-flag">-s</span>
+                </div>
+                
+                <!-- DNS Server -->
+                <div class="checkbox-item">
+                    <input type="checkbox" id="option_dns">
+                    <label class="checkbox-label" for="option_dns">Use DNS Server</label>
+                    <span class="checkbox-flag">-e</span>
+                </div>
+                
+                <!-- DNS Lookup -->
+                <div class="checkbox-item">
+                    <input type="checkbox" id="option_dnslookup">
+                    <label class="checkbox-label" for="option_dnslookup">Perform DNS Lookup</label>
+                    <span class="checkbox-flag">-n</span>
+                </div>
+                
+                <!-- Verify Hosts -->
+                <div class="checkbox-item">
+                    <input type="checkbox" id="option_verify">
+                    <label class="checkbox-label" for="option_verify">Verify Hosts</label>
+                    <span class="checkbox-flag">-v</span>
+                </div>
+                
+                <!-- Check Takeover -->
+                <div class="checkbox-item">
+                    <input type="checkbox" id="option_takeover">
+                    <label class="checkbox-label" for="option_takeover">Check for Takeover</label>
+                    <span class="checkbox-flag">-t</span>
+                </div>
+                
+                <!-- Shodan Results -->
+                <div class="checkbox-item">
+                    <input type="checkbox" id="option_shodan">
+                    <label class="checkbox-label" for="option_shodan">Include Shodan Results</label>
+                    <span class="checkbox-flag">-c</span>
+                </div>
+            </div>
+
+            <!-- Custom Value Inputs -->
+            <div id="limit-custom" style="display: none; margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px dashed #1E88E5;">
+                <label class="input-label">Number of results (default: 500)</label>
+                <input type="number" class="input-field" id="limit-value" value="500" min="1" max="5000">
+            </div>
+
+            <div id="start-custom" style="display: none; margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px dashed #1E88E5;">
+                <label class="input-label">Start from result number</label>
+                <input type="number" class="input-field" id="start-value" value="0" min="0">
+            </div>
+
+            <div id="dns-custom" style="display: none; margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px dashed #1E88E5;">
+                <label class="input-label">DNS Server IP</label>
+                <input type="text" class="input-field" id="dns-value" placeholder="8.8.8.8">
+            </div>
+        </div>
+
+        <!-- Output Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>📁</span> OUTPUT OPTIONS
+            </div>
+            
+            <div class="checkbox-grid">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="output_html">
+                    <label class="checkbox-label" for="output_html">HTML Report</label>
+                    <span class="checkbox-flag">-h</span>
+                </div>
+                
+                <div class="checkbox-item">
+                    <input type="checkbox" id="output_xml">
+                    <label class="checkbox-label" for="output_xml">XML Output</label>
+                    <span class="checkbox-flag">-x</span>
+                </div>
+                
+                <div class="checkbox-item">
+                    <input type="checkbox" id="output_json">
+                    <label class="checkbox-label" for="output_json">JSON Output</label>
+                    <span class="checkbox-flag">-j</span>
+                </div>
+                
+                <div class="checkbox-item">
+                    <input type="checkbox" id="output_txt">
+                    <label class="checkbox-label" for="output_txt">Text Output</label>
+                    <span class="checkbox-flag">-f</span>
+                </div>
+            </div>
+
+            <div id="output-filename-container" style="display: none; margin-top: 15px;">
+                <label class="input-label">Output filename (without extension)</label>
+                <input type="text" class="input-field" id="output-filename" placeholder="results">
+            </div>
+        </div>
+
+        <!-- Output Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📂</span> OUTPUT CONFIGURATION
+            </div>
+            <div class="output-row">
+                <div class="input-group">
+                    <label class="input-label">Output Path</label>
+                    <input type="text" class="input-field" id="outputPath" value="/home/kali/osint/">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Filename</label>
+                    <input type="text" class="input-field" id="outputFile" placeholder="theharvester_scan">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">File Type</label>
+                    <select class="file-type-select" id="fileType">
+                        <option value=".txt">.txt (Text)</option>
+                        <option value=".html">.html (HTML)</option>
+                        <option value=".xml">.xml (XML)</option>
+                        <option value=".json">.json (JSON)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CUSTOM OPTIONS
+            </div>
+            <div class="input-group">
+                <label class="input-label">Additional flags (space separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="--proxy 127.0.0.1:8080 --user-agent 'Mozilla/5.0'">
+            </div>
+        </div>
+
+        <!-- Save/Load Panel -->
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Command name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Command</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+        
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <!-- Command Preview -->
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">theharvester</div>
+            <div class="command-info" id="commandInfo">No options selected</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand">
+                <span>📋</span> COPY COMMAND
+            </button>
+            <button class="btn btn-secondary" id="clearAll">
+                <span>🗑️</span> CLEAR ALL
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ============ COMMAND BUILDER FOR THEHARVESTER ============
+            
+            // State
+            let state = {
+                target: '',
+                sources: [],
+                limit: null,
+                start: null,
+                dns: null,
+                verify: false,
+                dnslookup: false,
+                takeover: false,
+                shodan: false,
+                outputHtml: false,
+                outputXml: false,
+                outputJson: false,
+                outputTxt: false,
+                outputFilename: '',
+                outputPath: '/home/kali/osint/',
+                outputFile: '',
+                fileType: '.txt',
+                customFlags: ''
+            };
+
+            // DOM Elements
+            const targetInput = document.getElementById('target');
+            const sourceCheckboxes = document.querySelectorAll('#sources-container input[type="checkbox"]');
+            const customSourceContainer = document.getElementById('custom-source-container');
+            const customSourceInput = document.getElementById('custom-source');
+            
+            // Option checkboxes
+            const limitCheckbox = document.getElementById('option_limit');
+            const startCheckbox = document.getElementById('option_start');
+            const dnsCheckbox = document.getElementById('option_dns');
+            const dnslookupCheckbox = document.getElementById('option_dnslookup');
+            const verifyCheckbox = document.getElementById('option_verify');
+            const takeoverCheckbox = document.getElementById('option_takeover');
+            const shodanCheckbox = document.getElementById('option_shodan');
+            
+            // Output checkboxes
+            const outputHtml = document.getElementById('output_html');
+            const outputXml = document.getElementById('output_xml');
+            const outputJson = document.getElementById('output_json');
+            const outputTxt = document.getElementById('output_txt');
+            
+            // Custom value containers
+            const limitCustom = document.getElementById('limit-custom');
+            const startCustom = document.getElementById('start-custom');
+            const dnsCustom = document.getElementById('dns-custom');
+            const outputFilenameContainer = document.getElementById('output-filename-container');
+            
+            // Custom value inputs
+            const limitValue = document.getElementById('limit-value');
+            const startValue = document.getElementById('start-value');
+            const dnsValue = document.getElementById('dns-value');
+            const outputFilename = document.getElementById('output-filename');
+            
+            // Output configuration
+            const outputPath = document.getElementById('outputPath');
+            const outputFile = document.getElementById('outputFile');
+            const fileType = document.getElementById('fileType');
+            
+            // Custom flags
+            const customFlags = document.getElementById('customFlags');
+
+            // ============ EVENT LISTENERS ============
+
+            // Target input
+            targetInput.addEventListener('input', (e) => {
+                state.target = e.target.value;
+                updateCommand();
+            });
+
+            // Source checkboxes
+            sourceCheckboxes.forEach(cb => {
+                cb.addEventListener('change', (e) => {
+                    const source = e.target.value;
+                    
+                    if (source === 'custom') {
+                        customSourceContainer.style.display = e.target.checked ? 'block' : 'none';
+                        if (!e.target.checked) {
+                            customSourceInput.value = '';
+                            state.sources = state.sources.filter(s => s !== 'custom');
+                        }
+                    } else if (source === 'all') {
+                        // If 'all' is checked, uncheck others
+                        if (e.target.checked) {
+                            sourceCheckboxes.forEach(otherCb => {
+                                if (otherCb.value !== 'all' && otherCb.value !== 'custom') {
+                                    otherCb.checked = false;
+                                }
+                            });
+                            state.sources = ['all'];
+                        } else {
+                            state.sources = state.sources.filter(s => s !== 'all');
+                        }
+                    } else {
+                        // If any specific source is checked, uncheck 'all'
+                        const allCheckbox = document.getElementById('source_all');
+                        if (allCheckbox) {
+                            allCheckbox.checked = false;
+                            state.sources = state.sources.filter(s => s !== 'all');
+                        }
+                        
+                        if (e.target.checked) {
+                            state.sources.push(source);
+                        } else {
+                            state.sources = state.sources.filter(s => s !== source);
+                        }
+                    }
+                    updateCommand();
+                });
+            });
+
+            // Custom source input
+            customSourceInput.addEventListener('input', (e) => {
+                const value = e.target.value.trim();
+                if (value) {
+                    state.sources = state.sources.filter(s => s !== 'custom');
+                    state.sources.push(value);
+                } else {
+                    state.sources = state.sources.filter(s => s !== 'custom');
+                }
+                updateCommand();
+            });
+
+            // Limit checkbox
+            limitCheckbox.addEventListener('change', (e) => {
+                limitCustom.style.display = e.target.checked ? 'block' : 'none';
+                if (e.target.checked) {
+                    state.limit = limitValue.value;
+                } else {
+                    state.limit = null;
+                }
+                updateCommand();
+            });
+
+            limitValue.addEventListener('input', (e) => {
+                if (limitCheckbox.checked) {
+                    state.limit = e.target.value;
+                    updateCommand();
+                }
+            });
+
+            // Start checkbox
+            startCheckbox.addEventListener('change', (e) => {
+                startCustom.style.display = e.target.checked ? 'block' : 'none';
+                if (e.target.checked) {
+                    state.start = startValue.value;
+                } else {
+                    state.start = null;
+                }
+                updateCommand();
+            });
+
+            startValue.addEventListener('input', (e) => {
+                if (startCheckbox.checked) {
+                    state.start = e.target.value;
+                    updateCommand();
+                }
+            });
+
+            // DNS checkbox
+            dnsCheckbox.addEventListener('change', (e) => {
+                dnsCustom.style.display = e.target.checked ? 'block' : 'none';
+                if (e.target.checked) {
+                    state.dns = dnsValue.value;
+                } else {
+                    state.dns = null;
+                }
+                updateCommand();
+            });
+
+            dnsValue.addEventListener('input', (e) => {
+                if (dnsCheckbox.checked) {
+                    state.dns = e.target.value;
+                    updateCommand();
+                }
+            });
+
+            // Simple flag checkboxes
+            dnslookupCheckbox.addEventListener('change', (e) => {
+                state.dnslookup = e.target.checked;
+                updateCommand();
+            });
+
+            verifyCheckbox.addEventListener('change', (e) => {
+                state.verify = e.target.checked;
+                updateCommand();
+            });
+
+            takeoverCheckbox.addEventListener('change', (e) => {
+                state.takeover = e.target.checked;
+                updateCommand();
+            });
+
+            shodanCheckbox.addEventListener('change', (e) => {
+                state.shodan = e.target.checked;
+                updateCommand();
+            });
+
+            // Output checkboxes
+            outputHtml.addEventListener('change', (e) => {
+                state.outputHtml = e.target.checked;
+                updateOutputFilenameVisibility();
+                updateCommand();
+            });
+
+            outputXml.addEventListener('change', (e) => {
+                state.outputXml = e.target.checked;
+                updateOutputFilenameVisibility();
+                updateCommand();
+            });
+
+            outputJson.addEventListener('change', (e) => {
+                state.outputJson = e.target.checked;
+                updateOutputFilenameVisibility();
+                updateCommand();
+            });
+
+            outputTxt.addEventListener('change', (e) => {
+                state.outputTxt = e.target.checked;
+                updateOutputFilenameVisibility();
+                updateCommand();
+            });
+
+            function updateOutputFilenameVisibility() {
+                const anyOutput = state.outputHtml || state.outputXml || state.outputJson || state.outputTxt;
+                outputFilenameContainer.style.display = anyOutput ? 'block' : 'none';
+            }
+
+            outputFilename.addEventListener('input', (e) => {
+                state.outputFilename = e.target.value;
+                updateCommand();
+            });
+
+            // Output configuration
+            outputPath.addEventListener('input', (e) => {
+                state.outputPath = e.target.value;
+                updateCommand();
+            });
+
+            outputFile.addEventListener('input', (e) => {
+                state.outputFile = e.target.value;
+                updateCommand();
+            });
+
+            fileType.addEventListener('change', (e) => {
+                state.fileType = e.target.value;
+                updateCommand();
+            });
+
+            // Custom flags
+            customFlags.addEventListener('input', (e) => {
+                state.customFlags = e.target.value;
+                updateCommand();
+            });
+
+            // ============ COMMAND GENERATION ============
+
+            function generateCommand() {
+                let command = 'theharvester';
+                const parts = [];
+
+                // Add domain
+                if (state.target) {
+                    parts.push('-d', state.target);
+                }
+
+                // Add sources
+                if (state.sources.length > 0) {
+                    const sourcesStr = state.sources.join(',');
+                    parts.push('-b', sourcesStr);
+                }
+
+                // Add limit
+                if (state.limit) {
+                    parts.push('-l', state.limit);
+                }
+
+                // Add start
+                if (state.start) {
+                    parts.push('-s', state.start);
+                }
+
+                // Add DNS server
+                if (state.dns) {
+                    parts.push('-e', state.dns);
+                }
+
+                // Add simple flags
+                if (state.dnslookup) parts.push('-n');
+                if (state.verify) parts.push('-v');
+                if (state.takeover) parts.push('-t');
+                if (state.shodan) parts.push('-c');
+
+                // Add output flags
+                let outputFlags = [];
+                if (state.outputHtml) outputFlags.push('-h');
+                if (state.outputXml) outputFlags.push('-x');
+                if (state.outputJson) outputFlags.push('-j');
+                if (state.outputTxt) outputFlags.push('-f');
+                
+                // Add output filename if any output format selected
+                if (outputFlags.length > 0 && state.outputFilename) {
+                    outputFlags.forEach(flag => {
+                        parts.push(flag, state.outputFilename);
+                    });
+                } else if (outputFlags.length > 0) {
+                    outputFlags.forEach(flag => parts.push(flag));
+                }
+
+                // Add custom flags
+                if (state.customFlags) {
+                    const customParts = state.customFlags.trim().split(/\s+/);
+                    customParts.forEach(part => parts.push(part));
+                }
+
+                // Build command
+                if (parts.length > 0) {
+                    command += ' ' + parts.join(' ');
+                }
+
+                return command;
+            }
+
+            function generateExplanation() {
+                const explanations = [];
+                
+                if (state.target) explanations.push(`Target: ${state.target}`);
+                if (state.sources.length > 0) explanations.push(`Sources: ${state.sources.join(', ')}`);
+                if (state.limit) explanations.push(`Limit: ${state.limit}`);
+                if (state.start) explanations.push(`Start: ${state.start}`);
+                if (state.dns) explanations.push(`DNS: ${state.dns}`);
+                
+                const flags = [];
+                if (state.dnslookup) flags.push('DNS Lookup');
+                if (state.verify) flags.push('Verify');
+                if (state.takeover) flags.push('Takeover Check');
+                if (state.shodan) flags.push('Shodan');
+                
+                const outputs = [];
+                if (state.outputHtml) outputs.push('HTML');
+                if (state.outputXml) outputs.push('XML');
+                if (state.outputJson) outputs.push('JSON');
+                if (state.outputTxt) outputs.push('TXT');
+                
+                if (flags.length > 0) explanations.push(`Flags: ${flags.join(', ')}`);
+                if (outputs.length > 0) explanations.push(`Output: ${outputs.join(', ')}`);
+                
+                return explanations.length > 0 
+                    ? `Command includes: ${explanations.join(' • ')}`
+                    : 'No options selected';
+            }
+
+            function updateCommand() {
+                document.getElementById('commandPreview').textContent = generateCommand();
+                document.getElementById('commandInfo').textContent = generateExplanation();
+            }
+
+            // ============ SAVE/LOAD FUNCTIONS ============
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved.theharvester) saved.theharvester = [];
+                
+                saved.theharvester.push({
+                    name: name,
+                    state: { ...state },
+                    timestamp: new Date().toISOString()
+                });
+                
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved.theharvester || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved.theharvester && saved.theharvester[index]) {
+                    saved.theharvester.splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function loadStateIntoSavedCommands(savedState) {
+                // Restore state
+                state = { ...savedState };
+                
+                // Update UI
+                targetInput.value = state.target || '';
+                
+                // Sources
+                sourceCheckboxes.forEach(cb => {
+                    const source = cb.value;
+                    if (source === 'custom') {
+                        cb.checked = state.sources.includes('custom');
+                        customSourceContainer.style.display = cb.checked ? 'block' : 'none';
+                    } else if (source === 'all') {
+                        cb.checked = state.sources.includes('all');
+                    } else {
+                        cb.checked = state.sources.includes(source);
+                    }
+                });
+                customSourceInput.value = state.sources.find(s => s !== 'all' && !['baidu','bing','duckduckgo','google','linkedin','twitter','yahoo','custom'].includes(s)) || '';
+                
+                // Limit
+                limitCheckbox.checked = !!state.limit;
+                limitCustom.style.display = state.limit ? 'block' : 'none';
+                limitValue.value = state.limit || 500;
+                
+                // Start
+                startCheckbox.checked = !!state.start;
+                startCustom.style.display = state.start ? 'block' : 'none';
+                startValue.value = state.start || 0;
+                
+                // DNS
+                dnsCheckbox.checked = !!state.dns;
+                dnsCustom.style.display = state.dns ? 'block' : 'none';
+                dnsValue.value = state.dns || '';
+                
+                // Flags
+                dnslookupCheckbox.checked = state.dnslookup || false;
+                verifyCheckbox.checked = state.verify || false;
+                takeoverCheckbox.checked = state.takeover || false;
+                shodanCheckbox.checked = state.shodan || false;
+                
+                // Output
+                outputHtml.checked = state.outputHtml || false;
+                outputXml.checked = state.outputXml || false;
+                outputJson.checked = state.outputJson || false;
+                outputTxt.checked = state.outputTxt || false;
+                
+                const anyOutput = state.outputHtml || state.outputXml || state.outputJson || state.outputTxt;
+                outputFilenameContainer.style.display = anyOutput ? 'block' : 'none';
+                outputFilename.value = state.outputFilename || '';
+                
+                // Output config
+                outputPath.value = state.outputPath || '/home/kali/osint/';
+                outputFile.value = state.outputFile || '';
+                fileType.value = state.fileType || '.txt';
+                
+                // Custom flags
+                customFlags.value = state.customFlags || '';
+                
+                updateCommand();
+            }
+
+            function updateSavedCommandsList() {
+                const saved = loadSavedCommands();
+                const container = document.getElementById('savedCommandsList');
+                
+                if (saved.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                // Add click listeners
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-saved')) {
+                            const index = item.dataset.index;
+                            const cmd = saved[index];
+                            loadStateIntoSavedCommands(cmd.state);
+                            Utils.showNotification(`Loaded: ${cmd.name}`, 'success');
+                        }
+                    });
+                });
+                
+                // Delete buttons
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = btn.dataset.index;
+                        deleteSavedCommand(index);
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            // ============ BUTTON HANDLERS ============
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value;
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this command', 'warning');
+                    return;
+                }
+                
+                saveCommand(name);
+                Utils.showNotification('✅ Command saved!', 'success');
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', () => {
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const command = generateCommand();
+                try {
+                    await navigator.clipboard.writeText(command);
+                    Utils.showNotification('✅ Command copied to clipboard!', 'success');
+                } catch (err) {
+                    Utils.showNotification('❌ Failed to copy command', 'error');
+                }
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                // Reset state
+                state = {
+                    target: '',
+                    sources: [],
+                    limit: null,
+                    start: null,
+                    dns: null,
+                    verify: false,
+                    dnslookup: false,
+                    takeover: false,
+                    shodan: false,
+                    outputHtml: false,
+                    outputXml: false,
+                    outputJson: false,
+                    outputTxt: false,
+                    outputFilename: '',
+                    outputPath: '/home/kali/osint/',
+                    outputFile: '',
+                    fileType: '.txt',
+                    customFlags: ''
+                };
+                
+                // Reset UI
+                targetInput.value = '';
+                sourceCheckboxes.forEach(cb => cb.checked = false);
+                customSourceContainer.style.display = 'none';
+                customSourceInput.value = '';
+                
+                limitCheckbox.checked = false;
+                limitCustom.style.display = 'none';
+                limitValue.value = 500;
+                
+                startCheckbox.checked = false;
+                startCustom.style.display = 'none';
+                startValue.value = 0;
+                
+                dnsCheckbox.checked = false;
+                dnsCustom.style.display = 'none';
+                dnsValue.value = '';
+                
+                dnslookupCheckbox.checked = false;
+                verifyCheckbox.checked = false;
+                takeoverCheckbox.checked = false;
+                shodanCheckbox.checked = false;
+                
+                outputHtml.checked = false;
+                outputXml.checked = false;
+                outputJson.checked = false;
+                outputTxt.checked = false;
+                outputFilenameContainer.style.display = 'none';
+                outputFilename.value = '';
+                
+                outputPath.value = '/home/kali/osint/';
+                outputFile.value = '';
+                fileType.value = '.txt';
+                
+                customFlags.value = '';
+                
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            // Initial update
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

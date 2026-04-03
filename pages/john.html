@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>John the Ripper - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles specific to John the Ripper */
+        .john-option-group {
+            background: rgba(15, 95, 168, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid #00CFFF;
+        }
+        .john-option-title {
+            color: #00CFFF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .format-badge {
+            display: inline-block;
+            background: rgba(15, 95, 168, 0.3);
+            border: 1px solid #1E88E5;
+            border-radius: 20px;
+            padding: 6px 14px;
+            margin: 4px;
+            font-size: 0.9rem;
+            color: #E6F0FA;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .format-badge:hover {
+            background: rgba(15, 95, 168, 0.5);
+            border-color: #00CFFF;
+        }
+        .format-badge.selected {
+            background: rgba(0, 207, 255, 0.3);
+            border-color: #00CFFF;
+        }
+        .mode-box {
+            flex: 1;
+            background: rgba(15, 95, 168, 0.1);
+            border: 2px solid #0F5FA8;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .mode-box:hover {
+            background: rgba(15, 95, 168, 0.3);
+            border-color: #00CFFF;
+        }
+        .mode-box.selected {
+            background: rgba(0, 207, 255, 0.2);
+            border-color: #00CFFF;
+        }
+        .mode-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .rule-preview {
+            background: #0A1F33;
+            border: 1px solid #00CFFF;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #00CFFF;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .rule-item {
+            padding: 2px 5px;
+            border-bottom: 1px solid #0F5FA8;
+        }
+        .rule-item:hover {
+            background: rgba(15, 95, 168, 0.3);
+        }
+        .crack-status {
+            background: rgba(0, 207, 255, 0.1);
+            border: 1px solid #00CFFF;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #0F5FA8;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 45%;
+            background: #00CFFF;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=password-attacks">Password Attacks</a>
+            <span class="separator">›</span>
+            <span class="current">John the Ripper</span>
+        </div>
+
+        <!-- Tool Header -->
+        <div class="tool-header">
+            <h1>JOHN THE RIPPER</h1>
+            <p>Fast Password Cracker - Supports hundreds of hash and cipher types</p>
+        </div>
+
+        <!-- Target Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🎯</span> TARGET CONFIGURATION
+            </div>
+
+            <div class="john-option-group">
+                <div class="john-option-title">
+                    <span>📄</span> HASH FILE
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Password File Path</label>
+                    <input type="text" class="input-field" id="hash_file" placeholder="/home/kali/hashes.txt" value="/home/kali/hashes.txt">
+                    <button class="btn btn-secondary" style="margin-top: 5px;">Browse</button>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Single Hash</label>
+                    <input type="text" class="input-field" id="single_hash" placeholder="$6$salt$hash...">
+                </div>
+                <small style="color: #2A6FAF;">Either hash file or single hash</small>
+            </div>
+
+            <div class="john-option-group">
+                <div class="john-option-title">
+                    <span>🔢</span> HASH FORMAT
+                </div>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; max-height: 300px; overflow-y: auto;">
+                    <div class="format-badge selected" id="format-auto">Auto Detect</div>
+                    <div class="format-badge" id="format-md5">MD5</div>
+                    <div class="format-badge" id="format-sha1">SHA1</div>
+                    <div class="format-badge" id="format-sha256">SHA256</div>
+                    <div class="format-badge" id="format-sha512">SHA512</div>
+                    <div class="format-badge" id="format-bcrypt">bcrypt</div>
+                    <div class="format-badge" id="format-md5crypt">md5crypt</div>
+                    <div class="format-badge" id="format-sha512crypt">sha512crypt</div>
+                    <div class="format-badge" id="format-des">DES</div>
+                    <div class="format-badge" id="format-nt">NT (LM/NTLM)</div>
+                    <div class="format-badge" id="format-mssql">MSSQL</div>
+                    <div class="format-badge" id="format-mysql">MySQL</div>
+                    <div class="format-badge" id="format-oracle">Oracle</div>
+                    <div class="format-badge" id="format-pdf">PDF</div>
+                    <div class="format-badge" id="format-zip">ZIP</div>
+                    <div class="format-badge" id="format-rar">RAR</div>
+                    <div class="format-badge" id="format-ssh">SSH Private Key</div>
+                    <div class="format-badge" id="format-keepass">KeePass</div>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Custom Format</label>
+                    <input type="text" class="input-field" id="custom_format" placeholder="raw-md5, dynamic=1500">
+                </div>
+            </div>
+        </div>
+
+        <!-- Crack Modes -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CRACKING MODES
+            </div>
+
+            <div style="display: flex; gap: 20px; margin-top: 15px;">
+                <div class="mode-box selected" id="mode-wordlist">
+                    <div class="mode-icon">📚</div>
+                    <div><strong>Wordlist Mode</strong></div>
+                    <div style="font-size: 0.8rem; color: #2A6FAF;">Dictionary attack</div>
+                </div>
+                <div class="mode-box" id="mode-single">
+                    <div class="mode-icon">🔑</div>
+                    <div><strong>Single Mode</strong></div>
+                    <div style="font-size: 0.8rem; color: #2A6FAF;">Single crack mode</div>
+                </div>
+                <div class="mode-box" id="mode-incremental">
+                    <div class="mode-icon">🔄</div>
+                    <div><strong>Incremental Mode</strong></div>
+                    <div style="font-size: 0.8rem; color: #2A6FAF;">Brute force</div>
+                </div>
+                <div class="mode-box" id="mode-mask">
+                    <div class="mode-icon">🎭</div>
+                    <div><strong>Mask Mode</strong></div>
+                    <div style="font-size: 0.8rem; color: #2A6FAF;">Custom pattern</div>
+                </div>
+                <div class="mode-box" id="mode-rules">
+                    <div class="mode-icon">📜</div>
+                    <div><strong>Rules Mode</strong></div>
+                    <div style="font-size: 0.8rem; color: #2A6FAF;">Wordlist + rules</div>
+                </div>
+            </div>
+
+            <!-- Wordlist Options -->
+            <div id="wordlist-options" class="john-option-group" style="margin-top: 20px;">
+                <div class="john-option-title">
+                    <span>📚</span> WORDLIST OPTIONS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Wordlist Path</label>
+                    <input type="text" class="input-field" id="wordlist" value="/usr/share/wordlists/rockyou.txt">
+                </div>
+
+                <div class="checkbox-item" style="margin-top: 15px;">
+                    <input type="checkbox" id="wordlist_stdin">
+                    <label class="checkbox-label" for="wordlist_stdin">Read from STDIN</label>
+                </div>
+            </div>
+
+            <!-- Incremental Options -->
+            <div id="incremental-options" class="john-option-group" style="display: none; margin-top: 20px;">
+                <div class="john-option-title">
+                    <span>🔄</span> INCREMENTAL OPTIONS
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Min Length</label>
+                        <input type="number" class="input-field" id="inc_min" value="1" min="1" max="32">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Max Length</label>
+                        <input type="number" class="input-field" id="inc_max" value="8" min="1" max="32">
+                    </div>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Charset</label>
+                    <select class="file-type-select" id="inc_charset">
+                        <option value="all">All printable</option>
+                        <option value="alnum">Alphanumeric</option>
+                        <option value="alpha">Alphabetic</option>
+                        <option value="digits">Digits only</option>
+                        <option value="lower">Lowercase</option>
+                        <option value="upper">Uppercase</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+
+                <div id="custom_charset" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Custom Character Set</label>
+                    <input type="text" class="input-field" id="inc_custom" value="abcdefghijklmnopqrstuvwxyz0123456789">
+                </div>
+            </div>
+
+            <!-- Mask Options -->
+            <div id="mask-options" class="john-option-group" style="display: none; margin-top: 20px;">
+                <div class="john-option-title">
+                    <span>🎭</span> MASK OPTIONS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Mask Pattern</label>
+                    <input type="text" class="input-field" id="mask" value="?l?l?l?l?d?d">
+                </div>
+
+                <div class="rule-preview">
+                    <strong>Mask Placeholders:</strong><br>
+                    ?l - lowercase letter (a-z)<br>
+                    ?u - uppercase letter (A-Z)<br>
+                    ?d - digit (0-9)<br>
+                    ?s - special character<br>
+                    ?a - any printable<br>
+                    Example: ?u?l?l?l?d?d?d = Uppercase + 3 lowercase + 3 digits
+                </div>
+            </div>
+
+            <!-- Rules Options -->
+            <div id="rules-options" class="john-option-group" style="display: none; margin-top: 20px;">
+                <div class="john-option-title">
+                    <span>📜</span> RULES OPTIONS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Rules File</label>
+                    <input type="text" class="input-field" id="rules_file" value="/etc/john/john.conf">
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Rules Section</label>
+                    <select class="file-type-select" id="rules_section">
+                        <option value="Single">Single</option>
+                        <option value="Wordlist">Wordlist</option>
+                        <option value="Extra">Extra</option>
+                        <option value="Jumbo">Jumbo</option>
+                        <option value="All">All</option>
+                    </select>
+                </div>
+
+                <div class="rule-preview" style="margin-top: 15px;">
+                    <div class="rule-item">l - lowercase</div>
+                    <div class="rule-item">u - uppercase</div>
+                    <div class="rule-item">c - capitalize</div>
+                    <div class="rule-item">r - reverse</div>
+                    <div class="rule-item">d - duplicate</div>
+                    <div class="rule-item">$[0-9] - append number</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚙️</span> ADVANCED OPTIONS
+            </div>
+
+            <div class="john-option-group">
+                <div class="john-option-title">
+                    <span>⚡</span> PERFORMANCE
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Fork (CPU cores)</label>
+                        <input type="number" class="input-field" id="fork" value="4" min="1" max="64">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Format</label>
+                        <select class="file-type-select" id="format">
+                            <option value="auto">Auto</option>
+                            <option value="raw-md5">Raw MD5</option>
+                            <option value="sha256">SHA256</option>
+                            <option value="sha512">SHA512</option>
+                            <option value="bcrypt">bcrypt</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Max Runtime (sec)</label>
+                        <input type="number" class="input-field" id="max_run" value="0" min="0" max="86400">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Max Attempts</label>
+                        <input type="number" class="input-field" id="max_attempts" value="0" min="0" max="100000000">
+                    </div>
+                </div>
+            </div>
+
+            <div class="john-option-group">
+                <div class="john-option-title">
+                    <span>🔧</span> ADDITIONAL FEATURES
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="show_cracked">
+                        <label class="checkbox-label" for="show_cracked">Show Cracked Passwords</label>
+                        <span class="checkbox-flag">--show</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="test_mode">
+                        <label class="checkbox-label" for="test_mode">Test Mode</label>
+                        <span class="checkbox-flag">--test</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="restore_session">
+                        <label class="checkbox-label" for="restore_session">Restore Session</label>
+                        <span class="checkbox-flag">--restore</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="john-option-group">
+                <div class="john-option-title">
+                    <span>💾</span> SESSION MANAGEMENT
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Session Name</label>
+                    <input type="text" class="input-field" id="session" value="john_session">
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Restore Point</label>
+                    <input type="text" class="input-field" id="restore" placeholder="session.rec">
+                </div>
+            </div>
+        </div>
+
+        <!-- External Filters -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔍</span> EXTERNAL FILTERS
+            </div>
+
+            <div class="john-option-group">
+                <div class="john-option-title">
+                    <span>📝</span> EXTERNAL MODE
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">External Filter Name</label>
+                    <input type="text" class="input-field" id="external" placeholder="filter_alpha">
+                </div>
+
+                <div class="rule-preview" style="margin-top: 15px;">
+                    <strong>Common external filters:</strong><br>
+                    filter_alpha - only alphabetic<br>
+                    filter_digits - only digits<br>
+                    filter_alnum - alphanumeric<br>
+                    filter_utf8 - UTF-8 only
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📊</span> OUTPUT CONFIGURATION
+            </div>
+
+            <div class="john-option-group">
+                <div class="john-option-title">
+                    <span>📁</span> OUTPUT OPTIONS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_pot">
+                        <label class="checkbox-label" for="output_pot">Pot File</label>
+                        <span class="checkbox-flag">--pot</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_log">
+                        <label class="checkbox-label" for="output_log">Log File</label>
+                        <span class="checkbox-flag">--log</span>
+                    </div>
+                </div>
+
+                <div id="output_filename_container" style="display: none; margin-top: 15px;">
+                    <div class="output-row">
+                        <div class="input-group">
+                            <label class="input-label">Pot File</label>
+                            <input type="text" class="input-field" id="pot_file" value="/home/kali/.john/john.pot">
+                        </div>
+                    </div>
+                    <div class="output-row" style="margin-top: 15px;">
+                        <div class="input-group">
+                            <label class="input-label">Log File</label>
+                            <input type="text" class="input-field" id="log_file" value="/home/kali/.john/john.log">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="john-option-group">
+                <div class="john-option-title">
+                    <span>⚡</span> VERBOSITY
+                </div>
+                
+                <select class="file-type-select" id="verbosity">
+                    <option value="0">Quiet</option>
+                    <option value="1">Normal</option>
+                    <option value="2">Verbose</option>
+                    <option value="3">Debug</option>
+                </select>
+            </div>
+
+            <!-- Crack Status -->
+            <div class="crack-status">
+                <div>
+                    <strong>Status:</strong> Running<br>
+                    <strong>Cracked:</strong> 5/12 hashes<br>
+                    <strong>Speed:</strong> 1250K p/s<br>
+                    <strong>Time:</strong> 00:02:34
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 45%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CUSTOM OPTIONS
+            </div>
+            <div class="input-group">
+                <label class="input-label">Additional flags (space separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="--encoding=utf8 --field-separator=:">
+            </div>
+        </div>
+
+        <!-- Save/Load Panel -->
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Configuration name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Configuration</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+        
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <!-- Command Preview -->
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">john</div>
+            <div class="command-info" id="commandInfo">No hash file specified</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand">
+                <span>📋</span> COPY COMMAND
+            </button>
+            <button class="btn btn-secondary" id="clearAll">
+                <span>🗑️</span> CLEAR ALL
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ============ COMMAND BUILDER FOR JOHN THE RIPPER ============
+            
+            // State
+            let state = {
+                hash_file: '/home/kali/hashes.txt',
+                single_hash: '',
+                format: 'auto',
+                custom_format: '',
+                mode: 'wordlist',
+                wordlist: '/usr/share/wordlists/rockyou.txt',
+                wordlist_stdin: false,
+                inc_min: 1,
+                inc_max: 8,
+                inc_charset: 'all',
+                inc_custom: 'abcdefghijklmnopqrstuvwxyz0123456789',
+                mask: '?l?l?l?l?d?d',
+                rules_file: '/etc/john/john.conf',
+                rules_section: 'Wordlist',
+                fork: 4,
+                format_opt: 'auto',
+                max_run: 0,
+                max_attempts: 0,
+                show_cracked: false,
+                test_mode: false,
+                restore_session: false,
+                session: 'john_session',
+                restore: '',
+                external: '',
+                output_pot: false,
+                output_log: false,
+                pot_file: '/home/kali/.john/john.pot',
+                log_file: '/home/kali/.john/john.log',
+                verbosity: '1',
+                customFlags: ''
+            };
+
+            // DOM Elements
+            const hashFile = document.getElementById('hash_file');
+            const singleHash = document.getElementById('single_hash');
+            const customFormat = document.getElementById('custom_format');
+            
+            // Format badges
+            const formatAuto = document.getElementById('format-auto');
+            const formatMd5 = document.getElementById('format-md5');
+            const formatSha1 = document.getElementById('format-sha1');
+            const formatSha256 = document.getElementById('format-sha256');
+            const formatSha512 = document.getElementById('format-sha512');
+            const formatBcrypt = document.getElementById('format-bcrypt');
+            const formatMd5crypt = document.getElementById('format-md5crypt');
+            const formatSha512crypt = document.getElementById('format-sha512crypt');
+            const formatDes = document.getElementById('format-des');
+            const formatNt = document.getElementById('format-nt');
+            const formatMssql = document.getElementById('format-mssql');
+            const formatMysql = document.getElementById('format-mysql');
+            const formatOracle = document.getElementById('format-oracle');
+            const formatPdf = document.getElementById('format-pdf');
+            const formatZip = document.getElementById('format-zip');
+            const formatRar = document.getElementById('format-rar');
+            const formatSsh = document.getElementById('format-ssh');
+            const formatKeepass = document.getElementById('format-keepass');
+            
+            // Mode boxes
+            const modeWordlist = document.getElementById('mode-wordlist');
+            const modeSingle = document.getElementById('mode-single');
+            const modeIncremental = document.getElementById('mode-incremental');
+            const modeMask = document.getElementById('mode-mask');
+            const modeRules = document.getElementById('mode-rules');
+            
+            const wordlistOptions = document.getElementById('wordlist-options');
+            const incrementalOptions = document.getElementById('incremental-options');
+            const maskOptions = document.getElementById('mask-options');
+            const rulesOptions = document.getElementById('rules-options');
+            
+            const wordlist = document.getElementById('wordlist');
+            const wordlistStdin = document.getElementById('wordlist_stdin');
+            const incMin = document.getElementById('inc_min');
+            const incMax = document.getElementById('inc_max');
+            const incCharset = document.getElementById('inc_charset');
+            const customCharset = document.getElementById('custom_charset');
+            const incCustom = document.getElementById('inc_custom');
+            const mask = document.getElementById('mask');
+            const rulesFile = document.getElementById('rules_file');
+            const rulesSection = document.getElementById('rules_section');
+            
+            const fork = document.getElementById('fork');
+            const format = document.getElementById('format');
+            const maxRun = document.getElementById('max_run');
+            const maxAttempts = document.getElementById('max_attempts');
+            const showCracked = document.getElementById('show_cracked');
+            const testMode = document.getElementById('test_mode');
+            const restoreSession = document.getElementById('restore_session');
+            const session = document.getElementById('session');
+            const restore = document.getElementById('restore');
+            const external = document.getElementById('external');
+            
+            const outputPot = document.getElementById('output_pot');
+            const outputLog = document.getElementById('output_log');
+            const outputFilenameContainer = document.getElementById('output_filename_container');
+            const potFile = document.getElementById('pot_file');
+            const logFile = document.getElementById('log_file');
+            const verbosity = document.getElementById('verbosity');
+            
+            const customFlags = document.getElementById('customFlags');
+
+            // ============ EVENT LISTENERS ============
+
+            // Target
+            hashFile.addEventListener('input', (e) => { state.hash_file = e.target.value; updateCommand(); });
+            singleHash.addEventListener('input', (e) => { state.single_hash = e.target.value; updateCommand(); });
+            customFormat.addEventListener('input', (e) => { state.custom_format = e.target.value; updateCommand(); });
+
+            // Format selection
+            function selectFormat(formatType) {
+                const formats = [formatAuto, formatMd5, formatSha1, formatSha256, formatSha512, formatBcrypt, 
+                                formatMd5crypt, formatSha512crypt, formatDes, formatNt, formatMssql, formatMysql,
+                                formatOracle, formatPdf, formatZip, formatRar, formatSsh, formatKeepass];
+                formats.forEach(f => f.classList.remove('selected'));
+                
+                if (formatType === 'auto') formatAuto.classList.add('selected');
+                if (formatType === 'md5') formatMd5.classList.add('selected');
+                if (formatType === 'sha1') formatSha1.classList.add('selected');
+                if (formatType === 'sha256') formatSha256.classList.add('selected');
+                if (formatType === 'sha512') formatSha512.classList.add('selected');
+                if (formatType === 'bcrypt') formatBcrypt.classList.add('selected');
+                if (formatType === 'md5crypt') formatMd5crypt.classList.add('selected');
+                if (formatType === 'sha512crypt') formatSha512crypt.classList.add('selected');
+                if (formatType === 'des') formatDes.classList.add('selected');
+                if (formatType === 'nt') formatNt.classList.add('selected');
+                if (formatType === 'mssql') formatMssql.classList.add('selected');
+                if (formatType === 'mysql') formatMysql.classList.add('selected');
+                if (formatType === 'oracle') formatOracle.classList.add('selected');
+                if (formatType === 'pdf') formatPdf.classList.add('selected');
+                if (formatType === 'zip') formatZip.classList.add('selected');
+                if (formatType === 'rar') formatRar.classList.add('selected');
+                if (formatType === 'ssh') formatSsh.classList.add('selected');
+                if (formatType === 'keepass') formatKeepass.classList.add('selected');
+                
+                state.format = formatType;
+                updateCommand();
+            }
+
+            formatAuto.addEventListener('click', () => selectFormat('auto'));
+            formatMd5.addEventListener('click', () => selectFormat('md5'));
+            formatSha1.addEventListener('click', () => selectFormat('sha1'));
+            formatSha256.addEventListener('click', () => selectFormat('sha256'));
+            formatSha512.addEventListener('click', () => selectFormat('sha512'));
+            formatBcrypt.addEventListener('click', () => selectFormat('bcrypt'));
+            formatMd5crypt.addEventListener('click', () => selectFormat('md5crypt'));
+            formatSha512crypt.addEventListener('click', () => selectFormat('sha512crypt'));
+            formatDes.addEventListener('click', () => selectFormat('des'));
+            formatNt.addEventListener('click', () => selectFormat('nt'));
+            formatMssql.addEventListener('click', () => selectFormat('mssql'));
+            formatMysql.addEventListener('click', () => selectFormat('mysql'));
+            formatOracle.addEventListener('click', () => selectFormat('oracle'));
+            formatPdf.addEventListener('click', () => selectFormat('pdf'));
+            formatZip.addEventListener('click', () => selectFormat('zip'));
+            formatRar.addEventListener('click', () => selectFormat('rar'));
+            formatSsh.addEventListener('click', () => selectFormat('ssh'));
+            formatKeepass.addEventListener('click', () => selectFormat('keepass'));
+
+            // Mode selection
+            function selectMode(mode) {
+                [modeWordlist, modeSingle, modeIncremental, modeMask, modeRules].forEach(m => m.classList.remove('selected'));
+                
+                wordlistOptions.style.display = 'none';
+                incrementalOptions.style.display = 'none';
+                maskOptions.style.display = 'none';
+                rulesOptions.style.display = 'none';
+                
+                if (mode === 'wordlist') {
+                    modeWordlist.classList.add('selected');
+                    wordlistOptions.style.display = 'block';
+                }
+                if (mode === 'single') {
+                    modeSingle.classList.add('selected');
+                }
+                if (mode === 'incremental') {
+                    modeIncremental.classList.add('selected');
+                    incrementalOptions.style.display = 'block';
+                }
+                if (mode === 'mask') {
+                    modeMask.classList.add('selected');
+                    maskOptions.style.display = 'block';
+                }
+                if (mode === 'rules') {
+                    modeRules.classList.add('selected');
+                    wordlistOptions.style.display = 'block';
+                    rulesOptions.style.display = 'block';
+                }
+                
+                state.mode = mode;
+                updateCommand();
+            }
+
+            modeWordlist.addEventListener('click', () => selectMode('wordlist'));
+            modeSingle.addEventListener('click', () => selectMode('single'));
+            modeIncremental.addEventListener('click', () => selectMode('incremental'));
+            modeMask.addEventListener('click', () => selectMode('mask'));
+            modeRules.addEventListener('click', () => selectMode('rules'));
+
+            // Wordlist options
+            wordlist.addEventListener('input', (e) => { state.wordlist = e.target.value; updateCommand(); });
+            wordlistStdin.addEventListener('change', (e) => { state.wordlist_stdin = e.target.checked; updateCommand(); });
+
+            // Incremental options
+            incMin.addEventListener('input', (e) => { state.inc_min = parseInt(e.target.value) || 1; updateCommand(); });
+            incMax.addEventListener('input', (e) => { state.inc_max = parseInt(e.target.value) || 8; updateCommand(); });
+            
+            incCharset.addEventListener('change', (e) => { 
+                state.inc_charset = e.target.value;
+                customCharset.style.display = e.target.value === 'custom' ? 'block' : 'none';
+                updateCommand();
+            });
+            
+            incCustom.addEventListener('input', (e) => { state.inc_custom = e.target.value; updateCommand(); });
+
+            // Mask options
+            mask.addEventListener('input', (e) => { state.mask = e.target.value; updateCommand(); });
+
+            // Rules options
+            rulesFile.addEventListener('input', (e) => { state.rules_file = e.target.value; updateCommand(); });
+            rulesSection.addEventListener('change', (e) => { state.rules_section = e.target.value; updateCommand(); });
+
+            // Advanced
+            fork.addEventListener('input', (e) => { state.fork = parseInt(e.target.value) || 4; updateCommand(); });
+            format.addEventListener('change', (e) => { state.format_opt = e.target.value; updateCommand(); });
+            maxRun.addEventListener('input', (e) => { state.max_run = parseInt(e.target.value) || 0; updateCommand(); });
+            maxAttempts.addEventListener('input', (e) => { state.max_attempts = parseInt(e.target.value) || 0; updateCommand(); });
+            
+            showCracked.addEventListener('change', (e) => { state.show_cracked = e.target.checked; updateCommand(); });
+            testMode.addEventListener('change', (e) => { state.test_mode = e.target.checked; updateCommand(); });
+            restoreSession.addEventListener('change', (e) => { state.restore_session = e.target.checked; updateCommand(); });
+            
+            session.addEventListener('input', (e) => { state.session = e.target.value; updateCommand(); });
+            restore.addEventListener('input', (e) => { state.restore = e.target.value; updateCommand(); });
+            external.addEventListener('input', (e) => { state.external = e.target.value; updateCommand(); });
+
+            // Output
+            outputPot.addEventListener('change', (e) => { 
+                state.output_pot = e.target.checked; 
+                updateOutputVisibility();
+                updateCommand();
+            });
+            outputLog.addEventListener('change', (e) => { 
+                state.output_log = e.target.checked; 
+                updateOutputVisibility();
+                updateCommand();
+            });
+            
+            potFile.addEventListener('input', (e) => { state.pot_file = e.target.value; updateCommand(); });
+            logFile.addEventListener('input', (e) => { state.log_file = e.target.value; updateCommand(); });
+            verbosity.addEventListener('change', (e) => { state.verbosity = e.target.value; updateCommand(); });
+
+            function updateOutputVisibility() {
+                outputFilenameContainer.style.display = (state.output_pot || state.output_log) ? 'block' : 'none';
+            }
+
+            // Custom flags
+            customFlags.addEventListener('input', (e) => { state.customFlags = e.target.value; updateCommand(); });
+
+            // ============ COMMAND GENERATION ============
+
+            function generateCommand() {
+                if (!state.hash_file && !state.single_hash) {
+                    return 'john --help (specify a hash file)';
+                }
+
+                let command = 'john';
+                const parts = [];
+
+                // Hash file
+                if (state.hash_file) {
+                    parts.push(state.hash_file);
+                } else if (state.single_hash) {
+                    parts.push(`--single="${state.single_hash}"`);
+                }
+
+                // Format
+                if (state.format !== 'auto') {
+                    parts.push(`--format=${state.format}`);
+                } else if (state.custom_format) {
+                    parts.push(`--format=${state.custom_format}`);
+                }
+
+                // Mode
+                if (state.mode === 'wordlist') {
+                    if (state.wordlist_stdin) {
+                        parts.push('--stdin');
+                    } else if (state.wordlist) {
+                        parts.push(`--wordlist=${state.wordlist}`);
+                    }
+                } else if (state.mode === 'single') {
+                    parts.push('--single');
+                } else if (state.mode === 'incremental') {
+                    parts.push('--incremental');
+                    if (state.inc_charset !== 'all') {
+                        if (state.inc_charset === 'custom' && state.inc_custom) {
+                            parts.push(`--incremental-charset="${state.inc_custom}"`);
+                        } else {
+                            parts.push(`--incremental=${state.inc_charset}`);
+                        }
+                    }
+                    parts.push(`--min-length=${state.inc_min}`);
+                    parts.push(`--max-length=${state.inc_max}`);
+                } else if (state.mode === 'mask') {
+                    parts.push(`--mask=${state.mask}`);
+                } else if (state.mode === 'rules') {
+                    if (state.wordlist) parts.push(`--wordlist=${state.wordlist}`);
+                    if (state.rules_file) parts.push(`--rules=${state.rules_section}`);
+                }
+
+                // Performance
+                if (state.fork > 1) parts.push(`--fork=${state.fork}`);
+                if (state.max_run > 0) parts.push(`--max-run=${state.max_run}`);
+                if (state.max_attempts > 0) parts.push(`--max-attempts=${state.max_attempts}`);
+
+                // Features
+                if (state.show_cracked) parts.push('--show');
+                if (state.test_mode) parts.push('--test');
+                if (state.restore_session) parts.push('--restore');
+
+                // Session
+                if (state.session) {
+                    parts.push(`--session=${state.session}`);
+                }
+                if (state.restore) {
+                    parts.push(`--restore=${state.restore}`);
+                }
+
+                // External
+                if (state.external) {
+                    parts.push(`--external=${state.external}`);
+                }
+
+                // Output
+                if (state.output_pot && state.pot_file) {
+                    parts.push(`--pot=${state.pot_file}`);
+                }
+                if (state.output_log && state.log_file) {
+                    parts.push(`--log=${state.log_file}`);
+                }
+
+                // Verbosity
+                if (state.verbosity === '0') parts.push('--quiet');
+                if (state.verbosity === '2') parts.push('--verbosity=2');
+                if (state.verbosity === '3') parts.push('--verbosity=3');
+
+                // Custom flags
+                if (state.customFlags) {
+                    const customParts = state.customFlags.trim().split(/\s+/);
+                    customParts.forEach(part => parts.push(part));
+                }
+
+                return command + ' ' + parts.join(' ');
+            }
+
+            function generateExplanation() {
+                const explanations = [];
+                
+                if (state.hash_file) {
+                    const filename = state.hash_file.split('/').pop();
+                    explanations.push(`File: ${filename}`);
+                }
+                
+                if (state.format !== 'auto') {
+                    explanations.push(`Format: ${state.format}`);
+                }
+                
+                const modeNames = {
+                    'wordlist': 'Wordlist',
+                    'single': 'Single',
+                    'incremental': 'Incremental',
+                    'mask': 'Mask',
+                    'rules': 'Rules'
+                };
+                explanations.push(`Mode: ${modeNames[state.mode]}`);
+                
+                if (state.mode === 'wordlist' && state.wordlist) {
+                    const wlName = state.wordlist.split('/').pop();
+                    explanations.push(`Wordlist: ${wlName}`);
+                }
+                
+                if (state.fork > 1) explanations.push(`Fork: ${state.fork}`);
+                
+                return explanations.length > 0 
+                    ? `John cracking: ${explanations.join(' • ')}`
+                    : 'No cracking parameters specified';
+            }
+
+            function updateCommand() {
+                document.getElementById('commandPreview').textContent = generateCommand();
+                document.getElementById('commandInfo').textContent = generateExplanation();
+            }
+
+            // ============ SAVE/LOAD FUNCTIONS ============
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved.john) saved.john = [];
+                
+                saved.john.push({
+                    name: name,
+                    state: { ...state },
+                    timestamp: new Date().toISOString()
+                });
+                
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved.john || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved.john && saved.john[index]) {
+                    saved.john.splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function loadStateIntoSavedCommands(savedState) {
+                // Restore state
+                state = JSON.parse(JSON.stringify(savedState));
+                
+                // Update UI
+                hashFile.value = state.hash_file || '/home/kali/hashes.txt';
+                singleHash.value = state.single_hash || '';
+                customFormat.value = state.custom_format || '';
+                
+                selectFormat(state.format || 'auto');
+                selectMode(state.mode || 'wordlist');
+                
+                wordlist.value = state.wordlist || '/usr/share/wordlists/rockyou.txt';
+                wordlistStdin.checked = state.wordlist_stdin || false;
+                
+                incMin.value = state.inc_min || 1;
+                incMax.value = state.inc_max || 8;
+                incCharset.value = state.inc_charset || 'all';
+                customCharset.style.display = state.inc_charset === 'custom' ? 'block' : 'none';
+                incCustom.value = state.inc_custom || 'abcdefghijklmnopqrstuvwxyz0123456789';
+                
+                mask.value = state.mask || '?l?l?l?l?d?d';
+                rulesFile.value = state.rules_file || '/etc/john/john.conf';
+                rulesSection.value = state.rules_section || 'Wordlist';
+                
+                fork.value = state.fork || 4;
+                format.value = state.format_opt || 'auto';
+                maxRun.value = state.max_run || 0;
+                maxAttempts.value = state.max_attempts || 0;
+                showCracked.checked = state.show_cracked || false;
+                testMode.checked = state.test_mode || false;
+                restoreSession.checked = state.restore_session || false;
+                session.value = state.session || 'john_session';
+                restore.value = state.restore || '';
+                external.value = state.external || '';
+                
+                outputPot.checked = state.output_pot || false;
+                outputLog.checked = state.output_log || false;
+                updateOutputVisibility();
+                potFile.value = state.pot_file || '/home/kali/.john/john.pot';
+                logFile.value = state.log_file || '/home/kali/.john/john.log';
+                verbosity.value = state.verbosity || '1';
+                
+                customFlags.value = state.customFlags || '';
+                
+                updateCommand();
+            }
+
+            function updateSavedCommandsList() {
+                const saved = loadSavedCommands();
+                const container = document.getElementById('savedCommandsList');
+                
+                if (saved.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-saved')) {
+                            const index = item.dataset.index;
+                            const cmd = saved[index];
+                            loadStateIntoSavedCommands(cmd.state);
+                            Utils.showNotification(`Loaded: ${cmd.name}`, 'success');
+                        }
+                    });
+                });
+                
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = btn.dataset.index;
+                        deleteSavedCommand(index);
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            // ============ BUTTON HANDLERS ============
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value;
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this configuration', 'warning');
+                    return;
+                }
+                
+                saveCommand(name);
+                Utils.showNotification('✅ Configuration saved!', 'success');
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', () => {
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const command = generateCommand();
+                try {
+                    await navigator.clipboard.writeText(command);
+                    Utils.showNotification('✅ Command copied to clipboard!', 'success');
+                } catch (err) {
+                    Utils.showNotification('❌ Failed to copy command', 'error');
+                }
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                // Reset state
+                state = {
+                    hash_file: '/home/kali/hashes.txt',
+                    single_hash: '',
+                    format: 'auto',
+                    custom_format: '',
+                    mode: 'wordlist',
+                    wordlist: '/usr/share/wordlists/rockyou.txt',
+                    wordlist_stdin: false,
+                    inc_min: 1,
+                    inc_max: 8,
+                    inc_charset: 'all',
+                    inc_custom: 'abcdefghijklmnopqrstuvwxyz0123456789',
+                    mask: '?l?l?l?l?d?d',
+                    rules_file: '/etc/john/john.conf',
+                    rules_section: 'Wordlist',
+                    fork: 4,
+                    format_opt: 'auto',
+                    max_run: 0,
+                    max_attempts: 0,
+                    show_cracked: false,
+                    test_mode: false,
+                    restore_session: false,
+                    session: 'john_session',
+                    restore: '',
+                    external: '',
+                    output_pot: false,
+                    output_log: false,
+                    pot_file: '/home/kali/.john/john.pot',
+                    log_file: '/home/kali/.john/john.log',
+                    verbosity: '1',
+                    customFlags: ''
+                };
+                
+                // Reset UI
+                hashFile.value = '/home/kali/hashes.txt';
+                singleHash.value = '';
+                customFormat.value = '';
+                
+                selectFormat('auto');
+                selectMode('wordlist');
+                
+                wordlist.value = '/usr/share/wordlists/rockyou.txt';
+                wordlistStdin.checked = false;
+                
+                incMin.value = 1;
+                incMax.value = 8;
+                incCharset.value = 'all';
+                customCharset.style.display = 'none';
+                incCustom.value = 'abcdefghijklmnopqrstuvwxyz0123456789';
+                
+                mask.value = '?l?l?l?l?d?d';
+                rulesFile.value = '/etc/john/john.conf';
+                rulesSection.value = 'Wordlist';
+                
+                fork.value = 4;
+                format.value = 'auto';
+                maxRun.value = 0;
+                maxAttempts.value = 0;
+                showCracked.checked = false;
+                testMode.checked = false;
+                restoreSession.checked = false;
+                session.value = 'john_session';
+                restore.value = '';
+                external.value = '';
+                
+                outputPot.checked = false;
+                outputLog.checked = false;
+                updateOutputVisibility();
+                potFile.value = '/home/kali/.john/john.pot';
+                logFile.value = '/home/kali/.john/john.log';
+                verbosity.value = '1';
+                
+                customFlags.value = '';
+                
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            // Initial update
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commix - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles specific to Commix */
+        .commix-option-group {
+            background: rgba(15, 95, 168, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid #00CFFF;
+        }
+        .commix-option-title {
+            color: #00CFFF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .technique-badge {
+            display: inline-block;
+            background: rgba(15, 95, 168, 0.3);
+            border: 1px solid #1E88E5;
+            border-radius: 4px;
+            padding: 4px 8px;
+            margin: 2px;
+            font-size: 0.8rem;
+            color: #E6F0FA;
+        }
+        .technique-classic { border-color: #2E8B57; }
+        .technique-based { border-color: #FFA500; }
+        .technique-time { border-color: #FF4500; }
+        .technique-file { border-color: #8B0000; }
+        
+        .payload-preview {
+            background: #0A1F33;
+            border: 1px solid #00CFFF;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #00CFFF;
+            max-height: 150px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .os-icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+        .os-selection {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .os-option {
+            background: rgba(15, 95, 168, 0.1);
+            border: 2px solid #0F5FA8;
+            border-radius: 8px;
+            padding: 15px;
+            flex: 1;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .os-option:hover {
+            background: rgba(15, 95, 168, 0.3);
+            border-color: #00CFFF;
+        }
+        .os-option.selected {
+            background: rgba(0, 207, 255, 0.2);
+            border-color: #00CFFF;
+        }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=web-application">Web Application Analysis</a>
+            <span class="separator">›</span>
+            <span class="current">Commix</span>
+        </div>
+
+        <!-- Tool Header -->
+        <div class="tool-header">
+            <h1>COMMIX</h1>
+            <p>Command Injection Exploiter - Automated detection and exploitation of command injection vulnerabilities</p>
+        </div>
+
+        <!-- Target Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🎯</span> TARGET CONFIGURATION
+            </div>
+
+            <div class="commix-option-group">
+                <div class="commix-option-title">
+                    <span>🌐</span> TARGET URL
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Target URL</label>
+                    <input type="url" class="input-field" id="url" placeholder="http://example.com/page.php?id=1" value="">
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Request Method</label>
+                    <select class="file-type-select" id="method">
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="PUT">PUT</option>
+                        <option value="DELETE">DELETE</option>
+                    </select>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">POST Data</label>
+                    <textarea class="input-field" rows="3" id="data" placeholder="param1=value1&param2=value2"></textarea>
+                </div>
+
+                <div class="checkbox-item" style="margin-top: 15px;">
+                    <input type="checkbox" id="url_regex">
+                    <label class="checkbox-label" for="url_regex">Use URL Regex</label>
+                    <span class="checkbox-flag">--scope</span>
+                </div>
+            </div>
+
+            <div class="commix-option-group">
+                <div class="commix-option-title">
+                    <span>🔍</span> INJECTION PARAMETERS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Test Parameters</label>
+                    <input type="text" class="input-field" id="params" placeholder="id,cmd,exec">
+                    <small>Comma-separated parameters to test</small>
+                </div>
+
+                <div class="checkbox-grid" style="margin-top: 15px;">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="all_params">
+                        <label class="checkbox-label" for="all_params">Test All Parameters</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="skip_params">
+                        <label class="checkbox-label" for="skip_params">Skip Parameters</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Target OS -->
+        <div class="section">
+            <div class="section-title">
+                <span>💻</span> TARGET OPERATING SYSTEM
+            </div>
+
+            <div class="commix-option-group">
+                <div class="commix-option-title">
+                    <span>🖥️</span> OS SELECTION
+                </div>
+                
+                <div class="os-selection">
+                    <div class="os-option selected" id="os-auto">
+                        <span class="os-icon">🔄</span>
+                        <div>Auto Detect</div>
+                    </div>
+                    <div class="os-option" id="os-unix">
+                        <span class="os-icon">🐧</span>
+                        <div>Unix/Linux</div>
+                    </div>
+                    <div class="os-option" id="os-windows">
+                        <span class="os-icon">🪟</span>
+                        <div>Windows</div>
+                    </div>
+                    <div class="os-option" id="os-macos">
+                        <span class="os-icon">🍎</span>
+                        <div>macOS</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="commix-option-group">
+                <div class="commix-option-title">
+                    <span>🔧</span> SHELL OPTIONS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="os_cmd">
+                        <label class="checkbox-label" for="os_cmd">OS Command Execution</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="os_shell">
+                        <label class="checkbox-label" for="os_shell">Interactive Shell</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="os_pseudo">
+                        <label class="checkbox-label" for="os_pseudo">Pseudo Terminal Shell</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Injection Techniques -->
+        <div class="section">
+            <div class="section-title">
+                <span>💉</span> INJECTION TECHNIQUES
+            </div>
+
+            <div class="commix-option-group">
+                <div class="commix-option-title">
+                    <span>⚡</span> TECHNIQUES
+                </div>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+                    <span class="technique-badge technique-classic">
+                        <input type="checkbox" id="tech_classic" checked> Classic
+                    </span>
+                    <span class="technique-badge technique-based">
+                        <input type="checkbox" id="tech_based" checked> Based
+                    </span>
+                    <span class="technique-badge technique-time">
+                        <input type="checkbox" id="tech_time" checked> Time-based
+                    </span>
+                    <span class="technique-badge technique-file">
+                        <input type="checkbox" id="tech_file" checked> File-based
+                    </span>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <div class="checkbox-grid">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="all_tech" checked>
+                            <label class="checkbox-label" for="all_tech">Use All Techniques</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="commix-option-group">
+                <div class="commix-option-title">
+                    <span>⏱️</span> TIMING OPTIONS
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Time Delay (sec)</label>
+                        <input type="number" class="input-field" id="time_delay" value="1" min="1" max="60">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Time Threshold</label>
+                        <input type="number" class="input-field" id="time_threshold" value="7" min="1" max="60">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HTTP Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>🌍</span> HTTP OPTIONS
+            </div>
+
+            <div class="commix-option-group">
+                <div class="commix-option-title">
+                    <span>🍪</span> COOKIES
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Cookie String</label>
+                    <input type="text" class="input-field" id="cookie" placeholder="PHPSESSID=abc123; security=low">
+                </div>
+            </div>
+
+            <div class="commix-option-group">
+                <div class="commix-option-title">
+                    <span>📝</span> HEADERS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Custom Headers</label>
+                    <textarea class="input-field" rows="4" id="headers" placeholder="User-Agent: Mozilla/5.0
+X-Forwarded-For: 127.0.0.1
+Referer: http://example.com"></textarea>
+                </div>
+            </div>
+
+            <div class="commix-option-group">
+                <div class="commix-option-title">
+                    <span>🔐</span> AUTHENTICATION
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Username:Password</label>
+                    <input type="text" class="input-field" id="auth" placeholder="admin:password">
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Authentication Type</label>
+                    <select class="file-type-select" id="auth_type">
+                        <option value="basic">Basic</option>
+                        <option value="digest">Digest</option>
+                        <option value="ntlm">NTLM</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="commix-option-group">
+                <div class="commix-option-title">
+                    <span>🔀</span> PROXY
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Proxy URL</label>
+                    <input type="text" class="input-field" id="proxy" placeholder="http://127.0.0.1:8080">
+                </div>
+
+                <div class="checkbox-item" style="margin-top: 15px;">
+                    <input type="checkbox" id="tor">
+                    <label class="checkbox-label" for="tor">Use Tor</label>
+                    <span class="checkbox-flag">--tor</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detection Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔍</span> DETECTION OPTIONS
+            </div>
+
+            <div class="commix-option-group">
+                <div class="commix-option-title">
+                    <span>📊</span> DETECTION METHODS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="detect_bool" checked>
+                        <label class="checkbox-label" for="detect_bool">Boolean-Based</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="detect_time" checked>
+                        <label class="checkbox-label" for="detect_time">Time-Based</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="detect_file" checked>
+                        <label class="checkbox-label" for="detect_file">File-Based</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="commix-option-group">
+                <div class="commix-option-title">
+                    <span>⚡</span> STRING PATTERNS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Success Pattern</label>
+                    <input type="text" class="input-field" id="success_pattern" placeholder="root:|admin:">
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Failure Pattern</label>
+                    <input type="text" class="input-field" id="failure_pattern" placeholder="error|warning">
+                </div>
+            </div>
+        </div>
+
+        <!-- Evasion Techniques -->
+        <div class="section">
+            <div class="section-title">
+                <span>👻</span> EVASION TECHNIQUES
+            </div>
+
+            <div class="commix-option-group">
+                <div class="commix-option-title">
+                    <span>🛡️</span> EVASION METHODS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="evasion_base64">
+                        <label class="checkbox-label" for="evasion_base64">Base64 Encode</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="evasion_hex">
+                        <label class="checkbox-label" for="evasion_hex">Hex Encode</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="evasion_octal">
+                        <label class="checkbox-label" for="evasion_octal">Octal Encode</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="evasion_unicode">
+                        <label class="checkbox-label" for="evasion_unicode">Unicode Encode</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="evasion_comment">
+                        <label class="checkbox-label" for="evasion_comment">Comment Injection</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="evasion_whitespace">
+                        <label class="checkbox-label" for="evasion_whitespace">Whitespace Evasion</label>
+                    </div>
+                </div>
+
+                <div class="payload-preview" id="evasion_preview">
+                    <strong>Example payloads:</strong><br>
+                    echo BASE64_ENCODED | base64 -d | sh<br>
+                    echo -e "\x68\x65\x6c\x6c\x6f"<br>
+                    cat /etc/p$()asswd
+                </div>
+            </div>
+
+            <div class="commix-option-group">
+                <div class="commix-option-title">
+                    <span>🔢</span> CHARSET
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Custom Charset</label>
+                    <input type="text" class="input-field" id="charset" placeholder="abcdefghijklmnopqrstuvwxyz">
+                </div>
+            </div>
+        </div>
+
+        <!-- Payloads -->
+        <div class="section">
+            <div class="section-title">
+                <span>📦</span> PAYLOADS
+            </div>
+
+            <div class="commix-option-group">
+                <div class="commix-option-title">
+                    <span>🔨</span> PAYLOAD CONFIGURATION
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="custom_payloads">
+                        <label class="checkbox-label" for="custom_payloads">Use Custom Payloads</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="payload_file">
+                        <label class="checkbox-label" for="payload_file">Payload File</label>
+                    </div>
+                </div>
+
+                <div id="payload_options" style="display: none; margin-top: 15px;">
+                    <textarea class="input-field" rows="5" placeholder=";id
+|id
+||id
+& id
+&& id
+`id`
+$(id)
+;cat /etc/passwd
+|cat /etc/passwd
+||cat /etc/passwd"></textarea>
+                </div>
+
+                <div id="payload_file_options" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Payload File Path</label>
+                    <input type="text" class="input-field" id="payload_file_path" placeholder="/home/kali/payloads.txt">
+                </div>
+            </div>
+
+            <div class="commix-option-group">
+                <div class="commix-option-title">
+                    <span>⚡</span> PREFIX/SUFFIX
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Prefix</label>
+                        <input type="text" class="input-field" id="prefix" placeholder="';">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Suffix</label>
+                        <input type="text" class="input-field" id="suffix" placeholder=";'">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> PERFORMANCE
+            </div>
+
+            <div class="commix-option-group">
+                <div class="commix-option-title">
+                    <span>⚡</span> THREADING
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Threads</label>
+                        <input type="number" class="input-field" id="threads" value="5" min="1" max="20">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Retries</label>
+                        <input type="number" class="input-field" id="retries" value="3" min="0" max="10">
+                    </div>
+                </div>
+            </div>
+
+            <div class="commix-option-group">
+                <div class="commix-option-title">
+                    <span>⏱️</span> TIMEOUTS
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Timeout (sec)</label>
+                        <input type="number" class="input-field" id="timeout" value="10" min="1" max="60">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Delay (ms)</label>
+                        <input type="number" class="input-field" id="delay" value="0" min="0" max="10000">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📊</span> OUTPUT CONFIGURATION
+            </div>
+
+            <div class="commix-option-group">
+                <div class="commix-option-title">
+                    <span>📁</span> OUTPUT FORMATS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_txt">
+                        <label class="checkbox-label" for="output_txt">Text Output</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_html">
+                        <label class="checkbox-label" for="output_html">HTML Report</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_xml">
+                        <label class="checkbox-label" for="output_xml">XML Output</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_json">
+                        <label class="checkbox-label" for="output_json">JSON Output</label>
+                    </div>
+                </div>
+
+                <div id="output_filename_container" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Output Filename</label>
+                    <input type="text" class="input-field" id="output_filename" placeholder="commix_scan">
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <label class="input-label">Output Directory</label>
+                    <input type="text" class="input-field" id="output_dir" value="/home/kali/commix/">
+                </div>
+            </div>
+
+            <div class="commix-option-group">
+                <div class="commix-option-title">
+                    <span>⚡</span> VERBOSITY
+                </div>
+                
+                <select class="file-type-select" id="verbosity">
+                    <option value="0">Quiet</option>
+                    <option value="1">Normal</option>
+                    <option value="2">Verbose</option>
+                    <option value="3">Debug</option>
+                </select>
+                <span class="checkbox-flag">-v</span>
+            </div>
+        </div>
+
+        <!-- Custom Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CUSTOM OPTIONS
+            </div>
+            <div class="input-group">
+                <label class="input-label">Additional flags (space separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="--skip-all --force-ssl">
+            </div>
+        </div>
+
+        <!-- Save/Load Panel -->
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Scan configuration name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Configuration</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+        
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <!-- Command Preview -->
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">commix</div>
+            <div class="command-info" id="commandInfo">No target URL specified</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand">
+                <span>📋</span> COPY COMMAND
+            </button>
+            <button class="btn btn-secondary" id="clearAll">
+                <span>🗑️</span> CLEAR ALL
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ============ COMMAND BUILDER FOR COMMIX ============
+            
+            // State
+            let state = {
+                url: '',
+                method: 'GET',
+                data: '',
+                url_regex: false,
+                params: '',
+                all_params: false,
+                skip_params: false,
+                os: 'auto',
+                os_cmd: false,
+                os_shell: false,
+                os_pseudo: false,
+                techniques: {
+                    classic: true,
+                    based: true,
+                    time: true,
+                    file: true
+                },
+                all_tech: true,
+                time_delay: 1,
+                time_threshold: 7,
+                cookie: '',
+                headers: '',
+                auth: '',
+                auth_type: 'basic',
+                proxy: '',
+                tor: false,
+                detection: {
+                    bool: true,
+                    time: true,
+                    file: true
+                },
+                success_pattern: '',
+                failure_pattern: '',
+                evasion: {
+                    base64: false,
+                    hex: false,
+                    octal: false,
+                    unicode: false,
+                    comment: false,
+                    whitespace: false
+                },
+                charset: '',
+                custom_payloads: false,
+                payload_file: false,
+                payload_file_path: '',
+                prefix: '',
+                suffix: '',
+                threads: 5,
+                retries: 3,
+                timeout: 10,
+                delay: 0,
+                output: {
+                    txt: false,
+                    html: false,
+                    xml: false,
+                    json: false,
+                    filename: ''
+                },
+                output_dir: '/home/kali/commix/',
+                verbosity: '1',
+                customFlags: ''
+            };
+
+            // DOM Elements
+            const url = document.getElementById('url');
+            const method = document.getElementById('method');
+            const data = document.getElementById('data');
+            const urlRegex = document.getElementById('url_regex');
+            const params = document.getElementById('params');
+            const allParams = document.getElementById('all_params');
+            const skipParams = document.getElementById('skip_params');
+            
+            // OS Selection
+            const osAuto = document.getElementById('os-auto');
+            const osUnix = document.getElementById('os-unix');
+            const osWindows = document.getElementById('os-windows');
+            const osMacos = document.getElementById('os-macos');
+            const osCmd = document.getElementById('os_cmd');
+            const osShell = document.getElementById('os_shell');
+            const osPseudo = document.getElementById('os_pseudo');
+            
+            // Techniques
+            const techClassic = document.getElementById('tech_classic');
+            const techBased = document.getElementById('tech_based');
+            const techTime = document.getElementById('tech_time');
+            const techFile = document.getElementById('tech_file');
+            const allTech = document.getElementById('all_tech');
+            const timeDelay = document.getElementById('time_delay');
+            const timeThreshold = document.getElementById('time_threshold');
+            
+            // HTTP
+            const cookie = document.getElementById('cookie');
+            const headers = document.getElementById('headers');
+            const auth = document.getElementById('auth');
+            const authType = document.getElementById('auth_type');
+            const proxy = document.getElementById('proxy');
+            const tor = document.getElementById('tor');
+            
+            // Detection
+            const detectBool = document.getElementById('detect_bool');
+            const detectTime = document.getElementById('detect_time');
+            const detectFile = document.getElementById('detect_file');
+            const successPattern = document.getElementById('success_pattern');
+            const failurePattern = document.getElementById('failure_pattern');
+            
+            // Evasion
+            const evasionBase64 = document.getElementById('evasion_base64');
+            const evasionHex = document.getElementById('evasion_hex');
+            const evasionOctal = document.getElementById('evasion_octal');
+            const evasionUnicode = document.getElementById('evasion_unicode');
+            const evasionComment = document.getElementById('evasion_comment');
+            const evasionWhitespace = document.getElementById('evasion_whitespace');
+            const charset = document.getElementById('charset');
+            
+            // Payloads
+            const customPayloads = document.getElementById('custom_payloads');
+            const payloadFile = document.getElementById('payload_file');
+            const payloadOptions = document.getElementById('payload_options');
+            const payloadFileOptions = document.getElementById('payload_file_options');
+            const payloadFilePath = document.getElementById('payload_file_path');
+            const prefix = document.getElementById('prefix');
+            const suffix = document.getElementById('suffix');
+            
+            // Performance
+            const threads = document.getElementById('threads');
+            const retries = document.getElementById('retries');
+            const timeout = document.getElementById('timeout');
+            const delay = document.getElementById('delay');
+            
+            // Output
+            const outputTxt = document.getElementById('output_txt');
+            const outputHtml = document.getElementById('output_html');
+            const outputXml = document.getElementById('output_xml');
+            const outputJson = document.getElementById('output_json');
+            const outputFilename = document.getElementById('output_filename');
+            const outputFilenameContainer = document.getElementById('output_filename_container');
+            const outputDir = document.getElementById('output_dir');
+            const verbosity = document.getElementById('verbosity');
+            
+            const customFlags = document.getElementById('customFlags');
+
+            // ============ EVENT LISTENERS ============
+
+            // Target
+            url.addEventListener('input', (e) => { state.url = e.target.value; updateCommand(); });
+            method.addEventListener('change', (e) => { state.method = e.target.value; updateCommand(); });
+            data.addEventListener('input', (e) => { state.data = e.target.value; updateCommand(); });
+            urlRegex.addEventListener('change', (e) => { state.url_regex = e.target.checked; updateCommand(); });
+            params.addEventListener('input', (e) => { state.params = e.target.value; updateCommand(); });
+            allParams.addEventListener('change', (e) => { state.all_params = e.target.checked; updateCommand(); });
+            skipParams.addEventListener('change', (e) => { state.skip_params = e.target.checked; updateCommand(); });
+
+            // OS
+            function selectOS(osType) {
+                [osAuto, osUnix, osWindows, osMacos].forEach(el => el.classList.remove('selected'));
+                if (osType === 'auto') osAuto.classList.add('selected');
+                if (osType === 'unix') osUnix.classList.add('selected');
+                if (osType === 'windows') osWindows.classList.add('selected');
+                if (osType === 'macos') osMacos.classList.add('selected');
+                state.os = osType;
+                updateCommand();
+            }
+
+            osAuto.addEventListener('click', () => selectOS('auto'));
+            osUnix.addEventListener('click', () => selectOS('unix'));
+            osWindows.addEventListener('click', () => selectOS('windows'));
+            osMacos.addEventListener('click', () => selectOS('macos'));
+
+            osCmd.addEventListener('change', (e) => { state.os_cmd = e.target.checked; updateCommand(); });
+            osShell.addEventListener('change', (e) => { state.os_shell = e.target.checked; updateCommand(); });
+            osPseudo.addEventListener('change', (e) => { state.os_pseudo = e.target.checked; updateCommand(); });
+
+            // Techniques
+            function updateTechniques() {
+                state.techniques.classic = techClassic.checked;
+                state.techniques.based = techBased.checked;
+                state.techniques.time = techTime.checked;
+                state.techniques.file = techFile.checked;
+                
+                // Check if all are selected
+                const allSelected = techClassic.checked && techBased.checked && techTime.checked && techFile.checked;
+                allTech.checked = allSelected;
+                updateCommand();
+            }
+
+            techClassic.addEventListener('change', updateTechniques);
+            techBased.addEventListener('change', updateTechniques);
+            techTime.addEventListener('change', updateTechniques);
+            techFile.addEventListener('change', updateTechniques);
+            
+            allTech.addEventListener('change', (e) => {
+                const checked = e.target.checked;
+                techClassic.checked = checked;
+                techBased.checked = checked;
+                techTime.checked = checked;
+                techFile.checked = checked;
+                updateTechniques();
+            });
+
+            timeDelay.addEventListener('input', (e) => { state.time_delay = parseInt(e.target.value) || 1; updateCommand(); });
+            timeThreshold.addEventListener('input', (e) => { state.time_threshold = parseInt(e.target.value) || 7; updateCommand(); });
+
+            // HTTP
+            cookie.addEventListener('input', (e) => { state.cookie = e.target.value; updateCommand(); });
+            headers.addEventListener('input', (e) => { state.headers = e.target.value; updateCommand(); });
+            auth.addEventListener('input', (e) => { state.auth = e.target.value; updateCommand(); });
+            authType.addEventListener('change', (e) => { state.auth_type = e.target.value; updateCommand(); });
+            proxy.addEventListener('input', (e) => { state.proxy = e.target.value; updateCommand(); });
+            tor.addEventListener('change', (e) => { state.tor = e.target.checked; updateCommand(); });
+
+            // Detection
+            detectBool.addEventListener('change', (e) => { state.detection.bool = e.target.checked; updateCommand(); });
+            detectTime.addEventListener('change', (e) => { state.detection.time = e.target.checked; updateCommand(); });
+            detectFile.addEventListener('change', (e) => { state.detection.file = e.target.checked; updateCommand(); });
+            successPattern.addEventListener('input', (e) => { state.success_pattern = e.target.value; updateCommand(); });
+            failurePattern.addEventListener('input', (e) => { state.failure_pattern = e.target.value; updateCommand(); });
+
+            // Evasion
+            evasionBase64.addEventListener('change', (e) => { state.evasion.base64 = e.target.checked; updateCommand(); });
+            evasionHex.addEventListener('change', (e) => { state.evasion.hex = e.target.checked; updateCommand(); });
+            evasionOctal.addEventListener('change', (e) => { state.evasion.octal = e.target.checked; updateCommand(); });
+            evasionUnicode.addEventListener('change', (e) => { state.evasion.unicode = e.target.checked; updateCommand(); });
+            evasionComment.addEventListener('change', (e) => { state.evasion.comment = e.target.checked; updateCommand(); });
+            evasionWhitespace.addEventListener('change', (e) => { state.evasion.whitespace = e.target.checked; updateCommand(); });
+            charset.addEventListener('input', (e) => { state.charset = e.target.value; updateCommand(); });
+
+            // Payloads
+            customPayloads.addEventListener('change', (e) => { 
+                state.custom_payloads = e.target.checked;
+                payloadOptions.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            
+            payloadFile.addEventListener('change', (e) => { 
+                state.payload_file = e.target.checked;
+                payloadFileOptions.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            
+            payloadFilePath.addEventListener('input', (e) => { state.payload_file_path = e.target.value; updateCommand(); });
+            prefix.addEventListener('input', (e) => { state.prefix = e.target.value; updateCommand(); });
+            suffix.addEventListener('input', (e) => { state.suffix = e.target.value; updateCommand(); });
+
+            // Performance
+            threads.addEventListener('input', (e) => { state.threads = parseInt(e.target.value) || 5; updateCommand(); });
+            retries.addEventListener('input', (e) => { state.retries = parseInt(e.target.value) || 3; updateCommand(); });
+            timeout.addEventListener('input', (e) => { state.timeout = parseInt(e.target.value) || 10; updateCommand(); });
+            delay.addEventListener('input', (e) => { state.delay = parseInt(e.target.value) || 0; updateCommand(); });
+
+            // Output
+            outputTxt.addEventListener('change', (e) => { state.output.txt = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputHtml.addEventListener('change', (e) => { state.output.html = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputXml.addEventListener('change', (e) => { state.output.xml = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputJson.addEventListener('change', (e) => { state.output.json = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputFilename.addEventListener('input', (e) => { state.output.filename = e.target.value; updateCommand(); });
+            outputDir.addEventListener('input', (e) => { state.output_dir = e.target.value; updateCommand(); });
+            verbosity.addEventListener('change', (e) => { state.verbosity = e.target.value; updateCommand(); });
+
+            function updateOutputVisibility() {
+                const anyOutput = state.output.txt || state.output.html || state.output.xml || state.output.json;
+                outputFilenameContainer.style.display = anyOutput ? 'block' : 'none';
+            }
+
+            // Custom flags
+            customFlags.addEventListener('input', (e) => { state.customFlags = e.target.value; updateCommand(); });
+
+            // ============ COMMAND GENERATION ============
+
+            function generateCommand() {
+                if (!state.url) {
+                    return 'commix --help (specify a target URL with -u)';
+                }
+
+                let command = 'commix';
+                const parts = [];
+
+                // Target URL
+                parts.push(`-u "${state.url}"`);
+
+                // Method
+                if (state.method !== 'GET') {
+                    parts.push(`--method=${state.method}`);
+                }
+
+                // POST data
+                if (state.data) {
+                    parts.push(`--data="${state.data}"`);
+                }
+
+                // URL regex
+                if (state.url_regex) {
+                    parts.push('--scope');
+                }
+
+                // Parameters
+                if (state.all_params) {
+                    parts.push('--all');
+                } else if (state.params) {
+                    parts.push(`-p ${state.params}`);
+                }
+
+                if (state.skip_params) {
+                    parts.push('--skip');
+                }
+
+                // OS
+                if (state.os !== 'auto') {
+                    parts.push(`--os=${state.os}`);
+                }
+
+                // Shell options
+                if (state.os_cmd) parts.push('--os-cmd');
+                if (state.os_shell) parts.push('--os-shell');
+                if (state.os_pseudo) parts.push('--os-pseudo');
+
+                // Techniques
+                const techList = [];
+                if (state.techniques.classic) techList.push('classic');
+                if (state.techniques.based) techList.push('based');
+                if (state.techniques.time) techList.push('time');
+                if (state.techniques.file) techList.push('file');
+                
+                if (techList.length > 0 && techList.length < 4) {
+                    parts.push(`--technique=${techList.join(',')}`);
+                }
+
+                // Timing
+                if (state.time_delay !== 1) parts.push(`--time-delay=${state.time_delay}`);
+                if (state.time_threshold !== 7) parts.push(`--time-threshold=${state.time_threshold}`);
+
+                // Cookies
+                if (state.cookie) {
+                    parts.push(`--cookie="${state.cookie}"`);
+                }
+
+                // Headers
+                if (state.headers) {
+                    const headerLines = state.headers.split('\n').filter(h => h.trim());
+                    headerLines.forEach(header => {
+                        parts.push(`--header="${header.trim()}"`);
+                    });
+                }
+
+                // Authentication
+                if (state.auth) {
+                    parts.push(`--auth=${state.auth}`);
+                    if (state.auth_type !== 'basic') {
+                        parts.push(`--auth-type=${state.auth_type}`);
+                    }
+                }
+
+                // Proxy
+                if (state.proxy) {
+                    parts.push(`--proxy=${state.proxy}`);
+                }
+                if (state.tor) {
+                    parts.push('--tor');
+                }
+
+                // Detection
+                const detectionList = [];
+                if (state.detection.bool) detectionList.push('bool');
+                if (state.detection.time) detectionList.push('time');
+                if (state.detection.file) detectionList.push('file');
+                
+                if (detectionList.length > 0 && detectionList.length < 3) {
+                    parts.push(`--detection=${detectionList.join(',')}`);
+                }
+
+                // Patterns
+                if (state.success_pattern) {
+                    parts.push(`--success="${state.success_pattern}"`);
+                }
+                if (state.failure_pattern) {
+                    parts.push(`--failure="${state.failure_pattern}"`);
+                }
+
+                // Evasion
+                const evasionList = [];
+                if (state.evasion.base64) evasionList.push('base64');
+                if (state.evasion.hex) evasionList.push('hex');
+                if (state.evasion.octal) evasionList.push('octal');
+                if (state.evasion.unicode) evasionList.push('unicode');
+                if (state.evasion.comment) evasionList.push('comment');
+                if (state.evasion.whitespace) evasionList.push('whitespace');
+                
+                if (evasionList.length > 0) {
+                    parts.push(`--evasion=${evasionList.join(',')}`);
+                }
+
+                // Charset
+                if (state.charset) {
+                    parts.push(`--charset=${state.charset}`);
+                }
+
+                // Payloads
+                if (state.custom_payloads) {
+                    parts.push('--payloads');
+                }
+                if (state.payload_file && state.payload_file_path) {
+                    parts.push(`--payload-file=${state.payload_file_path}`);
+                }
+
+                // Prefix/Suffix
+                if (state.prefix) {
+                    parts.push(`--prefix="${state.prefix}"`);
+                }
+                if (state.suffix) {
+                    parts.push(`--suffix="${state.suffix}"`);
+                }
+
+                // Performance
+                if (state.threads > 5) parts.push(`--threads=${state.threads}`);
+                if (state.retries !== 3) parts.push(`--retries=${state.retries}`);
+                if (state.timeout !== 10) parts.push(`--timeout=${state.timeout}`);
+                if (state.delay > 0) parts.push(`--delay=${state.delay}`);
+
+                // Output
+                if (state.output.filename) {
+                    let outputFormat = '';
+                    if (state.output.txt) outputFormat = 'txt';
+                    else if (state.output.html) outputFormat = 'html';
+                    else if (state.output.xml) outputFormat = 'xml';
+                    else if (state.output.json) outputFormat = 'json';
+                    
+                    if (outputFormat) {
+                        parts.push(`--output-dir=${state.output_dir}`);
+                        parts.push(`--output-file=${state.output.filename}.${outputFormat}`);
+                    }
+                }
+
+                // Verbosity
+                if (state.verbosity === '2') parts.push('-v');
+                if (state.verbosity === '3') parts.push('-v -v');
+
+                // Custom flags
+                if (state.customFlags) {
+                    const customParts = state.customFlags.trim().split(/\s+/);
+                    customParts.forEach(part => parts.push(part));
+                }
+
+                return command + ' ' + parts.join(' ');
+            }
+
+            function generateExplanation() {
+                const explanations = [];
+                
+                if (state.url) explanations.push(`Target: ${state.url}`);
+                
+                const techCount = Object.values(state.techniques).filter(Boolean).length;
+                if (techCount > 0) explanations.push(`${techCount} techniques`);
+                
+                if (state.os !== 'auto') explanations.push(`OS: ${state.os}`);
+                
+                if (state.os_cmd || state.os_shell || state.os_pseudo) {
+                    explanations.push('Shell access');
+                }
+                
+                const evasionCount = Object.values(state.evasion).filter(Boolean).length;
+                if (evasionCount > 0) explanations.push(`${evasionCount} evasion methods`);
+                
+                if (state.tor) explanations.push('Tor enabled');
+                
+                const outputFormats = [];
+                if (state.output.txt) outputFormats.push('TXT');
+                if (state.output.html) outputFormats.push('HTML');
+                if (state.output.xml) outputFormats.push('XML');
+                if (state.output.json) outputFormats.push('JSON');
+                
+                if (outputFormats.length > 0) {
+                    explanations.push(`Output: ${outputFormats.join(', ')}`);
+                }
+                
+                return explanations.length > 0 
+                    ? `Commix scan: ${explanations.join(' • ')}`
+                    : 'No injection options selected';
+            }
+
+            function updateCommand() {
+                document.getElementById('commandPreview').textContent = generateCommand();
+                document.getElementById('commandInfo').textContent = generateExplanation();
+            }
+
+            // ============ SAVE/LOAD FUNCTIONS ============
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved.commix) saved.commix = [];
+                
+                saved.commix.push({
+                    name: name,
+                    state: { ...state },
+                    timestamp: new Date().toISOString()
+                });
+                
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved.commix || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved.commix && saved.commix[index]) {
+                    saved.commix.splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function loadStateIntoSavedCommands(savedState) {
+                // Restore state
+                state = JSON.parse(JSON.stringify(savedState));
+                
+                // Update UI
+                url.value = state.url || '';
+                method.value = state.method || 'GET';
+                data.value = state.data || '';
+                urlRegex.checked = state.url_regex || false;
+                params.value = state.params || '';
+                allParams.checked = state.all_params || false;
+                skipParams.checked = state.skip_params || false;
+                
+                selectOS(state.os || 'auto');
+                osCmd.checked = state.os_cmd || false;
+                osShell.checked = state.os_shell || false;
+                osPseudo.checked = state.os_pseudo || false;
+                
+                techClassic.checked = state.techniques.classic !== false;
+                techBased.checked = state.techniques.based !== false;
+                techTime.checked = state.techniques.time !== false;
+                techFile.checked = state.techniques.file !== false;
+                allTech.checked = techClassic.checked && techBased.checked && techTime.checked && techFile.checked;
+                timeDelay.value = state.time_delay || 1;
+                timeThreshold.value = state.time_threshold || 7;
+                
+                cookie.value = state.cookie || '';
+                headers.value = state.headers || '';
+                auth.value = state.auth || '';
+                authType.value = state.auth_type || 'basic';
+                proxy.value = state.proxy || '';
+                tor.checked = state.tor || false;
+                
+                detectBool.checked = state.detection.bool !== false;
+                detectTime.checked = state.detection.time !== false;
+                detectFile.checked = state.detection.file !== false;
+                successPattern.value = state.success_pattern || '';
+                failurePattern.value = state.failure_pattern || '';
+                
+                evasionBase64.checked = state.evasion.base64 || false;
+                evasionHex.checked = state.evasion.hex || false;
+                evasionOctal.checked = state.evasion.octal || false;
+                evasionUnicode.checked = state.evasion.unicode || false;
+                evasionComment.checked = state.evasion.comment || false;
+                evasionWhitespace.checked = state.evasion.whitespace || false;
+                charset.value = state.charset || '';
+                
+                customPayloads.checked = state.custom_payloads || false;
+                payloadOptions.style.display = state.custom_payloads ? 'block' : 'none';
+                payloadFile.checked = state.payload_file || false;
+                payloadFileOptions.style.display = state.payload_file ? 'block' : 'none';
+                payloadFilePath.value = state.payload_file_path || '';
+                prefix.value = state.prefix || '';
+                suffix.value = state.suffix || '';
+                
+                threads.value = state.threads || 5;
+                retries.value = state.retries || 3;
+                timeout.value = state.timeout || 10;
+                delay.value = state.delay || 0;
+                
+                outputTxt.checked = state.output.txt || false;
+                outputHtml.checked = state.output.html || false;
+                outputXml.checked = state.output.xml || false;
+                outputJson.checked = state.output.json || false;
+                outputFilename.value = state.output.filename || '';
+                updateOutputVisibility();
+                outputDir.value = state.output_dir || '/home/kali/commix/';
+                verbosity.value = state.verbosity || '1';
+                
+                customFlags.value = state.customFlags || '';
+                
+                updateCommand();
+            }
+
+            function updateSavedCommandsList() {
+                const saved = loadSavedCommands();
+                const container = document.getElementById('savedCommandsList');
+                
+                if (saved.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-saved')) {
+                            const index = item.dataset.index;
+                            const cmd = saved[index];
+                            loadStateIntoSavedCommands(cmd.state);
+                            Utils.showNotification(`Loaded: ${cmd.name}`, 'success');
+                        }
+                    });
+                });
+                
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = btn.dataset.index;
+                        deleteSavedCommand(index);
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            // ============ BUTTON HANDLERS ============
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value;
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this configuration', 'warning');
+                    return;
+                }
+                
+                saveCommand(name);
+                Utils.showNotification('✅ Configuration saved!', 'success');
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', () => {
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const command = generateCommand();
+                try {
+                    await navigator.clipboard.writeText(command);
+                    Utils.showNotification('✅ Command copied to clipboard!', 'success');
+                } catch (err) {
+                    Utils.showNotification('❌ Failed to copy command', 'error');
+                }
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                // Reset state
+                state = {
+                    url: '', method: 'GET', data: '', url_regex: false,
+                    params: '', all_params: false, skip_params: false,
+                    os: 'auto', os_cmd: false, os_shell: false, os_pseudo: false,
+                    techniques: { classic: true, based: true, time: true, file: true },
+                    all_tech: true, time_delay: 1, time_threshold: 7,
+                    cookie: '', headers: '', auth: '', auth_type: 'basic',
+                    proxy: '', tor: false,
+                    detection: { bool: true, time: true, file: true },
+                    success_pattern: '', failure_pattern: '',
+                    evasion: { base64: false, hex: false, octal: false, unicode: false, comment: false, whitespace: false },
+                    charset: '',
+                    custom_payloads: false, payload_file: false, payload_file_path: '',
+                    prefix: '', suffix: '',
+                    threads: 5, retries: 3, timeout: 10, delay: 0,
+                    output: { txt: false, html: false, xml: false, json: false, filename: '' },
+                    output_dir: '/home/kali/commix/',
+                    verbosity: '1',
+                    customFlags: ''
+                };
+                
+                // Reset UI
+                url.value = '';
+                method.value = 'GET';
+                data.value = '';
+                urlRegex.checked = false;
+                params.value = '';
+                allParams.checked = false;
+                skipParams.checked = false;
+                
+                selectOS('auto');
+                osCmd.checked = false;
+                osShell.checked = false;
+                osPseudo.checked = false;
+                
+                techClassic.checked = true;
+                techBased.checked = true;
+                techTime.checked = true;
+                techFile.checked = true;
+                allTech.checked = true;
+                timeDelay.value = 1;
+                timeThreshold.value = 7;
+                
+                cookie.value = '';
+                headers.value = '';
+                auth.value = '';
+                authType.value = 'basic';
+                proxy.value = '';
+                tor.checked = false;
+                
+                detectBool.checked = true;
+                detectTime.checked = true;
+                detectFile.checked = true;
+                successPattern.value = '';
+                failurePattern.value = '';
+                
+                evasionBase64.checked = false;
+                evasionHex.checked = false;
+                evasionOctal.checked = false;
+                evasionUnicode.checked = false;
+                evasionComment.checked = false;
+                evasionWhitespace.checked = false;
+                charset.value = '';
+                
+                customPayloads.checked = false;
+                payloadOptions.style.display = 'none';
+                payloadFile.checked = false;
+                payloadFileOptions.style.display = 'none';
+                payloadFilePath.value = '';
+                prefix.value = '';
+                suffix.value = '';
+                
+                threads.value = 5;
+                retries.value = 3;
+                timeout.value = 10;
+                delay.value = 0;
+                
+                outputTxt.checked = false;
+                outputHtml.checked = false;
+                outputXml.checked = false;
+                outputJson.checked = false;
+                outputFilenameContainer.style.display = 'none';
+                outputFilename.value = '';
+                outputDir.value = '/home/kali/commix/';
+                verbosity.value = '1';
+                
+                customFlags.value = '';
+                
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            // Initial update
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

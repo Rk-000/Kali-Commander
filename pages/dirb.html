@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dirb - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles specific to Dirb */
+        .dirb-option-group {
+            background: rgba(15, 95, 168, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid #00CFFF;
+        }
+        .dirb-option-title {
+            color: #00CFFF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .wordlist-preview {
+            background: #0A1F33;
+            border: 1px solid #00CFFF;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #00CFFF;
+            max-height: 150px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .extension-tag {
+            background: rgba(15, 95, 168, 0.3);
+            border: 1px solid #1E88E5;
+            border-radius: 4px;
+            padding: 2px 6px;
+            margin: 2px;
+            display: inline-block;
+            font-size: 0.8rem;
+        }
+        .status-code {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            border-radius: 4px;
+            margin-right: 5px;
+            font-weight: bold;
+        }
+        .code-200 { background: #2E8B57; color: white; }
+        .code-403 { background: #FF4500; color: white; }
+        .code-404 { background: #8B0000; color: white; }
+        .code-500 { background: #FFA500; color: black; }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=web-application">Web Application Analysis</a>
+            <span class="separator">›</span>
+            <span class="current">Dirb</span>
+        </div>
+
+        <!-- Tool Header -->
+        <div class="tool-header">
+            <h1>DIRB</h1>
+            <p>Web Content Scanner - Brute force directories and files on web servers</p>
+        </div>
+
+        <!-- Target Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🎯</span> TARGET CONFIGURATION
+            </div>
+
+            <div class="dirb-option-group">
+                <div class="dirb-option-title">
+                    <span>🌐</span> TARGET URL
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Base URL</label>
+                    <input type="url" class="input-field" id="url" placeholder="http://example.com/" value="http://">
+                    <small style="color: #2A6FAF;">Include protocol (http:// or https://)</small>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Port (optional)</label>
+                    <input type="number" class="input-field" id="port" placeholder="80" min="1" max="65535">
+                </div>
+
+                <div class="checkbox-item" style="margin-top: 15px;">
+                    <input type="checkbox" id="ssl">
+                    <label class="checkbox-label" for="ssl">Force HTTPS/SSL</label>
+                    <span class="checkbox-flag">-ssl</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wordlist Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📚</span> WORDLIST CONFIGURATION
+            </div>
+
+            <div class="dirb-option-group">
+                <div class="dirb-option-title">
+                    <span>📄</span> WORDLIST FILE
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Wordlist Path</label>
+                    <input type="text" class="input-field" id="wordlist" value="/usr/share/dirb/wordlists/common.txt">
+                </div>
+
+                <div class="checkbox-grid" style="margin-top: 15px;">
+                    <div class="checkbox-item">
+                        <input type="radio" name="wordlist_type" id="wl_single" value="single" checked>
+                        <label class="checkbox-label" for="wl_single">Single Wordlist</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="wordlist_type" id="wl_recursive" value="recursive">
+                        <label class="checkbox-label" for="wl_recursive">Recursive Scan</label>
+                        <span class="checkbox-flag">-r</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="wordlist_type" id="wl_multiple" value="multiple">
+                        <label class="checkbox-label" for="wl_multiple">Multiple Wordlists</label>
+                    </div>
+                </div>
+
+                <div id="multiple_wordlists" style="display: none; margin-top: 15px;">
+                    <textarea class="input-field" rows="4" placeholder="/usr/share/dirb/wordlists/common.txt
+/usr/share/dirb/wordlists/big.txt
+/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt"></textarea>
+                </div>
+
+                <div class="wordlist-preview" id="wordlist_preview">
+                    Preview: admin, login, images, css, js, backup, tmp, etc...
+                </div>
+            </div>
+
+            <div class="dirb-option-group">
+                <div class="dirb-option-title">
+                    <span>🔧</span> EXTENSIONS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">File Extensions</label>
+                    <input type="text" class="input-field" id="extensions" placeholder="php,asp,aspx,jsp,html,js">
+                    <small>Comma-separated extensions to append (e.g., .php,.asp)</small>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <span class="extension-tag">.php</span>
+                    <span class="extension-tag">.asp</span>
+                    <span class="extension-tag">.aspx</span>
+                    <span class="extension-tag">.jsp</span>
+                    <span class="extension-tag">.html</span>
+                    <span class="extension-tag">.js</span>
+                    <span class="extension-tag">.css</span>
+                    <span class="extension-tag">.txt</span>
+                    <span class="extension-tag">.bak</span>
+                    <span class="extension-tag">.old</span>
+                </div>
+
+                <div class="checkbox-item" style="margin-top: 15px;">
+                    <input type="checkbox" id="extensions_force">
+                    <label class="checkbox-label" for="extensions_force">Force extensions on all entries</label>
+                    <span class="checkbox-flag">-f</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scan Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚙️</span> SCAN CONFIGURATION
+            </div>
+
+            <div class="dirb-option-group">
+                <div class="dirb-option-title">
+                    <span>⚡</span> PERFORMANCE
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Threads</label>
+                        <input type="number" class="input-field" id="threads" value="10" min="1" max="50">
+                        <span class="checkbox-flag">-t</span>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Delay (seconds)</label>
+                        <input type="number" class="input-field" id="delay" value="0" min="0" max="60" step="0.1">
+                        <span class="checkbox-flag">-z</span>
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Timeout (seconds)</label>
+                        <input type="number" class="input-field" id="timeout" value="5" min="1" max="60">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Retries</label>
+                        <input type="number" class="input-field" id="retries" value="2" min="0" max="10">
+                    </div>
+                </div>
+            </div>
+
+            <div class="dirb-option-group">
+                <div class="dirb-option-title">
+                    <span>🔍</span> RECURSION
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="recursive">
+                        <label class="checkbox-label" for="recursive">Recursive Scan</label>
+                        <span class="checkbox-flag">-r</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="recursive_force">
+                        <label class="checkbox-label" for="recursive_force">Force Recursion</label>
+                        <span class="checkbox-flag">-R</span>
+                    </div>
+                </div>
+
+                <div id="recursion_options" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Recursion Depth</label>
+                    <input type="number" class="input-field" id="depth" value="3" min="1" max="10">
+                </div>
+            </div>
+        </div>
+
+        <!-- HTTP Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>🌍</span> HTTP OPTIONS
+            </div>
+
+            <div class="dirb-option-group">
+                <div class="dirb-option-title">
+                    <span>🍪</span> COOKIES
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Cookie String</label>
+                    <input type="text" class="input-field" id="cookie" placeholder="PHPSESSID=abc123; security=low">
+                </div>
+            </div>
+
+            <div class="dirb-option-group">
+                <div class="dirb-option-title">
+                    <span>🔐</span> AUTHENTICATION
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Username:Password</label>
+                    <input type="text" class="input-field" id="auth" placeholder="admin:password">
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Authentication Type</label>
+                    <select class="file-type-select" id="auth_type">
+                        <option value="basic">Basic</option>
+                        <option value="digest">Digest</option>
+                        <option value="ntlm">NTLM</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="dirb-option-group">
+                <div class="dirb-option-title">
+                    <span>📝</span> USER AGENT
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Custom User Agent</label>
+                    <input type="text" class="input-field" id="useragent" value="Mozilla/5.0 (compatible; Dirb/2.22)">
+                </div>
+
+                <div class="checkbox-item" style="margin-top: 15px;">
+                    <input type="checkbox" id="random_agent">
+                    <label class="checkbox-label" for="random_agent">Random User Agent</label>
+                </div>
+            </div>
+
+            <div class="dirb-option-group">
+                <div class="dirb-option-title">
+                    <span>🔀</span> PROXY
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Proxy URL</label>
+                    <input type="text" class="input-field" id="proxy" placeholder="http://127.0.0.1:8080">
+                    <span class="checkbox-flag">-p</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtering Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔍</span> FILTERING OPTIONS
+            </div>
+
+            <div class="dirb-option-group">
+                <div class="dirb-option-title">
+                    <span>✅</span> SHOW RESULTS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="show_200" checked>
+                        <label class="checkbox-label" for="show_200">Show 200 OK</label>
+                        <span class="code-200">200</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="show_403" checked>
+                        <label class="checkbox-label" for="show_403">Show 403 Forbidden</label>
+                        <span class="code-403">403</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="show_500" checked>
+                        <label class="checkbox-label" for="show_500">Show 500 Error</label>
+                        <span class="code-500">500</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dirb-option-group">
+                <div class="dirb-option-title">
+                    <span>❌</span> HIDE RESULTS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Hide Status Codes</label>
+                    <input type="text" class="input-field" id="hide_codes" placeholder="404,301,302">
+                    <span class="checkbox-flag">-x</span>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Hide Size (bytes)</label>
+                    <input type="text" class="input-field" id="hide_size" placeholder="1024,2048">
+                </div>
+            </div>
+
+            <div class="dirb-option-group">
+                <div class="dirb-option-title">
+                    <span>📏</span> SIZE FILTERS
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Min Size</label>
+                        <input type="number" class="input-field" id="min_size" value="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Max Size</label>
+                        <input type="number" class="input-field" id="max_size" value="999999" min="0">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📊</span> OUTPUT CONFIGURATION
+            </div>
+
+            <div class="dirb-option-group">
+                <div class="dirb-option-title">
+                    <span>📁</span> OUTPUT FORMATS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_txt">
+                        <label class="checkbox-label" for="output_txt">Text Output</label>
+                        <span class="checkbox-flag">-o</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_html">
+                        <label class="checkbox-label" for="output_html">HTML Report</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_xml">
+                        <label class="checkbox-label" for="output_xml">XML Output</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_json">
+                        <label class="checkbox-label" for="output_json">JSON Output</label>
+                    </div>
+                </div>
+
+                <div id="output_filename_container" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Output Filename</label>
+                    <input type="text" class="input-field" id="output_filename" placeholder="dirb_scan">
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <div class="output-row">
+                        <div class="input-group">
+                            <label class="input-label">Output Directory</label>
+                            <input type="text" class="input-field" id="output_dir" value="/home/kali/dirb/">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">File Type</label>
+                            <select class="file-type-select" id="fileType">
+                                <option value=".txt">.txt</option>
+                                <option value=".html">.html</option>
+                                <option value=".xml">.xml</option>
+                                <option value=".json">.json</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dirb-option-group">
+                <div class="dirb-option-title">
+                    <span>⚡</span> VERBOSITY
+                </div>
+                
+                <select class="file-type-select" id="verbosity">
+                    <option value="0">Quiet</option>
+                    <option value="1">Normal</option>
+                    <option value="2">Verbose</option>
+                    <option value="3">Debug</option>
+                </select>
+                <span class="checkbox-flag">-v</span>
+            </div>
+        </div>
+
+        <!-- Custom Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CUSTOM OPTIONS
+            </div>
+            <div class="input-group">
+                <label class="input-label">Additional flags (space separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="-S -N 1234">
+            </div>
+        </div>
+
+        <!-- Save/Load Panel -->
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Scan configuration name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Configuration</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+        
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <!-- Command Preview -->
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">dirb</div>
+            <div class="command-info" id="commandInfo">No target URL specified</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand">
+                <span>📋</span> COPY COMMAND
+            </button>
+            <button class="btn btn-secondary" id="clearAll">
+                <span>🗑️</span> CLEAR ALL
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ============ COMMAND BUILDER FOR DIRB ============
+            
+            // State
+            let state = {
+                url: '',
+                port: '',
+                ssl: false,
+                wordlist: '/usr/share/dirb/wordlists/common.txt',
+                wordlist_type: 'single',
+                multiple_wordlists: '',
+                extensions: '',
+                extensions_force: false,
+                threads: 10,
+                delay: 0,
+                timeout: 5,
+                retries: 2,
+                recursive: false,
+                recursive_force: false,
+                depth: 3,
+                cookie: '',
+                auth: '',
+                auth_type: 'basic',
+                useragent: 'Mozilla/5.0 (compatible; Dirb/2.22)',
+                random_agent: false,
+                proxy: '',
+                show_200: true,
+                show_403: true,
+                show_500: true,
+                hide_codes: '',
+                hide_size: '',
+                min_size: 0,
+                max_size: 999999,
+                output: {
+                    txt: false,
+                    html: false,
+                    xml: false,
+                    json: false,
+                    filename: ''
+                },
+                verbosity: '1',
+                output_dir: '/home/kali/dirb/',
+                fileType: '.txt',
+                customFlags: ''
+            };
+
+            // DOM Elements
+            const url = document.getElementById('url');
+            const port = document.getElementById('port');
+            const ssl = document.getElementById('ssl');
+            const wordlist = document.getElementById('wordlist');
+            const wlSingle = document.getElementById('wl_single');
+            const wlRecursive = document.getElementById('wl_recursive');
+            const wlMultiple = document.getElementById('wl_multiple');
+            const multipleWordlists = document.getElementById('multiple_wordlists');
+            const extensions = document.getElementById('extensions');
+            const extensionsForce = document.getElementById('extensions_force');
+            const threads = document.getElementById('threads');
+            const delay = document.getElementById('delay');
+            const timeout = document.getElementById('timeout');
+            const retries = document.getElementById('retries');
+            const recursive = document.getElementById('recursive');
+            const recursiveForce = document.getElementById('recursive_force');
+            const recursionOptions = document.getElementById('recursion_options');
+            const depth = document.getElementById('depth');
+            const cookie = document.getElementById('cookie');
+            const auth = document.getElementById('auth');
+            const authType = document.getElementById('auth_type');
+            const useragent = document.getElementById('useragent');
+            const randomAgent = document.getElementById('random_agent');
+            const proxy = document.getElementById('proxy');
+            const show200 = document.getElementById('show_200');
+            const show403 = document.getElementById('show_403');
+            const show500 = document.getElementById('show_500');
+            const hideCodes = document.getElementById('hide_codes');
+            const hideSize = document.getElementById('hide_size');
+            const minSize = document.getElementById('min_size');
+            const maxSize = document.getElementById('max_size');
+            
+            // Output
+            const outputTxt = document.getElementById('output_txt');
+            const outputHtml = document.getElementById('output_html');
+            const outputXml = document.getElementById('output_xml');
+            const outputJson = document.getElementById('output_json');
+            const outputFilename = document.getElementById('output_filename');
+            const outputFilenameContainer = document.getElementById('output_filename_container');
+            const verbosity = document.getElementById('verbosity');
+            const outputDir = document.getElementById('output_dir');
+            const fileType = document.getElementById('fileType');
+            
+            const customFlags = document.getElementById('customFlags');
+
+            // ============ EVENT LISTENERS ============
+
+            // Target
+            url.addEventListener('input', (e) => { state.url = e.target.value; updateCommand(); });
+            port.addEventListener('input', (e) => { state.port = e.target.value; updateCommand(); });
+            ssl.addEventListener('change', (e) => { state.ssl = e.target.checked; updateCommand(); });
+
+            // Wordlist
+            wordlist.addEventListener('input', (e) => { state.wordlist = e.target.value; updateCommand(); });
+            
+            wlSingle.addEventListener('change', (e) => { 
+                if(e.target.checked) {
+                    state.wordlist_type = 'single';
+                    multipleWordlists.style.display = 'none';
+                    updateCommand();
+                }
+            });
+            
+            wlRecursive.addEventListener('change', (e) => { 
+                if(e.target.checked) {
+                    state.wordlist_type = 'recursive';
+                    multipleWordlists.style.display = 'none';
+                    updateCommand();
+                }
+            });
+            
+            wlMultiple.addEventListener('change', (e) => { 
+                if(e.target.checked) {
+                    state.wordlist_type = 'multiple';
+                    multipleWordlists.style.display = 'block';
+                    updateCommand();
+                }
+            });
+
+            multipleWordlists.addEventListener('input', (e) => { state.multiple_wordlists = e.target.value; updateCommand(); });
+
+            extensions.addEventListener('input', (e) => { state.extensions = e.target.value; updateCommand(); });
+            extensionsForce.addEventListener('change', (e) => { state.extensions_force = e.target.checked; updateCommand(); });
+
+            // Performance
+            threads.addEventListener('input', (e) => { state.threads = parseInt(e.target.value) || 10; updateCommand(); });
+            delay.addEventListener('input', (e) => { state.delay = parseFloat(e.target.value) || 0; updateCommand(); });
+            timeout.addEventListener('input', (e) => { state.timeout = parseInt(e.target.value) || 5; updateCommand(); });
+            retries.addEventListener('input', (e) => { state.retries = parseInt(e.target.value) || 2; updateCommand(); });
+
+            // Recursion
+            recursive.addEventListener('change', (e) => { 
+                state.recursive = e.target.checked;
+                recursionOptions.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            recursiveForce.addEventListener('change', (e) => { state.recursive_force = e.target.checked; updateCommand(); });
+            depth.addEventListener('input', (e) => { state.depth = parseInt(e.target.value) || 3; updateCommand(); });
+
+            // HTTP
+            cookie.addEventListener('input', (e) => { state.cookie = e.target.value; updateCommand(); });
+            auth.addEventListener('input', (e) => { state.auth = e.target.value; updateCommand(); });
+            authType.addEventListener('change', (e) => { state.auth_type = e.target.value; updateCommand(); });
+            useragent.addEventListener('input', (e) => { state.useragent = e.target.value; updateCommand(); });
+            randomAgent.addEventListener('change', (e) => { state.random_agent = e.target.checked; updateCommand(); });
+            proxy.addEventListener('input', (e) => { state.proxy = e.target.value; updateCommand(); });
+
+            // Filtering
+            show200.addEventListener('change', (e) => { state.show_200 = e.target.checked; updateCommand(); });
+            show403.addEventListener('change', (e) => { state.show_403 = e.target.checked; updateCommand(); });
+            show500.addEventListener('change', (e) => { state.show_500 = e.target.checked; updateCommand(); });
+            hideCodes.addEventListener('input', (e) => { state.hide_codes = e.target.value; updateCommand(); });
+            hideSize.addEventListener('input', (e) => { state.hide_size = e.target.value; updateCommand(); });
+            minSize.addEventListener('input', (e) => { state.min_size = parseInt(e.target.value) || 0; updateCommand(); });
+            maxSize.addEventListener('input', (e) => { state.max_size = parseInt(e.target.value) || 999999; updateCommand(); });
+
+            // Output
+            outputTxt.addEventListener('change', (e) => { state.output.txt = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputHtml.addEventListener('change', (e) => { state.output.html = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputXml.addEventListener('change', (e) => { state.output.xml = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputJson.addEventListener('change', (e) => { state.output.json = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputFilename.addEventListener('input', (e) => { state.output.filename = e.target.value; updateCommand(); });
+            
+            verbosity.addEventListener('change', (e) => { state.verbosity = e.target.value; updateCommand(); });
+            outputDir.addEventListener('input', (e) => { state.output_dir = e.target.value; updateCommand(); });
+            fileType.addEventListener('change', (e) => { state.fileType = e.target.value; updateCommand(); });
+
+            function updateOutputVisibility() {
+                const anyOutput = state.output.txt || state.output.html || state.output.xml || state.output.json;
+                outputFilenameContainer.style.display = anyOutput ? 'block' : 'none';
+            }
+
+            // Custom flags
+            customFlags.addEventListener('input', (e) => { state.customFlags = e.target.value; updateCommand(); });
+
+            // ============ COMMAND GENERATION ============
+
+            function generateCommand() {
+                if (!state.url) {
+                    return 'dirb --help (specify a target URL)';
+                }
+
+                let command = 'dirb';
+                const parts = [];
+
+                // URL
+                let targetUrl = state.url;
+                if (state.port) {
+                    targetUrl = targetUrl.replace(/\/$/, '');
+                    targetUrl += `:${state.port}`;
+                }
+                if (state.ssl) {
+                    targetUrl = targetUrl.replace('http://', 'https://');
+                }
+                parts.push(targetUrl);
+
+                // Wordlist
+                if (state.wordlist_type === 'single') {
+                    parts.push(state.wordlist);
+                } else if (state.wordlist_type === 'recursive') {
+                    parts.push(state.wordlist);
+                }
+
+                // Extensions
+                if (state.extensions) {
+                    const extList = state.extensions.split(',').map(e => e.trim()).filter(e => e);
+                    parts.push(`-X .${extList.join(',.')}`);
+                }
+                if (state.extensions_force) {
+                    parts.push('-f');
+                }
+
+                // Performance
+                if (state.threads !== 10) parts.push(`-t ${state.threads}`);
+                if (state.delay > 0) parts.push(`-z ${state.delay}`);
+                if (state.timeout !== 5) parts.push(`-w ${state.timeout}`);  // Note: dirb uses -w for timeout
+
+                // Recursion
+                if (state.recursive) {
+                    parts.push('-r');
+                    if (state.depth !== 3) parts.push(`-R ${state.depth}`);
+                }
+                if (state.recursive_force) parts.push('-R');
+
+                // Cookies
+                if (state.cookie) {
+                    parts.push(`-C "${state.cookie}"`);
+                }
+
+                // Authentication
+                if (state.auth) {
+                    if (state.auth_type === 'basic') {
+                        parts.push(`-u ${state.auth}`);
+                    } else if (state.auth_type === 'digest') {
+                        parts.push(`-a ${state.auth}`);
+                    } else if (state.auth_type === 'ntlm') {
+                        // NTLM format: domain/user:pass
+                        parts.push(`-u ${state.auth}`);
+                    }
+                }
+
+                // User Agent
+                if (state.useragent && !state.random_agent) {
+                    parts.push(`-A "${state.useragent}"`);
+                }
+                if (state.random_agent) {
+                    parts.push('-A "random"');
+                }
+
+                // Proxy
+                if (state.proxy) {
+                    parts.push(`-p ${state.proxy}`);
+                }
+
+                // Hide codes
+                if (state.hide_codes) {
+                    const codes = state.hide_codes.split(',').map(c => c.trim()).filter(c => c);
+                    parts.push(`-x ${codes.join(',')}`);
+                }
+
+                // Size filters
+                if (state.min_size > 0 || state.max_size < 999999) {
+                    // Dirb doesn't have direct size filtering, but we can note it
+                }
+
+                // Output
+                if (state.output.filename) {
+                    let outputFormat = 'txt';
+                    if (state.output.html) outputFormat = 'html';
+                    else if (state.output.xml) outputFormat = 'xml';
+                    else if (state.output.json) outputFormat = 'json';
+                    
+                    const outputPath = `${state.output_dir}${state.output.filename}`;
+                    if (outputFormat === 'txt') {
+                        parts.push(`-o ${outputPath}.txt`);
+                    } else {
+                        // Other formats would need conversion
+                        parts.push(`-o ${outputPath}.${outputFormat}`);
+                    }
+                }
+
+                // Verbosity
+                if (state.verbosity === '2') parts.push('-v');
+                if (state.verbosity === '3') parts.push('-v -v');
+
+                // Custom flags
+                if (state.customFlags) {
+                    const customParts = state.customFlags.trim().split(/\s+/);
+                    customParts.forEach(part => parts.push(part));
+                }
+
+                return command + ' ' + parts.join(' ');
+            }
+
+            function generateExplanation() {
+                const explanations = [];
+                
+                if (state.url) {
+                    let target = state.url;
+                    if (state.port) target += `:${state.port}`;
+                    if (state.ssl) target = target.replace('http', 'https');
+                    explanations.push(`Target: ${target}`);
+                }
+                
+                if (state.wordlist) {
+                    const wordlistName = state.wordlist.split('/').pop();
+                    explanations.push(`Wordlist: ${wordlistName}`);
+                }
+                
+                if (state.extensions) {
+                    explanations.push(`Extensions: ${state.extensions}`);
+                }
+                
+                if (state.threads > 10) explanations.push(`Threads: ${state.threads}`);
+                if (state.recursive) explanations.push(`Depth: ${state.depth}`);
+                
+                if (state.auth) explanations.push('Authentication enabled');
+                if (state.proxy) explanations.push('Using proxy');
+                
+                const outputFormats = [];
+                if (state.output.txt) outputFormats.push('TXT');
+                if (state.output.html) outputFormats.push('HTML');
+                if (state.output.xml) outputFormats.push('XML');
+                if (state.output.json) outputFormats.push('JSON');
+                
+                if (outputFormats.length > 0) {
+                    explanations.push(`Output: ${outputFormats.join(', ')}`);
+                }
+                
+                return explanations.length > 0 
+                    ? `Scan includes: ${explanations.join(' • ')}`
+                    : 'No scan options selected';
+            }
+
+            function updateCommand() {
+                document.getElementById('commandPreview').textContent = generateCommand();
+                document.getElementById('commandInfo').textContent = generateExplanation();
+            }
+
+            // ============ SAVE/LOAD FUNCTIONS ============
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved.dirb) saved.dirb = [];
+                
+                saved.dirb.push({
+                    name: name,
+                    state: { ...state },
+                    timestamp: new Date().toISOString()
+                });
+                
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved.dirb || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved.dirb && saved.dirb[index]) {
+                    saved.dirb.splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function loadStateIntoSavedCommands(savedState) {
+                // Restore state
+                state = JSON.parse(JSON.stringify(savedState));
+                
+                // Update UI
+                url.value = state.url || 'http://';
+                port.value = state.port || '';
+                ssl.checked = state.ssl || false;
+                wordlist.value = state.wordlist || '/usr/share/dirb/wordlists/common.txt';
+                
+                if (state.wordlist_type === 'single') wlSingle.checked = true;
+                if (state.wordlist_type === 'recursive') wlRecursive.checked = true;
+                if (state.wordlist_type === 'multiple') wlMultiple.checked = true;
+                
+                multipleWordlists.value = state.multiple_wordlists || '';
+                multipleWordlists.style.display = state.wordlist_type === 'multiple' ? 'block' : 'none';
+                
+                extensions.value = state.extensions || '';
+                extensionsForce.checked = state.extensions_force || false;
+                threads.value = state.threads || 10;
+                delay.value = state.delay || 0;
+                timeout.value = state.timeout || 5;
+                retries.value = state.retries || 2;
+                recursive.checked = state.recursive || false;
+                recursiveForce.checked = state.recursive_force || false;
+                recursionOptions.style.display = state.recursive ? 'block' : 'none';
+                depth.value = state.depth || 3;
+                cookie.value = state.cookie || '';
+                auth.value = state.auth || '';
+                authType.value = state.auth_type || 'basic';
+                useragent.value = state.useragent || 'Mozilla/5.0 (compatible; Dirb/2.22)';
+                randomAgent.checked = state.random_agent || false;
+                proxy.value = state.proxy || '';
+                show200.checked = state.show_200 !== false;
+                show403.checked = state.show_403 !== false;
+                show500.checked = state.show_500 !== false;
+                hideCodes.value = state.hide_codes || '';
+                hideSize.value = state.hide_size || '';
+                minSize.value = state.min_size || 0;
+                maxSize.value = state.max_size || 999999;
+                
+                outputTxt.checked = state.output.txt || false;
+                outputHtml.checked = state.output.html || false;
+                outputXml.checked = state.output.xml || false;
+                outputJson.checked = state.output.json || false;
+                outputFilename.value = state.output.filename || '';
+                updateOutputVisibility();
+                
+                verbosity.value = state.verbosity || '1';
+                outputDir.value = state.output_dir || '/home/kali/dirb/';
+                fileType.value = state.fileType || '.txt';
+                
+                customFlags.value = state.customFlags || '';
+                
+                updateCommand();
+            }
+
+            function updateSavedCommandsList() {
+                const saved = loadSavedCommands();
+                const container = document.getElementById('savedCommandsList');
+                
+                if (saved.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-saved')) {
+                            const index = item.dataset.index;
+                            const cmd = saved[index];
+                            loadStateIntoSavedCommands(cmd.state);
+                            Utils.showNotification(`Loaded: ${cmd.name}`, 'success');
+                        }
+                    });
+                });
+                
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = btn.dataset.index;
+                        deleteSavedCommand(index);
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            // ============ BUTTON HANDLERS ============
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value;
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this configuration', 'warning');
+                    return;
+                }
+                
+                saveCommand(name);
+                Utils.showNotification('✅ Configuration saved!', 'success');
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', () => {
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const command = generateCommand();
+                try {
+                    await navigator.clipboard.writeText(command);
+                    Utils.showNotification('✅ Command copied to clipboard!', 'success');
+                } catch (err) {
+                    Utils.showNotification('❌ Failed to copy command', 'error');
+                }
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                // Reset state
+                state = {
+                    url: 'http://',
+                    port: '',
+                    ssl: false,
+                    wordlist: '/usr/share/dirb/wordlists/common.txt',
+                    wordlist_type: 'single',
+                    multiple_wordlists: '',
+                    extensions: '',
+                    extensions_force: false,
+                    threads: 10,
+                    delay: 0,
+                    timeout: 5,
+                    retries: 2,
+                    recursive: false,
+                    recursive_force: false,
+                    depth: 3,
+                    cookie: '',
+                    auth: '',
+                    auth_type: 'basic',
+                    useragent: 'Mozilla/5.0 (compatible; Dirb/2.22)',
+                    random_agent: false,
+                    proxy: '',
+                    show_200: true,
+                    show_403: true,
+                    show_500: true,
+                    hide_codes: '',
+                    hide_size: '',
+                    min_size: 0,
+                    max_size: 999999,
+                    output: { txt: false, html: false, xml: false, json: false, filename: '' },
+                    verbosity: '1',
+                    output_dir: '/home/kali/dirb/',
+                    fileType: '.txt',
+                    customFlags: ''
+                };
+                
+                // Reset UI
+                url.value = 'http://';
+                port.value = '';
+                ssl.checked = false;
+                wordlist.value = '/usr/share/dirb/wordlists/common.txt';
+                wlSingle.checked = true;
+                wlRecursive.checked = false;
+                wlMultiple.checked = false;
+                multipleWordlists.style.display = 'none';
+                multipleWordlists.value = '';
+                extensions.value = '';
+                extensionsForce.checked = false;
+                threads.value = 10;
+                delay.value = 0;
+                timeout.value = 5;
+                retries.value = 2;
+                recursive.checked = false;
+                recursiveForce.checked = false;
+                recursionOptions.style.display = 'none';
+                depth.value = 3;
+                cookie.value = '';
+                auth.value = '';
+                authType.value = 'basic';
+                useragent.value = 'Mozilla/5.0 (compatible; Dirb/2.22)';
+                randomAgent.checked = false;
+                proxy.value = '';
+                show200.checked = true;
+                show403.checked = true;
+                show500.checked = true;
+                hideCodes.value = '';
+                hideSize.value = '';
+                minSize.value = 0;
+                maxSize.value = 999999;
+                
+                outputTxt.checked = false;
+                outputHtml.checked = false;
+                outputXml.checked = false;
+                outputJson.checked = false;
+                outputFilenameContainer.style.display = 'none';
+                outputFilename.value = '';
+                
+                verbosity.value = '1';
+                outputDir.value = '/home/kali/dirb/';
+                fileType.value = '.txt';
+                
+                customFlags.value = '';
+                
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            // Initial update
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

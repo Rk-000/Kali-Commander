@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maltego - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles specific to Maltego */
+        .transform-group {
+            background: rgba(15, 95, 168, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid #00CFFF;
+        }
+        .transform-title {
+            color: #00CFFF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .seed-input {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .seed-input input {
+            flex: 1;
+        }
+        .entity-type {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .entity-item {
+            background: rgba(15, 95, 168, 0.1);
+            border: 1px solid #0F5FA8;
+            border-radius: 6px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .entity-item:hover {
+            background: rgba(15, 95, 168, 0.3);
+            border-color: #1E88E5;
+        }
+        .entity-item input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #00CFFF;
+        }
+        .entity-item label {
+            flex: 1;
+            cursor: pointer;
+            color: #E6F0FA;
+            font-size: 0.9rem;
+        }
+        .api-key-input {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px dashed #1E88E5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=information-gathering">Information Gathering</a>
+            <span class="separator">›</span>
+            <span class="current">Maltego</span>
+        </div>
+
+        <!-- Tool Header -->
+        <div class="tool-header">
+            <h1>MALTEGO</h1>
+            <p>OSINT and Link Analysis Tool - Visualize relationships between people, domains, and networks</p>
+        </div>
+
+        <!-- Seed/Target Input -->
+        <div class="section">
+            <div class="section-title">
+                <span>🎯</span> SEED ENTITY
+            </div>
+            <div class="input-group">
+                <label class="input-label">Seed Value (Domain, Email, Name, etc.)</label>
+                <input type="text" class="input-field" id="seed" placeholder="example.com or john.doe@email.com" value="">
+                <small style="color: #2A6FAF; margin-top: 5px; display: block;">Starting point for your investigation</small>
+            </div>
+
+            <div class="entity-type">
+                <div class="entity-item">
+                    <input type="radio" name="entity_type" id="entity_domain" value="domain" checked>
+                    <label for="entity_domain">🌐 Domain</label>
+                </div>
+                <div class="entity-item">
+                    <input type="radio" name="entity_type" id="entity_email" value="email">
+                    <label for="entity_email">📧 Email</label>
+                </div>
+                <div class="entity-item">
+                    <input type="radio" name="entity_type" id="entity_name" value="name">
+                    <label for="entity_name">👤 Person Name</label>
+                </div>
+                <div class="entity-item">
+                    <input type="radio" name="entity_type" id="entity_phone" value="phone">
+                    <label for="entity_phone">📱 Phone Number</label>
+                </div>
+                <div class="entity-item">
+                    <input type="radio" name="entity_type" id="entity_ip" value="ip">
+                    <label for="entity_ip">🔢 IP Address</label>
+                </div>
+                <div class="entity-item">
+                    <input type="radio" name="entity_type" id="entity_org" value="organization">
+                    <label for="entity_org">🏢 Organization</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transform Selection -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔄</span> TRANSFORMS
+            </div>
+            
+            <div class="transform-group">
+                <div class="transform-title">
+                    <span>🌐</span> DOMAIN TRANSFORMS
+                </div>
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="transform_dns">
+                        <label class="checkbox-label" for="transform_dns">DNS to IP</label>
+                        <span class="checkbox-flag">ToIPAddress</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="transform_whois">
+                        <label class="checkbox-label" for="transform_whois">Whois Information</label>
+                        <span class="checkbox-flag">ToWhoisInfo</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="transform_subdomains">
+                        <label class="checkbox-label" for="transform_subdomains">Find Subdomains</label>
+                        <span class="checkbox-flag">ToDNSName</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="transform_emails">
+                        <label class="checkbox-label" for="transform_emails">Find Email Addresses</label>
+                        <span class="checkbox-flag">ToEmailAddress</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="transform_metadata">
+                        <label class="checkbox-label" for="transform_metadata">Website Metadata</label>
+                        <span class="checkbox-flag">ToWebsite</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="transform-group">
+                <div class="transform-title">
+                    <span>📧</span> EMAIL TRANSFORMS
+                </div>
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="transform_email_domain">
+                        <label class="checkbox-label" for="transform_email_domain">Email to Domain</label>
+                        <span class="checkbox-flag">ToDomain</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="transform_email_name">
+                        <label class="checkbox-label" for="transform_email_name">Email to Person</label>
+                        <span class="checkbox-flag">ToPerson</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="transform_email_breach">
+                        <label class="checkbox-label" for="transform_email_breach">Check Data Breaches</label>
+                        <span class="checkbox-flag">ToBreach</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="transform_email_social">
+                        <label class="checkbox-label" for="transform_email_social">Social Media Profiles</label>
+                        <span class="checkbox-flag">ToSocialMedia</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="transform-group">
+                <div class="transform-title">
+                    <span>🔢</span> IP TRANSFORMS
+                </div>
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="transform_ip_geo">
+                        <label class="checkbox-label" for="transform_ip_geo">Geolocation</label>
+                        <span class="checkbox-flag">ToLocation</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="transform_ip_dns">
+                        <label class="checkbox-label" for="transform_ip_dns">Reverse DNS</label>
+                        <span class="checkbox-flag">ToDomain</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="transform_ip_netblock">
+                        <label class="checkbox-label" for="transform_ip_netblock">Netblock Lookup</label>
+                        <span class="checkbox-flag">ToNetblock</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="transform_ip_port">
+                        <label class="checkbox-label" for="transform_ip_port">Open Ports</label>
+                        <span class="checkbox-flag">ToPort</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="transform-group">
+                <div class="transform-title">
+                    <span>👤</span> PERSON TRANSFORMS
+                </div>
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="transform_person_email">
+                        <label class="checkbox-label" for="transform_person_email">Find Email Addresses</label>
+                        <span class="checkbox-flag">ToEmailAddress</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="transform_person_social">
+                        <label class="checkbox-label" for="transform_person_social">Social Media</label>
+                        <span class="checkbox-flag">ToSocialMedia</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="transform_person_phone">
+                        <label class="checkbox-label" for="transform_person_phone">Phone Numbers</label>
+                        <span class="checkbox-flag">ToPhoneNumber</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="transform_person_affiliation">
+                        <label class="checkbox-label" for="transform_person_affiliation">Affiliations</label>
+                        <span class="checkbox-flag">ToAffiliation</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Sources -->
+        <div class="section">
+            <div class="section-title">
+                <span>📡</span> DATA SOURCES
+            </div>
+            
+            <div class="transform-group">
+                <div class="transform-title">
+                    <span>🔌</span> INTEGRATIONS
+                </div>
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="source_shodan">
+                        <label class="checkbox-label" for="source_shodan">Shodan</label>
+                        <span class="checkbox-flag">-shodan</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="source_virustotal">
+                        <label class="checkbox-label" for="source_virustotal">VirusTotal</label>
+                        <span class="checkbox-flag">-vt</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="source_haveibeenpwned">
+                        <label class="checkbox-label" for="source_haveibeenpwned">HaveIBeenPwned</label>
+                        <span class="checkbox-flag">-hibp</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="source_hibp">
+                        <label class="checkbox-label" for="source_hibp">HaveIBeenPwned</label>
+                        <span class="checkbox-flag">-hibp</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="source_censys">
+                        <label class="checkbox-label" for="source_censys">Censys</label>
+                        <span class="checkbox-flag">-censys</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="source_binaryedge">
+                        <label class="checkbox-label" for="source_binaryedge">BinaryEdge</label>
+                        <span class="checkbox-flag">-be</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Keys Section -->
+            <div class="api-key-input" id="api_keys_container" style="display: none;">
+                <div class="transform-title">
+                    <span>🔑</span> API KEYS
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Shodan API Key</label>
+                    <input type="password" class="input-field" id="shodan_key" placeholder="Enter Shodan API key">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">VirusTotal API Key</label>
+                    <input type="password" class="input-field" id="vt_key" placeholder="Enter VirusTotal API key">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Censys API Key</label>
+                    <input type="password" class="input-field" id="censys_key" placeholder="Enter Censys API key">
+                </div>
+            </div>
+        </div>
+
+        <!-- Graph Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>📊</span> GRAPH OPTIONS
+            </div>
+            
+            <div class="checkbox-grid">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="option_depth" data-has-value="true">
+                    <label class="checkbox-label" for="option_depth">Limit Graph Depth</label>
+                    <span class="checkbox-flag">-depth</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="option_size" data-has-value="true">
+                    <label class="checkbox-label" for="option_size">Max Entities</label>
+                    <span class="checkbox-flag">-max</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="option_include">
+                    <label class="checkbox-label" for="option_include">Include Inactive</label>
+                    <span class="checkbox-flag">-inactive</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="option_layout">
+                    <label class="checkbox-label" for="option_layout">Auto Layout</label>
+                    <span class="checkbox-flag">-layout</span>
+                </div>
+            </div>
+
+            <div id="depth-container" style="display: none; margin-top: 15px;">
+                <label class="input-label">Graph Depth (1-5)</label>
+                <input type="number" class="input-field" id="depth_value" value="2" min="1" max="5">
+            </div>
+
+            <div id="size-container" style="display: none; margin-top: 15px;">
+                <label class="input-label">Maximum Entities</label>
+                <input type="number" class="input-field" id="size_value" value="100" min="10" max="1000">
+            </div>
+        </div>
+
+        <!-- Export Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>💾</span> EXPORT OPTIONS
+            </div>
+            
+            <div class="checkbox-grid">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="export_graphml">
+                    <label class="checkbox-label" for="export_graphml">GraphML Format</label>
+                    <span class="checkbox-flag">.graphml</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="export_csv">
+                    <label class="checkbox-label" for="export_csv">CSV Format</label>
+                    <span class="checkbox-flag">.csv</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="export_json">
+                    <label class="checkbox-label" for="export_json">JSON Format</label>
+                    <span class="checkbox-flag">.json</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="export_pdf">
+                    <label class="checkbox-label" for="export_pdf">PDF Report</label>
+                    <span class="checkbox-flag">.pdf</span>
+                </div>
+            </div>
+
+            <div id="export-filename-container" style="display: none; margin-top: 15px;">
+                <label class="input-label">Export Filename (without extension)</label>
+                <input type="text" class="input-field" id="export_filename" placeholder="maltego_graph">
+            </div>
+        </div>
+
+        <!-- Output Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📂</span> OUTPUT CONFIGURATION
+            </div>
+            <div class="output-row">
+                <div class="input-group">
+                    <label class="input-label">Output Path</label>
+                    <input type="text" class="input-field" id="outputPath" value="/home/kali/maltego/">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Filename</label>
+                    <input type="text" class="input-field" id="outputFile" placeholder="maltego_export">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">File Type</label>
+                    <select class="file-type-select" id="fileType">
+                        <option value=".graphml">.graphml (GraphML)</option>
+                        <option value=".csv">.csv (CSV)</option>
+                        <option value=".json">.json (JSON)</option>
+                        <option value=".pdf">.pdf (PDF)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CUSTOM OPTIONS
+            </div>
+            <div class="input-group">
+                <label class="input-label">Additional flags (space separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="--no-cache --debug">
+            </div>
+        </div>
+
+        <!-- Save/Load Panel -->
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Command name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Command</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+        
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <!-- Command Preview -->
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">maltego</div>
+            <div class="command-info" id="commandInfo">No options selected</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand">
+                <span>📋</span> COPY COMMAND
+            </button>
+            <button class="btn btn-secondary" id="clearAll">
+                <span>🗑️</span> CLEAR ALL
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ============ COMMAND BUILDER FOR MALTEGO ============
+            
+            // State
+            let state = {
+                seed: '',
+                entity_type: 'domain',
+                transforms: {
+                    dns: false,
+                    whois: false,
+                    subdomains: false,
+                    emails: false,
+                    metadata: false,
+                    email_domain: false,
+                    email_name: false,
+                    email_breach: false,
+                    email_social: false,
+                    ip_geo: false,
+                    ip_dns: false,
+                    ip_netblock: false,
+                    ip_port: false,
+                    person_email: false,
+                    person_social: false,
+                    person_phone: false,
+                    person_affiliation: false
+                },
+                sources: {
+                    shodan: false,
+                    virustotal: false,
+                    hibp: false,
+                    censys: false,
+                    binaryedge: false
+                },
+                api_keys: {
+                    shodan: '',
+                    vt: '',
+                    censys: ''
+                },
+                graph: {
+                    depth: false,
+                    depth_value: 2,
+                    size: false,
+                    size_value: 100,
+                    include_inactive: false,
+                    auto_layout: false
+                },
+                export: {
+                    graphml: false,
+                    csv: false,
+                    json: false,
+                    pdf: false,
+                    filename: ''
+                },
+                outputPath: '/home/kali/maltego/',
+                outputFile: '',
+                fileType: '.graphml',
+                customFlags: ''
+            };
+
+            // DOM Elements
+            const seedInput = document.getElementById('seed');
+            const entityRadios = document.querySelectorAll('input[name="entity_type"]');
+            
+            // Transform checkboxes
+            const transformDns = document.getElementById('transform_dns');
+            const transformWhois = document.getElementById('transform_whois');
+            const transformSubdomains = document.getElementById('transform_subdomains');
+            const transformEmails = document.getElementById('transform_emails');
+            const transformMetadata = document.getElementById('transform_metadata');
+            const transformEmailDomain = document.getElementById('transform_email_domain');
+            const transformEmailName = document.getElementById('transform_email_name');
+            const transformEmailBreach = document.getElementById('transform_email_breach');
+            const transformEmailSocial = document.getElementById('transform_email_social');
+            const transformIpGeo = document.getElementById('transform_ip_geo');
+            const transformIpDns = document.getElementById('transform_ip_dns');
+            const transformIpNetblock = document.getElementById('transform_ip_netblock');
+            const transformIpPort = document.getElementById('transform_ip_port');
+            const transformPersonEmail = document.getElementById('transform_person_email');
+            const transformPersonSocial = document.getElementById('transform_person_social');
+            const transformPersonPhone = document.getElementById('transform_person_phone');
+            const transformPersonAffiliation = document.getElementById('transform_person_affiliation');
+            
+            // Source checkboxes
+            const sourceShodan = document.getElementById('source_shodan');
+            const sourceVirustotal = document.getElementById('source_virustotal');
+            const sourceHibp = document.getElementById('source_hibp');
+            const sourceCensys = document.getElementById('source_censys');
+            const sourceBinaryedge = document.getElementById('source_binaryedge');
+            
+            // API keys
+            const apiKeysContainer = document.getElementById('api_keys_container');
+            const shodanKey = document.getElementById('shodan_key');
+            const vtKey = document.getElementById('vt_key');
+            const censysKey = document.getElementById('censys_key');
+            
+            // Graph options
+            const optionDepth = document.getElementById('option_depth');
+            const optionSize = document.getElementById('option_size');
+            const optionInclude = document.getElementById('option_include');
+            const optionLayout = document.getElementById('option_layout');
+            const depthContainer = document.getElementById('depth-container');
+            const sizeContainer = document.getElementById('size-container');
+            const depthValue = document.getElementById('depth_value');
+            const sizeValue = document.getElementById('size_value');
+            
+            // Export options
+            const exportGraphml = document.getElementById('export_graphml');
+            const exportCsv = document.getElementById('export_csv');
+            const exportJson = document.getElementById('export_json');
+            const exportPdf = document.getElementById('export_pdf');
+            const exportFilename = document.getElementById('export_filename');
+            const exportFilenameContainer = document.getElementById('export-filename-container');
+            
+            // Output configuration
+            const outputPath = document.getElementById('outputPath');
+            const outputFile = document.getElementById('outputFile');
+            const fileType = document.getElementById('fileType');
+            
+            // Custom flags
+            const customFlags = document.getElementById('customFlags');
+
+            // ============ EVENT LISTENERS ============
+
+            // Seed input
+            seedInput.addEventListener('input', (e) => {
+                state.seed = e.target.value;
+                updateCommand();
+            });
+
+            // Entity type
+            entityRadios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    state.entity_type = e.target.value;
+                    updateCommand();
+                });
+            });
+
+            // Transform checkboxes
+            transformDns.addEventListener('change', (e) => { state.transforms.dns = e.target.checked; updateCommand(); });
+            transformWhois.addEventListener('change', (e) => { state.transforms.whois = e.target.checked; updateCommand(); });
+            transformSubdomains.addEventListener('change', (e) => { state.transforms.subdomains = e.target.checked; updateCommand(); });
+            transformEmails.addEventListener('change', (e) => { state.transforms.emails = e.target.checked; updateCommand(); });
+            transformMetadata.addEventListener('change', (e) => { state.transforms.metadata = e.target.checked; updateCommand(); });
+            transformEmailDomain.addEventListener('change', (e) => { state.transforms.email_domain = e.target.checked; updateCommand(); });
+            transformEmailName.addEventListener('change', (e) => { state.transforms.email_name = e.target.checked; updateCommand(); });
+            transformEmailBreach.addEventListener('change', (e) => { state.transforms.email_breach = e.target.checked; updateCommand(); });
+            transformEmailSocial.addEventListener('change', (e) => { state.transforms.email_social = e.target.checked; updateCommand(); });
+            transformIpGeo.addEventListener('change', (e) => { state.transforms.ip_geo = e.target.checked; updateCommand(); });
+            transformIpDns.addEventListener('change', (e) => { state.transforms.ip_dns = e.target.checked; updateCommand(); });
+            transformIpNetblock.addEventListener('change', (e) => { state.transforms.ip_netblock = e.target.checked; updateCommand(); });
+            transformIpPort.addEventListener('change', (e) => { state.transforms.ip_port = e.target.checked; updateCommand(); });
+            transformPersonEmail.addEventListener('change', (e) => { state.transforms.person_email = e.target.checked; updateCommand(); });
+            transformPersonSocial.addEventListener('change', (e) => { state.transforms.person_social = e.target.checked; updateCommand(); });
+            transformPersonPhone.addEventListener('change', (e) => { state.transforms.person_phone = e.target.checked; updateCommand(); });
+            transformPersonAffiliation.addEventListener('change', (e) => { state.transforms.person_affiliation = e.target.checked; updateCommand(); });
+
+            // Source checkboxes
+            sourceShodan.addEventListener('change', (e) => { 
+                state.sources.shodan = e.target.checked; 
+                updateApiKeysVisibility();
+                updateCommand(); 
+            });
+            sourceVirustotal.addEventListener('change', (e) => { 
+                state.sources.virustotal = e.target.checked; 
+                updateApiKeysVisibility();
+                updateCommand(); 
+            });
+            sourceHibp.addEventListener('change', (e) => { state.sources.hibp = e.target.checked; updateCommand(); });
+            sourceCensys.addEventListener('change', (e) => { 
+                state.sources.censys = e.target.checked; 
+                updateApiKeysVisibility();
+                updateCommand(); 
+            });
+            sourceBinaryedge.addEventListener('change', (e) => { state.sources.binaryedge = e.target.checked; updateCommand(); });
+
+            function updateApiKeysVisibility() {
+                const showApiKeys = state.sources.shodan || state.sources.virustotal || state.sources.censys;
+                apiKeysContainer.style.display = showApiKeys ? 'block' : 'none';
+            }
+
+            // API keys
+            shodanKey.addEventListener('input', (e) => { state.api_keys.shodan = e.target.value; updateCommand(); });
+            vtKey.addEventListener('input', (e) => { state.api_keys.vt = e.target.value; updateCommand(); });
+            censysKey.addEventListener('input', (e) => { state.api_keys.censys = e.target.value; updateCommand(); });
+
+            // Graph options
+            optionDepth.addEventListener('change', (e) => {
+                state.graph.depth = e.target.checked;
+                depthContainer.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            depthValue.addEventListener('input', (e) => {
+                state.graph.depth_value = parseInt(e.target.value) || 2;
+                updateCommand();
+            });
+
+            optionSize.addEventListener('change', (e) => {
+                state.graph.size = e.target.checked;
+                sizeContainer.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            sizeValue.addEventListener('input', (e) => {
+                state.graph.size_value = parseInt(e.target.value) || 100;
+                updateCommand();
+            });
+
+            optionInclude.addEventListener('change', (e) => {
+                state.graph.include_inactive = e.target.checked;
+                updateCommand();
+            });
+
+            optionLayout.addEventListener('change', (e) => {
+                state.graph.auto_layout = e.target.checked;
+                updateCommand();
+            });
+
+            // Export options
+            exportGraphml.addEventListener('change', (e) => {
+                state.export.graphml = e.target.checked;
+                updateExportFilenameVisibility();
+                updateCommand();
+            });
+            exportCsv.addEventListener('change', (e) => {
+                state.export.csv = e.target.checked;
+                updateExportFilenameVisibility();
+                updateCommand();
+            });
+            exportJson.addEventListener('change', (e) => {
+                state.export.json = e.target.checked;
+                updateExportFilenameVisibility();
+                updateCommand();
+            });
+            exportPdf.addEventListener('change', (e) => {
+                state.export.pdf = e.target.checked;
+                updateExportFilenameVisibility();
+                updateCommand();
+            });
+
+            function updateExportFilenameVisibility() {
+                const anyExport = state.export.graphml || state.export.csv || state.export.json || state.export.pdf;
+                exportFilenameContainer.style.display = anyExport ? 'block' : 'none';
+            }
+
+            exportFilename.addEventListener('input', (e) => {
+                state.export.filename = e.target.value;
+                updateCommand();
+            });
+
+            // Output configuration
+            outputPath.addEventListener('input', (e) => {
+                state.outputPath = e.target.value;
+                updateCommand();
+            });
+
+            outputFile.addEventListener('input', (e) => {
+                state.outputFile = e.target.value;
+                updateCommand();
+            });
+
+            fileType.addEventListener('change', (e) => {
+                state.fileType = e.target.value;
+                updateCommand();
+            });
+
+            // Custom flags
+            customFlags.addEventListener('input', (e) => {
+                state.customFlags = e.target.value;
+                updateCommand();
+            });
+
+            // ============ COMMAND GENERATION ============
+
+            function generateCommand() {
+                let command = 'maltego';
+                const parts = [];
+
+                // Add seed with entity type
+                if (state.seed) {
+                    parts.push(`--seed "${state.seed}"`);
+                    parts.push(`--type ${state.entity_type}`);
+                }
+
+                // Add transforms
+                const activeTransforms = [];
+                if (state.transforms.dns) activeTransforms.push('dns-to-ip');
+                if (state.transforms.whois) activeTransforms.push('whois');
+                if (state.transforms.subdomains) activeTransforms.push('subdomains');
+                if (state.transforms.emails) activeTransforms.push('emails');
+                if (state.transforms.metadata) activeTransforms.push('metadata');
+                if (state.transforms.email_domain) activeTransforms.push('email-to-domain');
+                if (state.transforms.email_name) activeTransforms.push('email-to-person');
+                if (state.transforms.email_breach) activeTransforms.push('breach-check');
+                if (state.transforms.email_social) activeTransforms.push('email-social');
+                if (state.transforms.ip_geo) activeTransforms.push('ip-geo');
+                if (state.transforms.ip_dns) activeTransforms.push('ip-dns');
+                if (state.transforms.ip_netblock) activeTransforms.push('netblock');
+                if (state.transforms.ip_port) activeTransforms.push('port-scan');
+                if (state.transforms.person_email) activeTransforms.push('person-email');
+                if (state.transforms.person_social) activeTransforms.push('person-social');
+                if (state.transforms.person_phone) activeTransforms.push('person-phone');
+                if (state.transforms.person_affiliation) activeTransforms.push('affiliations');
+                
+                if (activeTransforms.length > 0) {
+                    parts.push(`--transforms ${activeTransforms.join(',')}`);
+                }
+
+                // Add sources
+                const activeSources = [];
+                if (state.sources.shodan) activeSources.push('shodan');
+                if (state.sources.virustotal) activeSources.push('virustotal');
+                if (state.sources.hibp) activeSources.push('hibp');
+                if (state.sources.censys) activeSources.push('censys');
+                if (state.sources.binaryedge) activeSources.push('binaryedge');
+                
+                if (activeSources.length > 0) {
+                    parts.push(`--sources ${activeSources.join(',')}`);
+                }
+
+                // Add API keys
+                if (state.api_keys.shodan) parts.push(`--shodan-key ${state.api_keys.shodan}`);
+                if (state.api_keys.vt) parts.push(`--vt-key ${state.api_keys.vt}`);
+                if (state.api_keys.censys) parts.push(`--censys-key ${state.api_keys.censys}`);
+
+                // Add graph options
+                if (state.graph.depth) parts.push(`--depth ${state.graph.depth_value}`);
+                if (state.graph.size) parts.push(`--max-entities ${state.graph.size_value}`);
+                if (state.graph.include_inactive) parts.push('--include-inactive');
+                if (state.graph.auto_layout) parts.push('--auto-layout');
+
+                // Add export options
+                const exportFormats = [];
+                if (state.export.graphml) exportFormats.push('graphml');
+                if (state.export.csv) exportFormats.push('csv');
+                if (state.export.json) exportFormats.push('json');
+                if (state.export.pdf) exportFormats.push('pdf');
+                
+                if (exportFormats.length > 0) {
+                    parts.push(`--export ${exportFormats.join(',')}`);
+                    if (state.export.filename) {
+                        parts.push(`--output-name ${state.export.filename}`);
+                    }
+                }
+
+                // Add output path
+                if (state.outputPath) {
+                    parts.push(`--output-path ${state.outputPath}`);
+                }
+
+                // Add custom flags
+                if (state.customFlags) {
+                    const customParts = state.customFlags.trim().split(/\s+/);
+                    customParts.forEach(part => parts.push(part));
+                }
+
+                // Build command
+                if (parts.length > 0) {
+                    command += ' ' + parts.join(' ');
+                }
+
+                return command;
+            }
+
+            function generateExplanation() {
+                const explanations = [];
+                
+                if (state.seed) explanations.push(`Seed: ${state.seed} (${state.entity_type})`);
+                
+                const transformCount = Object.values(state.transforms).filter(Boolean).length;
+                if (transformCount > 0) explanations.push(`${transformCount} transforms`);
+                
+                const sourceCount = Object.values(state.sources).filter(Boolean).length;
+                if (sourceCount > 0) explanations.push(`${sourceCount} data sources`);
+                
+                if (state.graph.depth) explanations.push(`Depth: ${state.graph.depth_value}`);
+                if (state.graph.size) explanations.push(`Max: ${state.graph.size_value}`);
+                
+                const exportCount = Object.values(state.export).filter(v => typeof v === 'boolean' && v).length;
+                if (exportCount > 0) explanations.push(`Export: ${exportCount} formats`);
+                
+                return explanations.length > 0 
+                    ? `Command includes: ${explanations.join(' • ')}`
+                    : 'No options selected - will launch Maltego GUI';
+            }
+
+            function updateCommand() {
+                document.getElementById('commandPreview').textContent = generateCommand();
+                document.getElementById('commandInfo').textContent = generateExplanation();
+            }
+
+            // ============ SAVE/LOAD FUNCTIONS ============
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved.maltego) saved.maltego = [];
+                
+                saved.maltego.push({
+                    name: name,
+                    state: { ...state },
+                    timestamp: new Date().toISOString()
+                });
+                
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved.maltego || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved.maltego && saved.maltego[index]) {
+                    saved.maltego.splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function loadStateIntoSavedCommands(savedState) {
+                // Restore state
+                state = JSON.parse(JSON.stringify(savedState)); // Deep clone
+                
+                // Update UI
+                seedInput.value = state.seed || '';
+                
+                // Entity type
+                entityRadios.forEach(radio => {
+                    if (radio.value === state.entity_type) {
+                        radio.checked = true;
+                    }
+                });
+                
+                // Transform checkboxes
+                transformDns.checked = state.transforms.dns || false;
+                transformWhois.checked = state.transforms.whois || false;
+                transformSubdomains.checked = state.transforms.subdomains || false;
+                transformEmails.checked = state.transforms.emails || false;
+                transformMetadata.checked = state.transforms.metadata || false;
+                transformEmailDomain.checked = state.transforms.email_domain || false;
+                transformEmailName.checked = state.transforms.email_name || false;
+                transformEmailBreach.checked = state.transforms.email_breach || false;
+                transformEmailSocial.checked = state.transforms.email_social || false;
+                transformIpGeo.checked = state.transforms.ip_geo || false;
+                transformIpDns.checked = state.transforms.ip_dns || false;
+                transformIpNetblock.checked = state.transforms.ip_netblock || false;
+                transformIpPort.checked = state.transforms.ip_port || false;
+                transformPersonEmail.checked = state.transforms.person_email || false;
+                transformPersonSocial.checked = state.transforms.person_social || false;
+                transformPersonPhone.checked = state.transforms.person_phone || false;
+                transformPersonAffiliation.checked = state.transforms.person_affiliation || false;
+                
+                // Source checkboxes
+                sourceShodan.checked = state.sources.shodan || false;
+                sourceVirustotal.checked = state.sources.virustotal || false;
+                sourceHibp.checked = state.sources.hibp || false;
+                sourceCensys.checked = state.sources.censys || false;
+                sourceBinaryedge.checked = state.sources.binaryedge || false;
+                
+                // API keys
+                shodanKey.value = state.api_keys.shodan || '';
+                vtKey.value = state.api_keys.vt || '';
+                censysKey.value = state.api_keys.censys || '';
+                updateApiKeysVisibility();
+                
+                // Graph options
+                optionDepth.checked = state.graph.depth || false;
+                depthContainer.style.display = state.graph.depth ? 'block' : 'none';
+                depthValue.value = state.graph.depth_value || 2;
+                
+                optionSize.checked = state.graph.size || false;
+                sizeContainer.style.display = state.graph.size ? 'block' : 'none';
+                sizeValue.value = state.graph.size_value || 100;
+                
+                optionInclude.checked = state.graph.include_inactive || false;
+                optionLayout.checked = state.graph.auto_layout || false;
+                
+                // Export options
+                exportGraphml.checked = state.export.graphml || false;
+                exportCsv.checked = state.export.csv || false;
+                exportJson.checked = state.export.json || false;
+                exportPdf.checked = state.export.pdf || false;
+                exportFilename.value = state.export.filename || '';
+                updateExportFilenameVisibility();
+                
+                // Output config
+                outputPath.value = state.outputPath || '/home/kali/maltego/';
+                outputFile.value = state.outputFile || '';
+                fileType.value = state.fileType || '.graphml';
+                
+                // Custom flags
+                customFlags.value = state.customFlags || '';
+                
+                updateCommand();
+            }
+
+            function updateSavedCommandsList() {
+                const saved = loadSavedCommands();
+                const container = document.getElementById('savedCommandsList');
+                
+                if (saved.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                // Add click listeners
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-saved')) {
+                            const index = item.dataset.index;
+                            const cmd = saved[index];
+                            loadStateIntoSavedCommands(cmd.state);
+                            Utils.showNotification(`Loaded: ${cmd.name}`, 'success');
+                        }
+                    });
+                });
+                
+                // Delete buttons
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = btn.dataset.index;
+                        deleteSavedCommand(index);
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            // ============ BUTTON HANDLERS ============
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value;
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this command', 'warning');
+                    return;
+                }
+                
+                saveCommand(name);
+                Utils.showNotification('✅ Command saved!', 'success');
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', () => {
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const command = generateCommand();
+                try {
+                    await navigator.clipboard.writeText(command);
+                    Utils.showNotification('✅ Command copied to clipboard!', 'success');
+                } catch (err) {
+                    Utils.showNotification('❌ Failed to copy command', 'error');
+                }
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                // Reset state
+                state = {
+                    seed: '',
+                    entity_type: 'domain',
+                    transforms: {
+                        dns: false, whois: false, subdomains: false, emails: false, metadata: false,
+                        email_domain: false, email_name: false, email_breach: false, email_social: false,
+                        ip_geo: false, ip_dns: false, ip_netblock: false, ip_port: false,
+                        person_email: false, person_social: false, person_phone: false, person_affiliation: false
+                    },
+                    sources: {
+                        shodan: false, virustotal: false, hibp: false, censys: false, binaryedge: false
+                    },
+                    api_keys: {
+                        shodan: '', vt: '', censys: ''
+                    },
+                    graph: {
+                        depth: false, depth_value: 2, size: false, size_value: 100,
+                        include_inactive: false, auto_layout: false
+                    },
+                    export: {
+                        graphml: false, csv: false, json: false, pdf: false, filename: ''
+                    },
+                    outputPath: '/home/kali/maltego/',
+                    outputFile: '',
+                    fileType: '.graphml',
+                    customFlags: ''
+                };
+                
+                // Reset UI
+                seedInput.value = '';
+                entityRadios[0].checked = true;
+                
+                // Reset all checkboxes
+                document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                
+                // Reset containers
+                apiKeysContainer.style.display = 'none';
+                depthContainer.style.display = 'none';
+                sizeContainer.style.display = 'none';
+                exportFilenameContainer.style.display = 'none';
+                
+                // Reset inputs
+                shodanKey.value = '';
+                vtKey.value = '';
+                censysKey.value = '';
+                depthValue.value = 2;
+                sizeValue.value = 100;
+                exportFilename.value = '';
+                outputPath.value = '/home/kali/maltego/';
+                outputFile.value = '';
+                fileType.value = '.graphml';
+                customFlags.value = '';
+                
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            // Initial update
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

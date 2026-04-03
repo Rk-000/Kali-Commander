@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recon-ng - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles specific to Recon-ng */
+        .module-group {
+            background: rgba(15, 95, 168, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid #00CFFF;
+        }
+        .module-title {
+            color: #00CFFF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .module-category {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .module-item {
+            background: rgba(15, 95, 168, 0.1);
+            border: 1px solid #0F5FA8;
+            border-radius: 6px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .module-item:hover {
+            background: rgba(15, 95, 168, 0.3);
+            border-color: #1E88E5;
+            transform: translateX(3px);
+        }
+        .module-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #00CFFF;
+        }
+        .module-item .module-name {
+            flex: 1;
+            color: #E6F0FA;
+            font-size: 0.9rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .module-item .module-desc {
+            font-size: 0.75rem;
+            color: #2A6FAF;
+        }
+        .workspace-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .marketplace-search {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 10px;
+            border: 1px dashed #1E88E5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=information-gathering">Information Gathering</a>
+            <span class="separator">›</span>
+            <span class="current">Recon-ng</span>
+        </div>
+
+        <!-- Tool Header -->
+        <div class="tool-header">
+            <h1>RECON-NG</h1>
+            <p>Full-featured Web Reconnaissance Framework - Automated OSINT and data gathering</p>
+        </div>
+
+        <!-- Workspace Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📁</span> WORKSPACE
+            </div>
+            <div class="workspace-input">
+                <div style="flex: 2;">
+                    <label class="input-label">Workspace Name</label>
+                    <input type="text" class="input-field" id="workspace" placeholder="default" value="default">
+                </div>
+                <div style="flex: 1;">
+                    <label class="input-label">Action</label>
+                    <select class="file-type-select" id="workspace_action">
+                        <option value="use">Use Workspace</option>
+                        <option value="create">Create New</option>
+                        <option value="remove">Remove</option>
+                        <option value="list">List Workspaces</option>
+                    </select>
+                </div>
+            </div>
+            <small style="color: #2A6FAF;">Workspaces isolate different reconnaissance projects</small>
+        </div>
+
+        <!-- Target/Domain Input -->
+        <div class="section">
+            <div class="section-title">
+                <span>🎯</span> TARGET CONFIGURATION
+            </div>
+            <div class="input-group">
+                <label class="input-label">Domain/Company/Name</label>
+                <input type="text" class="input-field" id="target" placeholder="example.com or 'Company Name'" value="">
+            </div>
+            <div class="checkbox-grid" style="margin-top: 10px;">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="add_to_domains">
+                    <label class="checkbox-label" for="add_to_domains">Add to Domains table</label>
+                    <span class="checkbox-flag">db insert domains</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="add_to_companies">
+                    <label class="checkbox-label" for="add_to_companies">Add to Companies table</label>
+                    <span class="checkbox-flag">db insert companies</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="add_to_contacts">
+                    <label class="checkbox-label" for="add_to_contacts">Add to Contacts table</label>
+                    <span class="checkbox-flag">db insert contacts</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module Selection by Category -->
+        <div class="section">
+            <div class="section-title">
+                <span>🧩</span> RECONNAISSANCE MODULES
+            </div>
+
+            <!-- Discovery Modules -->
+            <div class="module-group">
+                <div class="module-title">
+                    <span>🔍</span> DISCOVERY MODULES
+                </div>
+                <div class="module-category" id="discovery_modules">
+                    <div class="module-item">
+                        <input type="checkbox" id="module_discovery_dns">
+                        <div style="flex: 1;">
+                            <div class="module-name">discovery/dns</div>
+                            <div class="module-desc">DNS discovery and enumeration</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_discovery_whois">
+                        <div style="flex: 1;">
+                            <div class="module-name">discovery/whois</div>
+                            <div class="module-desc">Whois information gathering</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_discovery_netblock">
+                        <div style="flex: 1;">
+                            <div class="module-name">discovery/netblock</div>
+                            <div class="module-desc">Netblock ownership lookup</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DNS Modules -->
+            <div class="module-group">
+                <div class="module-title">
+                    <span>🌐</span> DNS MODULES
+                </div>
+                <div class="module-category" id="dns_modules">
+                    <div class="module-item">
+                        <input type="checkbox" id="module_dns_brute">
+                        <div style="flex: 1;">
+                            <div class="module-name">dns/brute_hosts</div>
+                            <div class="module-desc">Brute force DNS hostnames</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_dns_reverse">
+                        <div style="flex: 1;">
+                            <div class="module-name">dns/reverse_dns</div>
+                            <div class="module-desc">Reverse DNS lookup</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_dns_srv">
+                        <div style="flex: 1;">
+                            <div class="module-name">dns/srv_enum</div>
+                            <div class="module-desc">SRV record enumeration</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_dns_tls">
+                        <div style="flex: 1;">
+                            <div class="module-name">dns/tls_cert</div>
+                            <div class="module-desc">TLS certificate enumeration</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email Modules -->
+            <div class="module-group">
+                <div class="module-title">
+                    <span>📧</span> EMAIL MODULES
+                </div>
+                <div class="module-category" id="email_modules">
+                    <div class="module-item">
+                        <input type="checkbox" id="module_email_harvest">
+                        <div style="flex: 1;">
+                            <div class="module-name">email/harvest</div>
+                            <div class="module-desc">Email address harvesting</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_email_pgp">
+                        <div style="flex: 1;">
+                            <div class="module-name">email/pgp_search</div>
+                            <div class="module-desc">PGP key search</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_email_breach">
+                        <div style="flex: 1;">
+                            <div class="module-name">email/breach_search</div>
+                            <div class="module-desc">Data breach search</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OSINT Modules -->
+            <div class="module-group">
+                <div class="module-title">
+                    <span>🕵️</span> OSINT MODULES
+                </div>
+                <div class="module-category" id="osint_modules">
+                    <div class="module-item">
+                        <input type="checkbox" id="module_osint_shodan">
+                        <div style="flex: 1;">
+                            <div class="module-name">osint/shodan</div>
+                            <div class="module-desc">Shodan search</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_osint_github">
+                        <div style="flex: 1;">
+                            <div class="module-name">osint/github</div>
+                            <div class="module-desc">GitHub search</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_osint_linkedin">
+                        <div style="flex: 1;">
+                            <div class="module-name">osint/linkedin</div>
+                            <div class="module-desc">LinkedIn profile search</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_osint_twitter">
+                        <div style="flex: 1;">
+                            <div class="module-name">osint/twitter</div>
+                            <div class="module-desc">Twitter search</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Host Modules -->
+            <div class="module-group">
+                <div class="module-title">
+                    <span>🖥️</span> HOST MODULES
+                </div>
+                <div class="module-category" id="host_modules">
+                    <div class="module-item">
+                        <input type="checkbox" id="module_host_portscan">
+                        <div style="flex: 1;">
+                            <div class="module-name">host/portscan</div>
+                            <div class="module-desc">TCP port scanning</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_host_geolocate">
+                        <div style="flex: 1;">
+                            <div class="module-name">host/geolocate</div>
+                            <div class="module-desc">IP geolocation</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_host_reverse_ip">
+                        <div style="flex: 1;">
+                            <div class="module-name">host/reverse_ip</div>
+                            <div class="module-desc">Reverse IP lookup</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Marketplace / Custom Modules -->
+            <div class="marketplace-search">
+                <div class="module-title">
+                    <span>🛒</span> MARKETPLACE MODULES
+                </div>
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="marketplace_search">
+                        <label class="checkbox-label" for="marketplace_search">Search Marketplace</label>
+                        <span class="checkbox-flag">marketplace search</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="marketplace_install">
+                        <label class="checkbox-label" for="marketplace_install">Install Module</label>
+                        <span class="checkbox-flag">marketplace install</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="marketplace_remove">
+                        <label class="checkbox-label" for="marketplace_remove">Remove Module</label>
+                        <span class="checkbox-flag">marketplace remove</span>
+                    </div>
+                </div>
+                <div id="marketplace_custom" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Module Name</label>
+                    <input type="text" class="input-field" id="marketplace_module" placeholder="e.g., osint/shodan">
+                </div>
+            </div>
+        </div>
+
+        <!-- API Keys -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔑</span> API KEYS
+            </div>
+            <div class="checkbox-grid">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="api_keys">
+                    <label class="checkbox-label" for="api_keys">Configure API Keys</label>
+                    <span class="checkbox-flag">keys add</span>
+                </div>
+            </div>
+            <div id="api_keys_container" style="display: none; margin-top: 15px;">
+                <div class="input-group">
+                    <label class="input-label">Shodan API Key</label>
+                    <input type="password" class="input-field" id="shodan_key" placeholder="Enter Shodan API key">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Bing API Key</label>
+                    <input type="password" class="input-field" id="bing_key" placeholder="Enter Bing API key">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">GitHub API Key</label>
+                    <input type="password" class="input-field" id="github_key" placeholder="Enter GitHub API key">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Twitter API Key</label>
+                    <input type="password" class="input-field" id="twitter_key" placeholder="Enter Twitter API key">
+                </div>
+            </div>
+        </div>
+
+        <!-- Reporting Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>📊</span> REPORTING
+            </div>
+            <div class="checkbox-grid">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="report_html">
+                    <label class="checkbox-label" for="report_html">HTML Report</label>
+                    <span class="checkbox-flag">report/html</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="report_csv">
+                    <label class="checkbox-label" for="report_csv">CSV Report</label>
+                    <span class="checkbox-flag">report/csv</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="report_json">
+                    <label class="checkbox-label" for="report_json">JSON Report</label>
+                    <span class="checkbox-flag">report/json</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="report_xlsx">
+                    <label class="checkbox-label" for="report_xlsx">Excel Report</label>
+                    <span class="checkbox-flag">report/xlsx</span>
+                </div>
+            </div>
+            <div id="report_filename_container" style="display: none; margin-top: 15px;">
+                <label class="input-label">Report Filename (without extension)</label>
+                <input type="text" class="input-field" id="report_filename" placeholder="recon_report">
+            </div>
+        </div>
+
+        <!-- Output Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📂</span> OUTPUT CONFIGURATION
+            </div>
+            <div class="output-row">
+                <div class="input-group">
+                    <label class="input-label">Output Path</label>
+                    <input type="text" class="input-field" id="outputPath" value="/home/kali/recon-ng/">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Database File</label>
+                    <input type="text" class="input-field" id="database_file" placeholder="recon.db">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Log Level</label>
+                    <select class="file-type-select" id="log_level">
+                        <option value="1">ERROR (1)</option>
+                        <option value="2" selected>WARNING (2)</option>
+                        <option value="3">INFO (3)</option>
+                        <option value="4">DEBUG (4)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CUSTOM OPTIONS
+            </div>
+            <div class="input-group">
+                <label class="input-label">Additional commands (semicolon separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="show modules; show options">
+            </div>
+        </div>
+
+        <!-- Execution Mode -->
+        <div class="section">
+            <div class="section-title">
+                <span>▶️</span> EXECUTION MODE
+            </div>
+            <div class="checkbox-grid">
+                <div class="checkbox-item">
+                    <input type="radio" name="exec_mode" id="mode_interactive" value="interactive" checked>
+                    <label class="checkbox-label" for="mode_interactive">Interactive Mode</label>
+                    <span class="checkbox-flag">-i</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="radio" name="exec_mode" id="mode_script" value="script">
+                    <label class="checkbox-label" for="mode_script">Script Mode</label>
+                    <span class="checkbox-flag">-r script.rc</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="radio" name="exec_mode" id="mode_command" value="command">
+                    <label class="checkbox-label" for="mode_command">Single Command</label>
+                    <span class="checkbox-flag">-c command</span>
+                </div>
+            </div>
+            <div id="script_container" style="display: none; margin-top: 15px;">
+                <label class="input-label">Script File</label>
+                <input type="text" class="input-field" id="script_file" placeholder="/path/to/script.rc">
+            </div>
+            <div id="command_container" style="display: none; margin-top: 15px;">
+                <label class="input-label">Single Command</label>
+                <input type="text" class="input-field" id="single_command" placeholder="modules search">
+            </div>
+        </div>
+
+        <!-- Save/Load Panel -->
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Command name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Command</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+        
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <!-- Command Preview -->
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">recon-ng</div>
+            <div class="command-info" id="commandInfo">Interactive mode - no modules selected</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand">
+                <span>📋</span> COPY COMMAND
+            </button>
+            <button class="btn btn-secondary" id="clearAll">
+                <span>🗑️</span> CLEAR ALL
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ============ COMMAND BUILDER FOR RECON-NG ============
+            
+            // State
+            let state = {
+                workspace: 'default',
+                workspace_action: 'use',
+                target: '',
+                add_to_domains: false,
+                add_to_companies: false,
+                add_to_contacts: false,
+                modules: {
+                    // Discovery
+                    discovery_dns: false,
+                    discovery_whois: false,
+                    discovery_netblock: false,
+                    // DNS
+                    dns_brute: false,
+                    dns_reverse: false,
+                    dns_srv: false,
+                    dns_tls: false,
+                    // Email
+                    email_harvest: false,
+                    email_pgp: false,
+                    email_breach: false,
+                    // OSINT
+                    osint_shodan: false,
+                    osint_github: false,
+                    osint_linkedin: false,
+                    osint_twitter: false,
+                    // Host
+                    host_portscan: false,
+                    host_geolocate: false,
+                    host_reverse_ip: false
+                },
+                marketplace: {
+                    search: false,
+                    install: false,
+                    remove: false,
+                    module: ''
+                },
+                api_keys: {
+                    enabled: false,
+                    shodan: '',
+                    bing: '',
+                    github: '',
+                    twitter: ''
+                },
+                reporting: {
+                    html: false,
+                    csv: false,
+                    json: false,
+                    xlsx: false,
+                    filename: ''
+                },
+                outputPath: '/home/kali/recon-ng/',
+                database_file: 'recon.db',
+                log_level: '2',
+                customFlags: '',
+                exec_mode: 'interactive',
+                script_file: '',
+                single_command: ''
+            };
+
+            // DOM Elements
+            const workspace = document.getElementById('workspace');
+            const workspaceAction = document.getElementById('workspace_action');
+            const target = document.getElementById('target');
+            const addToDomains = document.getElementById('add_to_domains');
+            const addToCompanies = document.getElementById('add_to_companies');
+            const addToContacts = document.getElementById('add_to_contacts');
+            
+            // Module checkboxes
+            const moduleDiscoveryDns = document.getElementById('module_discovery_dns');
+            const moduleDiscoveryWhois = document.getElementById('module_discovery_whois');
+            const moduleDiscoveryNetblock = document.getElementById('module_discovery_netblock');
+            const moduleDnsBrute = document.getElementById('module_dns_brute');
+            const moduleDnsReverse = document.getElementById('module_dns_reverse');
+            const moduleDnsSrv = document.getElementById('module_dns_srv');
+            const moduleDnsTls = document.getElementById('module_dns_tls');
+            const moduleEmailHarvest = document.getElementById('module_email_harvest');
+            const moduleEmailPgp = document.getElementById('module_email_pgp');
+            const moduleEmailBreach = document.getElementById('module_email_breach');
+            const moduleOsintShodan = document.getElementById('module_osint_shodan');
+            const moduleOsintGithub = document.getElementById('module_osint_github');
+            const moduleOsintLinkedin = document.getElementById('module_osint_linkedin');
+            const moduleOsintTwitter = document.getElementById('module_osint_twitter');
+            const moduleHostPortscan = document.getElementById('module_host_portscan');
+            const moduleHostGeolocate = document.getElementById('module_host_geolocate');
+            const moduleHostReverseIp = document.getElementById('module_host_reverse_ip');
+            
+            // Marketplace
+            const marketplaceSearch = document.getElementById('marketplace_search');
+            const marketplaceInstall = document.getElementById('marketplace_install');
+            const marketplaceRemove = document.getElementById('marketplace_remove');
+            const marketplaceCustom = document.getElementById('marketplace_custom');
+            const marketplaceModule = document.getElementById('marketplace_module');
+            
+            // API Keys
+            const apiKeysCheckbox = document.getElementById('api_keys');
+            const apiKeysContainer = document.getElementById('api_keys_container');
+            const shodanKey = document.getElementById('shodan_key');
+            const bingKey = document.getElementById('bing_key');
+            const githubKey = document.getElementById('github_key');
+            const twitterKey = document.getElementById('twitter_key');
+            
+            // Reporting
+            const reportHtml = document.getElementById('report_html');
+            const reportCsv = document.getElementById('report_csv');
+            const reportJson = document.getElementById('report_json');
+            const reportXlsx = document.getElementById('report_xlsx');
+            const reportFilename = document.getElementById('report_filename');
+            const reportFilenameContainer = document.getElementById('report_filename_container');
+            
+            // Output
+            const outputPath = document.getElementById('outputPath');
+            const databaseFile = document.getElementById('database_file');
+            const logLevel = document.getElementById('log_level');
+            
+            // Custom flags
+            const customFlags = document.getElementById('customFlags');
+            
+            // Execution mode
+            const modeInteractive = document.getElementById('mode_interactive');
+            const modeScript = document.getElementById('mode_script');
+            const modeCommand = document.getElementById('mode_command');
+            const scriptContainer = document.getElementById('script_container');
+            const commandContainer = document.getElementById('command_container');
+            const scriptFile = document.getElementById('script_file');
+            const singleCommand = document.getElementById('single_command');
+
+            // ============ EVENT LISTENERS ============
+
+            // Workspace
+            workspace.addEventListener('input', (e) => { state.workspace = e.target.value; updateCommand(); });
+            workspaceAction.addEventListener('change', (e) => { state.workspace_action = e.target.value; updateCommand(); });
+
+            // Target
+            target.addEventListener('input', (e) => { state.target = e.target.value; updateCommand(); });
+            addToDomains.addEventListener('change', (e) => { state.add_to_domains = e.target.checked; updateCommand(); });
+            addToCompanies.addEventListener('change', (e) => { state.add_to_companies = e.target.checked; updateCommand(); });
+            addToContacts.addEventListener('change', (e) => { state.add_to_contacts = e.target.checked; updateCommand(); });
+
+            // Module listeners
+            moduleDiscoveryDns.addEventListener('change', (e) => { state.modules.discovery_dns = e.target.checked; updateCommand(); });
+            moduleDiscoveryWhois.addEventListener('change', (e) => { state.modules.discovery_whois = e.target.checked; updateCommand(); });
+            moduleDiscoveryNetblock.addEventListener('change', (e) => { state.modules.discovery_netblock = e.target.checked; updateCommand(); });
+            moduleDnsBrute.addEventListener('change', (e) => { state.modules.dns_brute = e.target.checked; updateCommand(); });
+            moduleDnsReverse.addEventListener('change', (e) => { state.modules.dns_reverse = e.target.checked; updateCommand(); });
+            moduleDnsSrv.addEventListener('change', (e) => { state.modules.dns_srv = e.target.checked; updateCommand(); });
+            moduleDnsTls.addEventListener('change', (e) => { state.modules.dns_tls = e.target.checked; updateCommand(); });
+            moduleEmailHarvest.addEventListener('change', (e) => { state.modules.email_harvest = e.target.checked; updateCommand(); });
+            moduleEmailPgp.addEventListener('change', (e) => { state.modules.email_pgp = e.target.checked; updateCommand(); });
+            moduleEmailBreach.addEventListener('change', (e) => { state.modules.email_breach = e.target.checked; updateCommand(); });
+            moduleOsintShodan.addEventListener('change', (e) => { state.modules.osint_shodan = e.target.checked; updateCommand(); });
+            moduleOsintGithub.addEventListener('change', (e) => { state.modules.osint_github = e.target.checked; updateCommand(); });
+            moduleOsintLinkedin.addEventListener('change', (e) => { state.modules.osint_linkedin = e.target.checked; updateCommand(); });
+            moduleOsintTwitter.addEventListener('change', (e) => { state.modules.osint_twitter = e.target.checked; updateCommand(); });
+            moduleHostPortscan.addEventListener('change', (e) => { state.modules.host_portscan = e.target.checked; updateCommand(); });
+            moduleHostGeolocate.addEventListener('change', (e) => { state.modules.host_geolocate = e.target.checked; updateCommand(); });
+            moduleHostReverseIp.addEventListener('change', (e) => { state.modules.host_reverse_ip = e.target.checked; updateCommand(); });
+
+            // Marketplace
+            marketplaceSearch.addEventListener('change', (e) => { 
+                state.marketplace.search = e.target.checked; 
+                updateMarketplaceVisibility();
+                updateCommand(); 
+            });
+            marketplaceInstall.addEventListener('change', (e) => { 
+                state.marketplace.install = e.target.checked; 
+                updateMarketplaceVisibility();
+                updateCommand(); 
+            });
+            marketplaceRemove.addEventListener('change', (e) => { 
+                state.marketplace.remove = e.target.checked; 
+                updateMarketplaceVisibility();
+                updateCommand(); 
+            });
+            marketplaceModule.addEventListener('input', (e) => { state.marketplace.module = e.target.value; updateCommand(); });
+
+            function updateMarketplaceVisibility() {
+                const show = state.marketplace.search || state.marketplace.install || state.marketplace.remove;
+                marketplaceCustom.style.display = show ? 'block' : 'none';
+            }
+
+            // API Keys
+            apiKeysCheckbox.addEventListener('change', (e) => {
+                state.api_keys.enabled = e.target.checked;
+                apiKeysContainer.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            shodanKey.addEventListener('input', (e) => { state.api_keys.shodan = e.target.value; updateCommand(); });
+            bingKey.addEventListener('input', (e) => { state.api_keys.bing = e.target.value; updateCommand(); });
+            githubKey.addEventListener('input', (e) => { state.api_keys.github = e.target.value; updateCommand(); });
+            twitterKey.addEventListener('input', (e) => { state.api_keys.twitter = e.target.value; updateCommand(); });
+
+            // Reporting
+            reportHtml.addEventListener('change', (e) => { state.reporting.html = e.target.checked; updateReportingVisibility(); updateCommand(); });
+            reportCsv.addEventListener('change', (e) => { state.reporting.csv = e.target.checked; updateReportingVisibility(); updateCommand(); });
+            reportJson.addEventListener('change', (e) => { state.reporting.json = e.target.checked; updateReportingVisibility(); updateCommand(); });
+            reportXlsx.addEventListener('change', (e) => { state.reporting.xlsx = e.target.checked; updateReportingVisibility(); updateCommand(); });
+            reportFilename.addEventListener('input', (e) => { state.reporting.filename = e.target.value; updateCommand(); });
+
+            function updateReportingVisibility() {
+                const anyReport = state.reporting.html || state.reporting.csv || state.reporting.json || state.reporting.xlsx;
+                reportFilenameContainer.style.display = anyReport ? 'block' : 'none';
+            }
+
+            // Output
+            outputPath.addEventListener('input', (e) => { state.outputPath = e.target.value; updateCommand(); });
+            databaseFile.addEventListener('input', (e) => { state.database_file = e.target.value; updateCommand(); });
+            logLevel.addEventListener('change', (e) => { state.log_level = e.target.value; updateCommand(); });
+
+            // Custom flags
+            customFlags.addEventListener('input', (e) => { state.customFlags = e.target.value; updateCommand(); });
+
+            // Execution mode
+            modeInteractive.addEventListener('change', (e) => { 
+                state.exec_mode = 'interactive'; 
+                scriptContainer.style.display = 'none';
+                commandContainer.style.display = 'none';
+                updateCommand(); 
+            });
+            modeScript.addEventListener('change', (e) => { 
+                state.exec_mode = 'script'; 
+                scriptContainer.style.display = 'block';
+                commandContainer.style.display = 'none';
+                updateCommand(); 
+            });
+            modeCommand.addEventListener('change', (e) => { 
+                state.exec_mode = 'command'; 
+                scriptContainer.style.display = 'none';
+                commandContainer.style.display = 'block';
+                updateCommand(); 
+            });
+            scriptFile.addEventListener('input', (e) => { state.script_file = e.target.value; updateCommand(); });
+            singleCommand.addEventListener('input', (e) => { state.single_command = e.target.value; updateCommand(); });
+
+            // ============ COMMAND GENERATION ============
+
+            function generateCommand() {
+                let command = 'recon-ng';
+                const parts = [];
+
+                // Workspace
+                if (state.workspace_action === 'create') {
+                    parts.push(`workspace create ${state.workspace}`);
+                } else if (state.workspace_action === 'remove') {
+                    parts.push(`workspace remove ${state.workspace}`);
+                } else if (state.workspace_action === 'list') {
+                    parts.push('workspace list');
+                } else if (state.workspace !== 'default') {
+                    parts.push(`workspace select ${state.workspace}`);
+                }
+
+                // Target insertion
+                if (state.target) {
+                    if (state.add_to_domains) {
+                        parts.push(`db insert domains domain="${state.target}"`);
+                    }
+                    if (state.add_to_companies) {
+                        parts.push(`db insert companies company="${state.target}"`);
+                    }
+                    if (state.add_to_contacts) {
+                        parts.push(`db insert contacts contact="${state.target}"`);
+                    }
+                }
+
+                // Load modules
+                const modules = [];
+                if (state.modules.discovery_dns) modules.push('discovery/dns');
+                if (state.modules.discovery_whois) modules.push('discovery/whois');
+                if (state.modules.discovery_netblock) modules.push('discovery/netblock');
+                if (state.modules.dns_brute) modules.push('dns/brute_hosts');
+                if (state.modules.dns_reverse) modules.push('dns/reverse_dns');
+                if (state.modules.dns_srv) modules.push('dns/srv_enum');
+                if (state.modules.dns_tls) modules.push('dns/tls_cert');
+                if (state.modules.email_harvest) modules.push('email/harvest');
+                if (state.modules.email_pgp) modules.push('email/pgp_search');
+                if (state.modules.email_breach) modules.push('email/breach_search');
+                if (state.modules.osint_shodan) modules.push('osint/shodan');
+                if (state.modules.osint_github) modules.push('osint/github');
+                if (state.modules.osint_linkedin) modules.push('osint/linkedin');
+                if (state.modules.osint_twitter) modules.push('osint/twitter');
+                if (state.modules.host_portscan) modules.push('host/portscan');
+                if (state.modules.host_geolocate) modules.push('host/geolocate');
+                if (state.modules.host_reverse_ip) modules.push('host/reverse_ip');
+
+                modules.forEach(module => {
+                    parts.push(`load ${module}`);
+                    parts.push('run');
+                });
+
+                // Marketplace
+                if (state.marketplace.search && state.marketplace.module) {
+                    parts.push(`marketplace search ${state.marketplace.module}`);
+                }
+                if (state.marketplace.install && state.marketplace.module) {
+                    parts.push(`marketplace install ${state.marketplace.module}`);
+                }
+                if (state.marketplace.remove && state.marketplace.module) {
+                    parts.push(`marketplace remove ${state.marketplace.module}`);
+                }
+
+                // API Keys
+                if (state.api_keys.enabled) {
+                    if (state.api_keys.shodan) parts.push(`keys add shodan ${state.api_keys.shodan}`);
+                    if (state.api_keys.bing) parts.push(`keys add bing ${state.api_keys.bing}`);
+                    if (state.api_keys.github) parts.push(`keys add github ${state.api_keys.github}`);
+                    if (state.api_keys.twitter) parts.push(`keys add twitter ${state.api_keys.twitter}`);
+                }
+
+                // Reporting
+                if (state.reporting.filename) {
+                    if (state.reporting.html) parts.push(`report/html ${state.outputPath}${state.reporting.filename}.html`);
+                    if (state.reporting.csv) parts.push(`report/csv ${state.outputPath}${state.reporting.filename}.csv`);
+                    if (state.reporting.json) parts.push(`report/json ${state.outputPath}${state.reporting.filename}.json`);
+                    if (state.reporting.xlsx) parts.push(`report/xlsx ${state.outputPath}${state.reporting.filename}.xlsx`);
+                }
+
+                // Database and logging
+                if (state.database_file) {
+                    parts.push(`db set DATABASE ${state.outputPath}${state.database_file}`);
+                }
+                
+                parts.push(`set LOG_LEVEL ${state.log_level}`);
+
+                // Add custom flags
+                if (state.customFlags) {
+                    const customParts = state.customFlags.split(';').map(s => s.trim()).filter(s => s);
+                    customParts.forEach(part => parts.push(part));
+                }
+
+                // Execution mode
+                if (state.exec_mode === 'interactive') {
+                    // For interactive mode, we create a resource script
+                    if (parts.length > 0) {
+                        // Create temporary resource file with all commands
+                        const resourceFile = `${state.workspace}_commands.rc`;
+                        command = `echo '${parts.join('; ')}' > ${resourceFile} && recon-ng -r ${resourceFile}`;
+                    }
+                } else if (state.exec_mode === 'script' && state.script_file) {
+                    command = `recon-ng -r ${state.script_file}`;
+                } else if (state.exec_mode === 'command' && state.single_command) {
+                    command = `recon-ng -c '${state.single_command}'`;
+                }
+
+                return command;
+            }
+
+            function generateExplanation() {
+                const explanations = [];
+                
+                if (state.workspace !== 'default') explanations.push(`Workspace: ${state.workspace}`);
+                if (state.target) explanations.push(`Target: ${state.target}`);
+                
+                const moduleCount = Object.values(state.modules).filter(Boolean).length;
+                if (moduleCount > 0) explanations.push(`${moduleCount} modules`);
+                
+                if (state.api_keys.enabled) explanations.push('API keys configured');
+                
+                const reportCount = [state.reporting.html, state.reporting.csv, state.reporting.json, state.reporting.xlsx].filter(Boolean).length;
+                if (reportCount > 0) explanations.push(`${reportCount} report formats`);
+                
+                if (state.exec_mode === 'interactive') explanations.push('Interactive mode');
+                else if (state.exec_mode === 'script') explanations.push('Script mode');
+                else if (state.exec_mode === 'command') explanations.push('Single command');
+                
+                return explanations.length > 0 
+                    ? `Command includes: ${explanations.join(' • ')}`
+                    : 'Interactive mode - will launch Recon-ng console';
+            }
+
+            function updateCommand() {
+                document.getElementById('commandPreview').textContent = generateCommand();
+                document.getElementById('commandInfo').textContent = generateExplanation();
+            }
+
+            // ============ SAVE/LOAD FUNCTIONS ============
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved['recon-ng']) saved['recon-ng'] = [];
+                
+                saved['recon-ng'].push({
+                    name: name,
+                    state: { ...state },
+                    timestamp: new Date().toISOString()
+                });
+                
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved['recon-ng'] || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved['recon-ng'] && saved['recon-ng'][index]) {
+                    saved['recon-ng'].splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function loadStateIntoSavedCommands(savedState) {
+                // Restore state
+                state = JSON.parse(JSON.stringify(savedState));
+                
+                // Update UI
+                workspace.value = state.workspace || 'default';
+                workspaceAction.value = state.workspace_action || 'use';
+                target.value = state.target || '';
+                addToDomains.checked = state.add_to_domains || false;
+                addToCompanies.checked = state.add_to_companies || false;
+                addToContacts.checked = state.add_to_contacts || false;
+                
+                // Modules
+                moduleDiscoveryDns.checked = state.modules?.discovery_dns || false;
+                moduleDiscoveryWhois.checked = state.modules?.discovery_whois || false;
+                moduleDiscoveryNetblock.checked = state.modules?.discovery_netblock || false;
+                moduleDnsBrute.checked = state.modules?.dns_brute || false;
+                moduleDnsReverse.checked = state.modules?.dns_reverse || false;
+                moduleDnsSrv.checked = state.modules?.dns_srv || false;
+                moduleDnsTls.checked = state.modules?.dns_tls || false;
+                moduleEmailHarvest.checked = state.modules?.email_harvest || false;
+                moduleEmailPgp.checked = state.modules?.email_pgp || false;
+                moduleEmailBreach.checked = state.modules?.email_breach || false;
+                moduleOsintShodan.checked = state.modules?.osint_shodan || false;
+                moduleOsintGithub.checked = state.modules?.osint_github || false;
+                moduleOsintLinkedin.checked = state.modules?.osint_linkedin || false;
+                moduleOsintTwitter.checked = state.modules?.osint_twitter || false;
+                moduleHostPortscan.checked = state.modules?.host_portscan || false;
+                moduleHostGeolocate.checked = state.modules?.host_geolocate || false;
+                moduleHostReverseIp.checked = state.modules?.host_reverse_ip || false;
+                
+                // Marketplace
+                marketplaceSearch.checked = state.marketplace?.search || false;
+                marketplaceInstall.checked = state.marketplace?.install || false;
+                marketplaceRemove.checked = state.marketplace?.remove || false;
+                marketplaceModule.value = state.marketplace?.module || '';
+                updateMarketplaceVisibility();
+                
+                // API Keys
+                apiKeysCheckbox.checked = state.api_keys?.enabled || false;
+                apiKeysContainer.style.display = state.api_keys?.enabled ? 'block' : 'none';
+                shodanKey.value = state.api_keys?.shodan || '';
+                bingKey.value = state.api_keys?.bing || '';
+                githubKey.value = state.api_keys?.github || '';
+                twitterKey.value = state.api_keys?.twitter || '';
+                
+                // Reporting
+                reportHtml.checked = state.reporting?.html || false;
+                reportCsv.checked = state.reporting?.csv || false;
+                reportJson.checked = state.reporting?.json || false;
+                reportXlsx.checked = state.reporting?.xlsx || false;
+                reportFilename.value = state.reporting?.filename || '';
+                updateReportingVisibility();
+                
+                // Output
+                outputPath.value = state.outputPath || '/home/kali/recon-ng/';
+                databaseFile.value = state.database_file || 'recon.db';
+                logLevel.value = state.log_level || '2';
+                
+                // Custom flags
+                customFlags.value = state.customFlags || '';
+                
+                // Execution mode
+                if (state.exec_mode === 'interactive') {
+                    modeInteractive.checked = true;
+                    scriptContainer.style.display = 'none';
+                    commandContainer.style.display = 'none';
+                } else if (state.exec_mode === 'script') {
+                    modeScript.checked = true;
+                    scriptContainer.style.display = 'block';
+                    commandContainer.style.display = 'none';
+                } else if (state.exec_mode === 'command') {
+                    modeCommand.checked = true;
+                    scriptContainer.style.display = 'none';
+                    commandContainer.style.display = 'block';
+                }
+                scriptFile.value = state.script_file || '';
+                singleCommand.value = state.single_command || '';
+                
+                updateCommand();
+            }
+
+            function updateSavedCommandsList() {
+                const saved = loadSavedCommands();
+                const container = document.getElementById('savedCommandsList');
+                
+                if (saved.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-saved')) {
+                            const index = item.dataset.index;
+                            const cmd = saved[index];
+                            loadStateIntoSavedCommands(cmd.state);
+                            Utils.showNotification(`Loaded: ${cmd.name}`, 'success');
+                        }
+                    });
+                });
+                
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = btn.dataset.index;
+                        deleteSavedCommand(index);
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            // ============ BUTTON HANDLERS ============
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value;
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this command', 'warning');
+                    return;
+                }
+                
+                saveCommand(name);
+                Utils.showNotification('✅ Command saved!', 'success');
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', () => {
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const command = generateCommand();
+                try {
+                    await navigator.clipboard.writeText(command);
+                    Utils.showNotification('✅ Command copied to clipboard!', 'success');
+                } catch (err) {
+                    Utils.showNotification('❌ Failed to copy command', 'error');
+                }
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                // Reset state
+                state = {
+                    workspace: 'default',
+                    workspace_action: 'use',
+                    target: '',
+                    add_to_domains: false,
+                    add_to_companies: false,
+                    add_to_contacts: false,
+                    modules: {
+                        discovery_dns: false, discovery_whois: false, discovery_netblock: false,
+                        dns_brute: false, dns_reverse: false, dns_srv: false, dns_tls: false,
+                        email_harvest: false, email_pgp: false, email_breach: false,
+                        osint_shodan: false, osint_github: false, osint_linkedin: false, osint_twitter: false,
+                        host_portscan: false, host_geolocate: false, host_reverse_ip: false
+                    },
+                    marketplace: { search: false, install: false, remove: false, module: '' },
+                    api_keys: { enabled: false, shodan: '', bing: '', github: '', twitter: '' },
+                    reporting: { html: false, csv: false, json: false, xlsx: false, filename: '' },
+                    outputPath: '/home/kali/recon-ng/',
+                    database_file: 'recon.db',
+                    log_level: '2',
+                    customFlags: '',
+                    exec_mode: 'interactive',
+                    script_file: '',
+                    single_command: ''
+                };
+                
+                // Reset UI
+                workspace.value = 'default';
+                workspaceAction.value = 'use';
+                target.value = '';
+                addToDomains.checked = false;
+                addToCompanies.checked = false;
+                addToContacts.checked = false;
+                
+                document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                
+                marketplaceModule.value = '';
+                marketplaceCustom.style.display = 'none';
+                
+                apiKeysContainer.style.display = 'none';
+                shodanKey.value = '';
+                bingKey.value = '';
+                githubKey.value = '';
+                twitterKey.value = '';
+                
+                reportFilenameContainer.style.display = 'none';
+                reportFilename.value = '';
+                
+                outputPath.value = '/home/kali/recon-ng/';
+                databaseFile.value = 'recon.db';
+                logLevel.value = '2';
+                customFlags.value = '';
+                
+                modeInteractive.checked = true;
+                scriptContainer.style.display = 'none';
+                commandContainer.style.display = 'none';
+                scriptFile.value = '';
+                singleCommand.value = '';
+                
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            // Initial update
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

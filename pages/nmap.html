@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nmap - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container tool-page">
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=information-gathering">Information Gathering</a>
+            <span class="separator">›</span>
+            <span class="current">Nmap</span>
+        </div>
+
+        <div class="tool-header">
+            <h1>NMAP</h1>
+            <p>Network Mapper - Advanced network discovery and security auditing</p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">
+                <span>📌</span> TARGET SPECIFICATION
+            </div>
+            <div class="input-group">
+                <label class="input-label">Target (IP, domain, or CIDR range)</label>
+                <input type="text" class="input-field" id="target" placeholder="scanme.nmap.org or 192.168.1.0/24">
+            </div>
+        </div>
+
+        <div id="options-container"></div>
+
+        <div class="section">
+            <div class="section-title">
+                <span>📁</span> OUTPUT CONFIGURATION
+            </div>
+            <div class="output-row">
+                <div class="input-group">
+                    <label class="input-label">Output Path</label>
+                    <input type="text" class="input-field" id="outputPath" value="/home/kali/scans/">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Filename</label>
+                    <input type="text" class="input-field" id="outputFile" placeholder="nmap_scan">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">File Type</label>
+                    <select class="file-type-select" id="fileType">
+                        <option value=".txt">.txt (Normal)</option>
+                        <option value=".xml">.xml (XML)</option>
+                        <option value=".gnmap">.gnmap (Grepable)</option>
+                        <option value=".nmap">.nmap (Nmap format)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CUSTOM OPTIONS
+            </div>
+            <div class="input-group">
+                <label class="input-label">Additional flags (space separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="--traceroute --reason">
+            </div>
+        </div>
+
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Command name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Command</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+        
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">nmap</div>
+            <div class="command-info" id="commandInfo">No options selected</div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand">
+                <span>📋</span> COPY COMMAND
+            </button>
+            <button class="btn btn-secondary" id="clearAll">
+                <span>🗑️</span> CLEAR ALL
+            </button>
+        </div>
+
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/tools-data.js"></script>
+    <script src="../js/command-builder.js"></script>
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toolName = 'Nmap';
+            const toolCategory = 'INFORMATION GATHERING';
+            
+            const category = categories.find(c => c.name === toolCategory);
+            const toolData = category ? category.tools.find(t => t.name === toolName) : null;
+            
+            if (!toolData) {
+                console.error('Tool data not found');
+                return;
+            }
+
+            const builder = new CommandBuilder('nmap', toolData);
+            
+            const fileTypeSelect = document.getElementById('fileType');
+            const extensions = Utils.getFileExtensions('nmap');
+            fileTypeSelect.innerHTML = extensions.map(ext => 
+                `<option value="${ext.value}">${ext.label}</option>`
+            ).join('');
+
+            generateOptionsSections(toolData.options);
+            setupEventListeners(builder);
+            updateCommand(builder);
+        });
+
+        function generateOptionsSections(options) {
+            const container = document.getElementById('options-container');
+            if (!container || !options) return;
+            
+            const sectionConfig = {
+                scanTechniques: { title: 'SCAN TECHNIQUES', icon: '🔧' },
+                hostDiscovery: { title: 'HOST DISCOVERY', icon: '🔍' },
+                portSpecification: { title: 'PORT SPECIFICATION', icon: '🖥️' },
+                serviceDetection: { title: 'SERVICE/VERSION DETECTION', icon: '🏷️' },
+                osDetection: { title: 'OS DETECTION', icon: '💻' },
+                timingPerformance: { title: 'TIMING & PERFORMANCE', icon: '⏱️' },
+                firewallEvasion: { title: 'FIREWALL EVASION', icon: '🛡️' },
+                scripting: { title: 'SCRIPTING', icon: '📜' },
+                output: { title: 'OUTPUT OPTIONS', icon: '📁' },
+                miscOptions: { title: 'MISCELLANEOUS', icon: '⚙️' }
+            };
+            
+            let html = '';
+            
+            for (const [key, sectionOptions] of Object.entries(options)) {
+                if (Array.isArray(sectionOptions) && sectionOptions.length > 0) {
+                    const config = sectionConfig[key] || { title: key.toUpperCase().replace(/([A-Z])/g, ' $1'), icon: '🔹' };
+                    
+                    html += `
+                        <div class="section">
+                            <div class="section-title">
+                                <span>${config.icon}</span> ${config.title}
+                            </div>
+                            <div class="checkbox-grid" id="${key}">
+                                ${sectionOptions.map(opt => `
+                                    <div class="checkbox-item" data-flag="${opt.flag}">
+                                        <input type="checkbox" id="${key}_${opt.flag}" ${opt.hasValue ? 'data-has-value="true"' : ''}>
+                                        <label class="checkbox-label" for="${key}_${opt.flag}" data-tooltip="${opt.description || ''}">${opt.name}</label>
+                                        <span class="checkbox-flag">${opt.flag}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            ${sectionOptions.some(opt => opt.hasValue) ? `
+                                <div class="custom-options" id="${key}Custom" style="display: none;">
+                                    <label class="input-label">Custom Value</label>
+                                    <input type="text" class="input-field" id="${key}Value" placeholder="Enter value...">
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function setupEventListeners(builder) {
+            document.getElementById('target')?.addEventListener('input', (e) => {
+                builder.setTarget(e.target.value);
+                updateCommand(builder);
+            });
+            
+            document.querySelectorAll('.checkbox-item input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const item = e.target.closest('.checkbox-item');
+                    const flag = item.dataset.flag;
+                    const category = item.closest('.checkbox-grid').id;
+                    const hasValue = e.target.dataset.hasValue;
+                    
+                    if (hasValue) {
+                        const customDiv = document.getElementById(`${category}Custom`);
+                        if (customDiv) {
+                            customDiv.style.display = e.target.checked ? 'block' : 'none';
+                            
+                            if (e.target.checked) {
+                                const valueInput = document.getElementById(`${category}Value`);
+                                if (valueInput) {
+                                    valueInput.addEventListener('input', (valEvent) => {
+                                        builder.toggleOption(category, { flag: flag, hasValue: true }, valEvent.target.value);
+                                        updateCommand(builder);
+                                    });
+                                }
+                            }
+                        }
+                    }
+                    
+                    builder.toggleOption(category, { flag: flag, hasValue: !!hasValue });
+                    updateCommand(builder);
+                });
+            });
+            
+            document.getElementById('outputPath')?.addEventListener('input', (e) => {
+                builder.setOutput(e.target.value, document.getElementById('outputFile')?.value || '', document.getElementById('fileType')?.value || '.txt');
+                updateCommand(builder);
+            });
+            
+            document.getElementById('outputFile')?.addEventListener('input', (e) => {
+                builder.setOutput(document.getElementById('outputPath')?.value || '/home/kali/scans/', e.target.value, document.getElementById('fileType')?.value || '.txt');
+                updateCommand(builder);
+            });
+            
+            document.getElementById('fileType')?.addEventListener('change', (e) => {
+                builder.setOutput(document.getElementById('outputPath')?.value || '/home/kali/scans/', document.getElementById('outputFile')?.value || '', e.target.value);
+                updateCommand(builder);
+            });
+            
+            document.getElementById('customFlags')?.addEventListener('input', (e) => {
+                builder.setCustomFlags(e.target.value);
+                updateCommand(builder);
+            });
+            
+            document.getElementById('copyCommand')?.addEventListener('click', async () => {
+                const success = await builder.copyToClipboard();
+                if (success) {
+                    Utils.showNotification('✅ Command copied to clipboard!', 'success');
+                } else {
+                    Utils.showNotification('❌ Failed to copy command', 'error');
+                }
+            });
+            
+            document.getElementById('clearAll')?.addEventListener('click', () => {
+                builder.clearAll();
+                document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                document.querySelectorAll('.custom-options').forEach(div => div.style.display = 'none');
+                document.getElementById('target').value = '';
+                document.getElementById('customFlags').value = '';
+                document.getElementById('outputFile').value = '';
+                updateCommand(builder);
+                Utils.showNotification('All options cleared', 'info');
+            });
+            
+            document.getElementById('saveCommand')?.addEventListener('click', () => {
+                const name = document.getElementById('saveName')?.value;
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this command', 'warning');
+                    return;
+                }
+                
+                try {
+                    builder.saveCommand(name);
+                    Utils.showNotification('✅ Command saved!', 'success');
+                    document.getElementById('saveName').value = '';
+                    updateSavedCommands(builder);
+                } catch (e) {
+                    Utils.showNotification(e.message, 'error');
+                }
+            });
+            
+            document.getElementById('loadCommands')?.addEventListener('click', () => {
+                updateSavedCommands(builder);
+            });
+        }
+
+        function updateCommand(builder) {
+            document.getElementById('commandPreview').textContent = builder.generateCommand();
+            document.getElementById('commandInfo').textContent = builder.generateExplanation();
+        }
+
+        function updateSavedCommands(builder) {
+            const saved = builder.loadSavedCommands();
+            const container = document.getElementById('savedCommandsList');
+            
+            if (saved.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'block';
+            container.innerHTML = saved.map((cmd, index) => `
+                <div class="saved-command-item" data-index="${index}">
+                    <div style="flex: 1;">
+                        <div class="saved-command-name">${cmd.name}</div>
+                        <div class="saved-command-preview">${cmd.command.substring(0, 60)}${cmd.command.length > 60 ? '...' : ''}</div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <span class="delete-saved" data-index="${index}">🗑️</span>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.querySelectorAll('.saved-command-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('delete-saved')) {
+                        const index = item.dataset.index;
+                        const cmd = saved[index];
+                        
+                        builder.loadCommand(cmd);
+                        
+                        document.getElementById('target').value = cmd.target || '';
+                        
+                        document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                        
+                        if (cmd.options) {
+                            for (const [category, options] of Object.entries(cmd.options)) {
+                                options.forEach(opt => {
+                                    const checkbox = document.getElementById(`${category}_${opt.flag}`);
+                                    if (checkbox) {
+                                        checkbox.checked = true;
+                                        if (opt.hasValue && opt.value) {
+                                            const customDiv = document.getElementById(`${category}Custom`);
+                                            if (customDiv) {
+                                                customDiv.style.display = 'block';
+                                                const valueInput = document.getElementById(`${category}Value`);
+                                                if (valueInput) {
+                                                    valueInput.value = opt.value;
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                        
+                        document.getElementById('customFlags').value = cmd.customFlags || '';
+                        document.getElementById('outputPath').value = cmd.outputPath || '/home/kali/scans/';
+                        document.getElementById('outputFile').value = cmd.outputFile || '';
+                        document.getElementById('fileType').value = cmd.fileType || '.txt';
+                        
+                        updateCommand(builder);
+                        Utils.showNotification(`Loaded: ${cmd.name}`, 'success');
+                    }
+                });
+            });
+            
+            container.querySelectorAll('.delete-saved').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const index = btn.dataset.index;
+                    builder.deleteSavedCommand(index);
+                    updateSavedCommands(builder);
+                    Utils.showNotification('Command deleted', 'info');
+                });
+            });
+        }
+    </script>
+</body>
+</html>

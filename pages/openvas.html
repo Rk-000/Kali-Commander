@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenVAS - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles specific to OpenVAS */
+        .scan-config-group {
+            background: rgba(15, 95, 168, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid #00CFFF;
+        }
+        .scan-config-title {
+            color: #00CFFF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .severity-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        .severity-critical { background: #8B0000; color: white; }
+        .severity-high { background: #FF4500; color: white; }
+        .severity-medium { background: #FFA500; color: black; }
+        .severity-low { background: #2E8B57; color: white; }
+        .severity-info { background: #4682B4; color: white; }
+        
+        .port-range-input {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .schedule-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=vulnerability-analysis">Vulnerability Analysis</a>
+            <span class="separator">›</span>
+            <span class="current">OpenVAS</span>
+        </div>
+
+        <!-- Tool Header -->
+        <div class="tool-header">
+            <h1>OPENVAS</h1>
+            <p>Open Vulnerability Assessment System - Advanced vulnerability scanning and management</p>
+        </div>
+
+        <!-- Connection Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔌</span> CONNECTION CONFIGURATION
+            </div>
+            
+            <div class="scan-config-group">
+                <div class="scan-config-title">
+                    <span>🖧</span> OPENVAS SERVER
+                </div>
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Host</label>
+                        <input type="text" class="input-field" id="gmp_host" value="127.0.0.1">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Port</label>
+                        <input type="number" class="input-field" id="gmp_port" value="9390" min="1" max="65535">
+                    </div>
+                </div>
+            </div>
+
+            <div class="scan-config-group">
+                <div class="scan-config-title">
+                    <span>🔑</span> AUTHENTICATION
+                </div>
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Username</label>
+                        <input type="text" class="input-field" id="username" value="admin">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Password</label>
+                        <input type="password" class="input-field" id="password" value="">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Target Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🎯</span> TARGET CONFIGURATION
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Target Host(s)</label>
+                <input type="text" class="input-field" id="target" placeholder="192.168.1.1 or 192.168.1.0/24 or example.com" value="">
+                <small style="color: #2A6FAF; margin-top: 5px; display: block;">IP address, CIDR range, hostname, or comma-separated list</small>
+            </div>
+
+            <div class="scan-config-group">
+                <div class="scan-config-title">
+                    <span>📋</span> TARGET OPTIONS
+                </div>
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="target_alive_test">
+                        <label class="checkbox-label" for="target_alive_test">Test Host Aliveness</label>
+                        <span class="checkbox-flag">--alive-test</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="target_reverse_lookup">
+                        <label class="checkbox-label" for="target_reverse_lookup">Reverse DNS Lookup</label>
+                        <span class="checkbox-flag">--reverse-lookup</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scan-config-group">
+                <div class="scan-config-title">
+                    <span>🔌</span> PORT RANGE
+                </div>
+                <div class="radio-group" style="display: flex; gap: 20px; margin-bottom: 15px;">
+                    <label style="color: #E6F0FA;">
+                        <input type="radio" name="port_range_type" id="ports_default" value="default" checked> Default (1-10000)
+                    </label>
+                    <label style="color: #E6F0FA;">
+                        <input type="radio" name="port_range_type" id="ports_all" value="all"> All Ports (1-65535)
+                    </label>
+                    <label style="color: #E6F0FA;">
+                        <input type="radio" name="port_range_type" id="ports_custom" value="custom"> Custom
+                    </label>
+                </div>
+                
+                <div id="custom_ports" style="display: none;">
+                    <label class="input-label">Custom Port Range</label>
+                    <input type="text" class="input-field" id="port_range" placeholder="22,80,443 or 1-1000">
+                </div>
+            </div>
+
+            <div class="scan-config-group">
+                <div class="scan-config-title">
+                    <span>⏱️</span> SCAN DELAY
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Delay between hosts (seconds)</label>
+                    <input type="number" class="input-field" id="delay" value="0" min="0" max="3600">
+                </div>
+            </div>
+        </div>
+
+        <!-- Scan Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚙️</span> SCAN CONFIGURATION
+            </div>
+
+            <div class="scan-config-group">
+                <div class="scan-config-title">
+                    <span>📊</span> SCAN CONFIG
+                </div>
+                <select class="file-type-select" id="scan_config">
+                    <option value="daba56c8-73ec-11df-a475-002264764cea">Full and fast</option>
+                    <option value="708f25c4-7489-11df-8094-002264764cea">Full and fast ultimate</option>
+                    <option value="698f691e-7489-11df-9489-002264764cea">Discovery</option>
+                    <option value="8715c877-47a0-438d-98a3-27c7a6ab2196">Host Discovery</option>
+                    <option value="4a4717fe-57d2-11e1-9a26-406186ea4fc5">System Discovery</option>
+                    <option value="bbca7412-a950-11e3-9109-406186ea4fc5">Base</option>
+                </select>
+            </div>
+
+            <div class="scan-config-group">
+                <div class="scan-config-title">
+                    <span>🔬</span> SCAN TYPE
+                </div>
+                <select class="file-type-select" id="scan_type">
+                    <option value="0">Scan</option>
+                    <option value="1">Discovery Scan</option>
+                    <option value="2">Discovery and Scan</option>
+                </select>
+            </div>
+
+            <div class="scan-config-group">
+                <div class="scan-config-title">
+                    <span>⚡</span> PERFORMANCE
+                </div>
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Max Hosts</label>
+                        <input type="number" class="input-field" id="max_hosts" value="20" min="1" max="100">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Max Checks</label>
+                        <input type="number" class="input-field" id="max_checks" value="4" min="1" max="10">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scan Policy -->
+        <div class="section">
+            <div class="section-title">
+                <span>📋</span> SCAN POLICY
+            </div>
+
+            <div class="scan-config-group">
+                <div class="scan-config-title">
+                    <span>🎯</span> SCAN POLICY
+                </div>
+                <select class="file-type-select" id="scan_policy">
+                    <option value="empty">Empty</option>
+                    <option value="discovery">Discovery</option>
+                    <option value="host_discovery">Host Discovery</option>
+                    <option value="system_discovery">System Discovery</option>
+                    <option value="full_and_fast" selected>Full and Fast</option>
+                    <option value="full_and_fast_ultimate">Full and Fast Ultimate</option>
+                    <option value="base">Base</option>
+                </select>
+            </div>
+
+            <div class="scan-config-group">
+                <div class="scan-config-title">
+                    <span>⚡</span> SCAN ALERTS
+                </div>
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="alert_email">
+                        <label class="checkbox-label" for="alert_email">Email Alert on Completion</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="alert_scp">
+                        <label class="checkbox-label" for="alert_scp">SCP Report on Completion</label>
+                    </div>
+                </div>
+                
+                <div id="email_config" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Email Address</label>
+                    <input type="email" class="input-field" id="alert_email_addr" placeholder="admin@example.com">
+                </div>
+                
+                <div id="scp_config" style="display: none; margin-top: 15px;">
+                    <label class="input-label">SCP Destination</label>
+                    <input type="text" class="input-field" id="scp_dest" placeholder="user@server:/path/">
+                </div>
+            </div>
+        </div>
+
+        <!-- Vulnerability Detection -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔍</span> VULNERABILITY DETECTION
+            </div>
+
+            <div class="scan-config-group">
+                <div class="scan-config-title">
+                    <span>⚠️</span> SEVERITY THRESHOLDS
+                </div>
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Min QoD</label>
+                        <select class="file-type-select" id="min_qod">
+                            <option value="70">70% - Normal</option>
+                            <option value="80">80% - Good</option>
+                            <option value="90">90% - High</option>
+                            <option value="95">95% - Very High</option>
+                            <option value="99">99% - Certain</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Min Severity</label>
+                        <select class="file-type-select" id="min_severity">
+                            <option value="0">All (0.0+)</option>
+                            <option value="3">Low (3.0+)</option>
+                            <option value="5">Medium (5.0+)</option>
+                            <option value="7">High (7.0+)</option>
+                            <option value="9">Critical (9.0+)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scan-config-group">
+                <div class="scan-config-title">
+                    <span>🧪</span> SAFE CHECKS
+                </div>
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="safe_checks" checked>
+                        <label class="checkbox-label" for="safe_checks">Enable Safe Checks</label>
+                        <span class="checkbox-flag">--safe-checks</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="optimize">
+                        <label class="checkbox-label" for="optimize">Optimize Scan</label>
+                        <span class="checkbox-flag">--optimize</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Schedule -->
+        <div class="section">
+            <div class="section-title">
+                <span>⏰</span> SCHEDULE
+            </div>
+
+            <div class="checkbox-grid">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="schedule_scan">
+                    <label class="checkbox-label" for="schedule_scan">Schedule Scan</label>
+                </div>
+            </div>
+
+            <div id="schedule_config" style="display: none; margin-top: 15px;">
+                <div class="schedule-selector">
+                    <div style="flex: 1;">
+                        <label class="input-label">Start Date</label>
+                        <input type="date" class="input-field" id="schedule_date">
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="input-label">Start Time</label>
+                        <input type="time" class="input-field" id="schedule_time" value="00:00">
+                    </div>
+                </div>
+                
+                <div style="margin-top: 15px;">
+                    <label class="input-label">Period</label>
+                    <select class="file-type-select" id="schedule_period">
+                        <option value="0">Once</option>
+                        <option value="86400">Daily</option>
+                        <option value="604800">Weekly</option>
+                        <option value="2592000">Monthly</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📊</span> REPORT CONFIGURATION
+            </div>
+
+            <div class="checkbox-grid">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="report_xml">
+                    <label class="checkbox-label" for="report_xml">XML Report</label>
+                    <span class="checkbox-flag">-x</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="report_html">
+                    <label class="checkbox-label" for="report_html">HTML Report</label>
+                    <span class="checkbox-flag">-h</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="report_csv">
+                    <label class="checkbox-label" for="report_csv">CSV Report</label>
+                    <span class="checkbox-flag">-c</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="report_txt">
+                    <label class="checkbox-label" for="report_txt">Text Report</label>
+                    <span class="checkbox-flag">-t</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="report_pdf">
+                    <label class="checkbox-label" for="report_pdf">PDF Report</label>
+                    <span class="checkbox-flag">-p</span>
+                </div>
+            </div>
+
+            <div id="report_filename_container" style="display: none; margin-top: 15px;">
+                <label class="input-label">Report Filename (without extension)</label>
+                <input type="text" class="input-field" id="report_filename" placeholder="openvas_scan">
+            </div>
+
+            <div class="scan-config-group" style="margin-top: 15px;">
+                <div class="scan-config-title">
+                    <span>📁</span> REPORT OPTIONS
+                </div>
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="include_hosts">
+                        <label class="checkbox-label" for="include_hosts">Include Host Details</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="include_ports">
+                        <label class="checkbox-label" for="include_ports">Include Port Details</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="include_os">
+                        <label class="checkbox-label" for="include_os">Include OS Information</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="include_cves">
+                        <label class="checkbox-label" for="include_cves">Include CVEs</label>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Output Path</label>
+                        <input type="text" class="input-field" id="outputPath" value="/home/kali/openvas/">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Verbosity</label>
+                        <select class="file-type-select" id="verbosity">
+                            <option value="0">Normal</option>
+                            <option value="1">Verbose</option>
+                            <option value="2">Debug</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CUSTOM OPTIONS
+            </div>
+            <div class="input-group">
+                <label class="input-label">Additional flags (space separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="--quiet --progress">
+            </div>
+        </div>
+
+        <!-- Save/Load Panel -->
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Scan configuration name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Configuration</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+        
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <!-- Command Preview -->
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">gvm-cli --gmp-username admin --gmp-password **** socket --socketpath /var/run/gvmd.sock</div>
+            <div class="command-info" id="commandInfo">No scan configured</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand">
+                <span>📋</span> COPY COMMAND
+            </button>
+            <button class="btn btn-secondary" id="clearAll">
+                <span>🗑️</span> CLEAR ALL
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ============ COMMAND BUILDER FOR OPENVAS ============
+            
+            // State
+            let state = {
+                connection: {
+                    host: '127.0.0.1',
+                    port: 9390,
+                    username: 'admin',
+                    password: ''
+                },
+                target: {
+                    hosts: '',
+                    alive_test: false,
+                    reverse_lookup: false,
+                    port_range_type: 'default',
+                    custom_ports: '',
+                    delay: 0
+                },
+                scan: {
+                    config: 'daba56c8-73ec-11df-a475-002264764cea',
+                    type: '0',
+                    max_hosts: 20,
+                    max_checks: 4,
+                    policy: 'full_and_fast'
+                },
+                detection: {
+                    min_qod: '70',
+                    min_severity: '0',
+                    safe_checks: true,
+                    optimize: false
+                },
+                alerts: {
+                    email: false,
+                    scp: false,
+                    email_addr: '',
+                    scp_dest: ''
+                },
+                schedule: {
+                    enabled: false,
+                    date: '',
+                    time: '00:00',
+                    period: '0'
+                },
+                report: {
+                    xml: false,
+                    html: false,
+                    csv: false,
+                    txt: false,
+                    pdf: false,
+                    filename: '',
+                    include_hosts: false,
+                    include_ports: false,
+                    include_os: false,
+                    include_cves: false
+                },
+                outputPath: '/home/kali/openvas/',
+                verbosity: '0',
+                customFlags: ''
+            };
+
+            // DOM Elements
+            // Connection
+            const gmpHost = document.getElementById('gmp_host');
+            const gmpPort = document.getElementById('gmp_port');
+            const username = document.getElementById('username');
+            const password = document.getElementById('password');
+            
+            // Target
+            const target = document.getElementById('target');
+            const targetAliveTest = document.getElementById('target_alive_test');
+            const targetReverseLookup = document.getElementById('target_reverse_lookup');
+            const portsDefault = document.getElementById('ports_default');
+            const portsAll = document.getElementById('ports_all');
+            const portsCustom = document.getElementById('ports_custom');
+            const customPorts = document.getElementById('custom_ports');
+            const portRange = document.getElementById('port_range');
+            const delay = document.getElementById('delay');
+            
+            // Scan
+            const scanConfig = document.getElementById('scan_config');
+            const scanType = document.getElementById('scan_type');
+            const maxHosts = document.getElementById('max_hosts');
+            const maxChecks = document.getElementById('max_checks');
+            const scanPolicy = document.getElementById('scan_policy');
+            
+            // Detection
+            const minQod = document.getElementById('min_qod');
+            const minSeverity = document.getElementById('min_severity');
+            const safeChecks = document.getElementById('safe_checks');
+            const optimize = document.getElementById('optimize');
+            
+            // Alerts
+            const alertEmail = document.getElementById('alert_email');
+            const alertScp = document.getElementById('alert_scp');
+            const emailConfig = document.getElementById('email_config');
+            const scpConfig = document.getElementById('scp_config');
+            const alertEmailAddr = document.getElementById('alert_email_addr');
+            const scpDest = document.getElementById('scp_dest');
+            
+            // Schedule
+            const scheduleScan = document.getElementById('schedule_scan');
+            const scheduleConfig = document.getElementById('schedule_config');
+            const scheduleDate = document.getElementById('schedule_date');
+            const scheduleTime = document.getElementById('schedule_time');
+            const schedulePeriod = document.getElementById('schedule_period');
+            
+            // Report
+            const reportXml = document.getElementById('report_xml');
+            const reportHtml = document.getElementById('report_html');
+            const reportCsv = document.getElementById('report_csv');
+            const reportTxt = document.getElementById('report_txt');
+            const reportPdf = document.getElementById('report_pdf');
+            const reportFilename = document.getElementById('report_filename');
+            const reportFilenameContainer = document.getElementById('report_filename_container');
+            const includeHosts = document.getElementById('include_hosts');
+            const includePorts = document.getElementById('include_ports');
+            const includeOs = document.getElementById('include_os');
+            const includeCves = document.getElementById('include_cves');
+            const outputPath = document.getElementById('outputPath');
+            const verbosity = document.getElementById('verbosity');
+            
+            // Custom flags
+            const customFlags = document.getElementById('customFlags');
+
+            // ============ EVENT LISTENERS ============
+
+            // Connection
+            gmpHost.addEventListener('input', (e) => { state.connection.host = e.target.value; updateCommand(); });
+            gmpPort.addEventListener('input', (e) => { state.connection.port = parseInt(e.target.value) || 9390; updateCommand(); });
+            username.addEventListener('input', (e) => { state.connection.username = e.target.value; updateCommand(); });
+            password.addEventListener('input', (e) => { state.connection.password = e.target.value; updateCommand(); });
+
+            // Target
+            target.addEventListener('input', (e) => { state.target.hosts = e.target.value; updateCommand(); });
+            targetAliveTest.addEventListener('change', (e) => { state.target.alive_test = e.target.checked; updateCommand(); });
+            targetReverseLookup.addEventListener('change', (e) => { state.target.reverse_lookup = e.target.checked; updateCommand(); });
+            
+            portsDefault.addEventListener('change', (e) => { 
+                if(e.target.checked) {
+                    state.target.port_range_type = 'default';
+                    customPorts.style.display = 'none';
+                    updateCommand();
+                }
+            });
+            portsAll.addEventListener('change', (e) => { 
+                if(e.target.checked) {
+                    state.target.port_range_type = 'all';
+                    customPorts.style.display = 'none';
+                    updateCommand();
+                }
+            });
+            portsCustom.addEventListener('change', (e) => { 
+                if(e.target.checked) {
+                    state.target.port_range_type = 'custom';
+                    customPorts.style.display = 'block';
+                    updateCommand();
+                }
+            });
+            
+            portRange.addEventListener('input', (e) => { state.target.custom_ports = e.target.value; updateCommand(); });
+            delay.addEventListener('input', (e) => { state.target.delay = parseInt(e.target.value) || 0; updateCommand(); });
+
+            // Scan
+            scanConfig.addEventListener('change', (e) => { state.scan.config = e.target.value; updateCommand(); });
+            scanType.addEventListener('change', (e) => { state.scan.type = e.target.value; updateCommand(); });
+            maxHosts.addEventListener('input', (e) => { state.scan.max_hosts = parseInt(e.target.value) || 20; updateCommand(); });
+            maxChecks.addEventListener('input', (e) => { state.scan.max_checks = parseInt(e.target.value) || 4; updateCommand(); });
+            scanPolicy.addEventListener('change', (e) => { state.scan.policy = e.target.value; updateCommand(); });
+
+            // Detection
+            minQod.addEventListener('change', (e) => { state.detection.min_qod = e.target.value; updateCommand(); });
+            minSeverity.addEventListener('change', (e) => { state.detection.min_severity = e.target.value; updateCommand(); });
+            safeChecks.addEventListener('change', (e) => { state.detection.safe_checks = e.target.checked; updateCommand(); });
+            optimize.addEventListener('change', (e) => { state.detection.optimize = e.target.checked; updateCommand(); });
+
+            // Alerts
+            alertEmail.addEventListener('change', (e) => { 
+                state.alerts.email = e.target.checked;
+                emailConfig.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            alertScp.addEventListener('change', (e) => { 
+                state.alerts.scp = e.target.checked;
+                scpConfig.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            alertEmailAddr.addEventListener('input', (e) => { state.alerts.email_addr = e.target.value; updateCommand(); });
+            scpDest.addEventListener('input', (e) => { state.alerts.scp_dest = e.target.value; updateCommand(); });
+
+            // Schedule
+            scheduleScan.addEventListener('change', (e) => {
+                state.schedule.enabled = e.target.checked;
+                scheduleConfig.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            scheduleDate.addEventListener('input', (e) => { state.schedule.date = e.target.value; updateCommand(); });
+            scheduleTime.addEventListener('input', (e) => { state.schedule.time = e.target.value; updateCommand(); });
+            schedulePeriod.addEventListener('change', (e) => { state.schedule.period = e.target.value; updateCommand(); });
+
+            // Report
+            reportXml.addEventListener('change', (e) => { state.report.xml = e.target.checked; updateReportVisibility(); updateCommand(); });
+            reportHtml.addEventListener('change', (e) => { state.report.html = e.target.checked; updateReportVisibility(); updateCommand(); });
+            reportCsv.addEventListener('change', (e) => { state.report.csv = e.target.checked; updateReportVisibility(); updateCommand(); });
+            reportTxt.addEventListener('change', (e) => { state.report.txt = e.target.checked; updateReportVisibility(); updateCommand(); });
+            reportPdf.addEventListener('change', (e) => { state.report.pdf = e.target.checked; updateReportVisibility(); updateCommand(); });
+            reportFilename.addEventListener('input', (e) => { state.report.filename = e.target.value; updateCommand(); });
+            
+            includeHosts.addEventListener('change', (e) => { state.report.include_hosts = e.target.checked; updateCommand(); });
+            includePorts.addEventListener('change', (e) => { state.report.include_ports = e.target.checked; updateCommand(); });
+            includeOs.addEventListener('change', (e) => { state.report.include_os = e.target.checked; updateCommand(); });
+            includeCves.addEventListener('change', (e) => { state.report.include_cves = e.target.checked; updateCommand(); });
+            
+            outputPath.addEventListener('input', (e) => { state.outputPath = e.target.value; updateCommand(); });
+            verbosity.addEventListener('change', (e) => { state.verbosity = e.target.value; updateCommand(); });
+
+            function updateReportVisibility() {
+                const anyReport = state.report.xml || state.report.html || state.report.csv || state.report.txt || state.report.pdf;
+                reportFilenameContainer.style.display = anyReport ? 'block' : 'none';
+            }
+
+            // Custom flags
+            customFlags.addEventListener('input', (e) => { state.customFlags = e.target.value; updateCommand(); });
+
+            // ============ COMMAND GENERATION ============
+
+            function generateCommand() {
+                // OpenVAS is typically used through GVM (Greenbone Vulnerability Manager)
+                // We'll generate a gvm-cli command
+                
+                let command = 'gvm-cli';
+                const parts = [];
+
+                // Authentication
+                parts.push(`--gmp-username ${state.connection.username}`);
+                if (state.connection.password) {
+                    parts.push(`--gmp-password ${state.connection.password}`);
+                }
+
+                // Connection
+                if (state.connection.host === '127.0.0.1' && state.connection.port === 9390) {
+                    parts.push('socket --socketpath /var/run/gvmd.sock');
+                } else {
+                    parts.push(`--gmp-hostname ${state.connection.host} --gmp-port ${state.connection.port}`);
+                }
+
+                // If no target specified, just show connection
+                if (!state.target.hosts) {
+                    return command + ' ' + parts.join(' ');
+                }
+
+                // Create target
+                const targetName = `target_${Date.now()}`;
+                let targetCmd = `--xml "<create_target><name>${targetName}</name><hosts>${state.target.hosts}</hosts>`;
+                
+                // Port range
+                if (state.target.port_range_type === 'all') {
+                    targetCmd += '<port_range>1-65535</port_range>';
+                } else if (state.target.port_range_type === 'custom' && state.target.custom_ports) {
+                    targetCmd += `<port_range>${state.target.custom_ports}</port_range>`;
+                }
+                
+                // Alive test
+                if (state.target.alive_test) {
+                    targetCmd += '<alive_tests>ICMP, TCP-ACK Service, ARP</alive_tests>';
+                }
+                
+                // Reverse lookup
+                if (state.target.reverse_lookup) {
+                    targetCmd += '<reverse_lookup_only>1</reverse_lookup_only>';
+                }
+                
+                targetCmd += '</create_target>"';
+                parts.push(targetCmd);
+
+                // Create task
+                const taskName = `scan_${Date.now()}`;
+                let taskCmd = `--xml "<create_task><name>${taskName}</name><comment>OpenVAS scan from Kali Commander</comment>`;
+                
+                // Link to target
+                taskCmd += `<target id="$${targetName}"/>`;
+                
+                // Scan config
+                taskCmd += `<config id="${state.scan.config}"/>`;
+                
+                // Scanner (use default)
+                taskCmd += `<scanner id="08b69003-5fc2-4037-a479-93b440211c73"/>`;
+                
+                // Alert if configured
+                if (state.alerts.email && state.alerts.email_addr) {
+                    // This would need alert creation first
+                }
+                
+                taskCmd += '</create_task>"';
+                parts.push(taskCmd);
+
+                // Start task
+                parts.push(`--xml "<start_task task_id="$${taskName}"/>"`);
+
+                // Get report
+                if (state.report.filename) {
+                    parts.push(`--xml "<get_reports task_id="$${taskName}" format_id="${getReportFormatId()}"/>"`);
+                }
+
+                // Add custom flags
+                if (state.customFlags) {
+                    const customParts = state.customFlags.trim().split(/\s+/);
+                    customParts.forEach(part => parts.push(part));
+                }
+
+                return command + ' ' + parts.join(' ');
+            }
+
+            function getReportFormatId() {
+                if (state.report.xml) return 'a994b278-1f62-11e1-88ac-406186ea4fc5';
+                if (state.report.html) return '6c248850-1f62-11e1-b082-406186ea4fc5';
+                if (state.report.csv) return 'c402cc3e-b531-11e1-9163-406186ea4fc5';
+                if (state.report.txt) return 'a3810a3e-6162-40e2-b3e4-37f9a2c6a0e8';
+                if (state.report.pdf) return '35b99944-f0fe-4989-a90b-ff7036e2ab96';
+                return '';
+            }
+
+            function generateExplanation() {
+                const explanations = [];
+                
+                if (state.target.hosts) explanations.push(`Target: ${state.target.hosts}`);
+                
+                if (state.target.port_range_type === 'all') {
+                    explanations.push('All ports');
+                } else if (state.target.port_range_type === 'custom' && state.target.custom_ports) {
+                    explanations.push(`Ports: ${state.target.custom_ports}`);
+                } else {
+                    explanations.push('Default ports');
+                }
+                
+                const scanConfigName = {
+                    'daba56c8-73ec-11df-a475-002264764cea': 'Full & Fast',
+                    '708f25c4-7489-11df-8094-002264764cea': 'Full & Fast Ultimate',
+                    '698f691e-7489-11df-9489-002264764cea': 'Discovery',
+                    '8715c877-47a0-438d-98a3-27c7a6ab2196': 'Host Discovery',
+                    '4a4717fe-57d2-11e1-9a26-406186ea4fc5': 'System Discovery',
+                    'bbca7412-a950-11e3-9109-406186ea4fc5': 'Base'
+                };
+                explanations.push(`Config: ${scanConfigName[state.scan.config] || 'Default'}`);
+                
+                if (state.detection.min_severity !== '0') {
+                    const severity = { '3': 'Low+', '5': 'Medium+', '7': 'High+', '9': 'Critical+' };
+                    explanations.push(`Min severity: ${severity[state.detection.min_severity]}`);
+                }
+                
+                const reportFormats = [];
+                if (state.report.xml) reportFormats.push('XML');
+                if (state.report.html) reportFormats.push('HTML');
+                if (state.report.csv) reportFormats.push('CSV');
+                if (state.report.txt) reportFormats.push('TXT');
+                if (state.report.pdf) reportFormats.push('PDF');
+                
+                if (reportFormats.length > 0) {
+                    explanations.push(`Reports: ${reportFormats.join(', ')}`);
+                }
+                
+                if (state.schedule.enabled) {
+                    explanations.push('Scheduled scan');
+                }
+                
+                return explanations.length > 0 
+                    ? `Scan includes: ${explanations.join(' • ')}`
+                    : 'No scan configured - connect to OpenVAS';
+            }
+
+            function updateCommand() {
+                document.getElementById('commandPreview').textContent = generateCommand();
+                document.getElementById('commandInfo').textContent = generateExplanation();
+            }
+
+            // ============ SAVE/LOAD FUNCTIONS ============
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved.openvas) saved.openvas = [];
+                
+                saved.openvas.push({
+                    name: name,
+                    state: { ...state },
+                    timestamp: new Date().toISOString()
+                });
+                
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved.openvas || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved.openvas && saved.openvas[index]) {
+                    saved.openvas.splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function loadStateIntoSavedCommands(savedState) {
+                // Restore state
+                state = JSON.parse(JSON.stringify(savedState));
+                
+                // Update UI - Connection
+                gmpHost.value = state.connection.host || '127.0.0.1';
+                gmpPort.value = state.connection.port || 9390;
+                username.value = state.connection.username || 'admin';
+                password.value = state.connection.password || '';
+                
+                // Target
+                target.value = state.target.hosts || '';
+                targetAliveTest.checked = state.target.alive_test || false;
+                targetReverseLookup.checked = state.target.reverse_lookup || false;
+                
+                if (state.target.port_range_type === 'default') {
+                    portsDefault.checked = true;
+                    customPorts.style.display = 'none';
+                } else if (state.target.port_range_type === 'all') {
+                    portsAll.checked = true;
+                    customPorts.style.display = 'none';
+                } else {
+                    portsCustom.checked = true;
+                    customPorts.style.display = 'block';
+                }
+                portRange.value = state.target.custom_ports || '';
+                delay.value = state.target.delay || 0;
+                
+                // Scan
+                scanConfig.value = state.scan.config || 'daba56c8-73ec-11df-a475-002264764cea';
+                scanType.value = state.scan.type || '0';
+                maxHosts.value = state.scan.max_hosts || 20;
+                maxChecks.value = state.scan.max_checks || 4;
+                scanPolicy.value = state.scan.policy || 'full_and_fast';
+                
+                // Detection
+                minQod.value = state.detection.min_qod || '70';
+                minSeverity.value = state.detection.min_severity || '0';
+                safeChecks.checked = state.detection.safe_checks !== false;
+                optimize.checked = state.detection.optimize || false;
+                
+                // Alerts
+                alertEmail.checked = state.alerts.email || false;
+                alertScp.checked = state.alerts.scp || false;
+                emailConfig.style.display = state.alerts.email ? 'block' : 'none';
+                scpConfig.style.display = state.alerts.scp ? 'block' : 'none';
+                alertEmailAddr.value = state.alerts.email_addr || '';
+                scpDest.value = state.alerts.scp_dest || '';
+                
+                // Schedule
+                scheduleScan.checked = state.schedule.enabled || false;
+                scheduleConfig.style.display = state.schedule.enabled ? 'block' : 'none';
+                scheduleDate.value = state.schedule.date || '';
+                scheduleTime.value = state.schedule.time || '00:00';
+                schedulePeriod.value = state.schedule.period || '0';
+                
+                // Report
+                reportXml.checked = state.report.xml || false;
+                reportHtml.checked = state.report.html || false;
+                reportCsv.checked = state.report.csv || false;
+                reportTxt.checked = state.report.txt || false;
+                reportPdf.checked = state.report.pdf || false;
+                reportFilename.value = state.report.filename || '';
+                includeHosts.checked = state.report.include_hosts || false;
+                includePorts.checked = state.report.include_ports || false;
+                includeOs.checked = state.report.include_os || false;
+                includeCves.checked = state.report.include_cves || false;
+                
+                updateReportVisibility();
+                
+                outputPath.value = state.outputPath || '/home/kali/openvas/';
+                verbosity.value = state.verbosity || '0';
+                
+                customFlags.value = state.customFlags || '';
+                
+                updateCommand();
+            }
+
+            function updateSavedCommandsList() {
+                const saved = loadSavedCommands();
+                const container = document.getElementById('savedCommandsList');
+                
+                if (saved.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-saved')) {
+                            const index = item.dataset.index;
+                            const cmd = saved[index];
+                            loadStateIntoSavedCommands(cmd.state);
+                            Utils.showNotification(`Loaded: ${cmd.name}`, 'success');
+                        }
+                    });
+                });
+                
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = btn.dataset.index;
+                        deleteSavedCommand(index);
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            // ============ BUTTON HANDLERS ============
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value;
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this configuration', 'warning');
+                    return;
+                }
+                
+                saveCommand(name);
+                Utils.showNotification('✅ Configuration saved!', 'success');
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', () => {
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const command = generateCommand();
+                try {
+                    await navigator.clipboard.writeText(command);
+                    Utils.showNotification('✅ Command copied to clipboard!', 'success');
+                } catch (err) {
+                    Utils.showNotification('❌ Failed to copy command', 'error');
+                }
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                // Reset state
+                state = {
+                    connection: { host: '127.0.0.1', port: 9390, username: 'admin', password: '' },
+                    target: { hosts: '', alive_test: false, reverse_lookup: false, port_range_type: 'default', custom_ports: '', delay: 0 },
+                    scan: { config: 'daba56c8-73ec-11df-a475-002264764cea', type: '0', max_hosts: 20, max_checks: 4, policy: 'full_and_fast' },
+                    detection: { min_qod: '70', min_severity: '0', safe_checks: true, optimize: false },
+                    alerts: { email: false, scp: false, email_addr: '', scp_dest: '' },
+                    schedule: { enabled: false, date: '', time: '00:00', period: '0' },
+                    report: { xml: false, html: false, csv: false, txt: false, pdf: false, filename: '', include_hosts: false, include_ports: false, include_os: false, include_cves: false },
+                    outputPath: '/home/kali/openvas/',
+                    verbosity: '0',
+                    customFlags: ''
+                };
+                
+                // Reset UI
+                gmpHost.value = '127.0.0.1';
+                gmpPort.value = 9390;
+                username.value = 'admin';
+                password.value = '';
+                
+                target.value = '';
+                targetAliveTest.checked = false;
+                targetReverseLookup.checked = false;
+                portsDefault.checked = true;
+                portsAll.checked = false;
+                portsCustom.checked = false;
+                customPorts.style.display = 'none';
+                portRange.value = '';
+                delay.value = 0;
+                
+                scanConfig.value = 'daba56c8-73ec-11df-a475-002264764cea';
+                scanType.value = '0';
+                maxHosts.value = 20;
+                maxChecks.value = 4;
+                scanPolicy.value = 'full_and_fast';
+                
+                minQod.value = '70';
+                minSeverity.value = '0';
+                safeChecks.checked = true;
+                optimize.checked = false;
+                
+                alertEmail.checked = false;
+                alertScp.checked = false;
+                emailConfig.style.display = 'none';
+                scpConfig.style.display = 'none';
+                alertEmailAddr.value = '';
+                scpDest.value = '';
+                
+                scheduleScan.checked = false;
+                scheduleConfig.style.display = 'none';
+                scheduleDate.value = '';
+                scheduleTime.value = '00:00';
+                schedulePeriod.value = '0';
+                
+                reportXml.checked = false;
+                reportHtml.checked = false;
+                reportCsv.checked = false;
+                reportTxt.checked = false;
+                reportPdf.checked = false;
+                reportFilenameContainer.style.display = 'none';
+                reportFilename.value = '';
+                includeHosts.checked = false;
+                includePorts.checked = false;
+                includeOs.checked = false;
+                includeCves.checked = false;
+                
+                outputPath.value = '/home/kali/openvas/';
+                verbosity.value = '0';
+                
+                customFlags.value = '';
+                
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            // Initial update
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

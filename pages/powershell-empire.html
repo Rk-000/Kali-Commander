@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerShell Empire - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .powershell-empire-panel,
+        .option-cluster {
+            background: rgba(15, 95, 168, 0.08);
+            border-left: 3px solid #00CFFF;
+        }
+        .tool-chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px;
+        }
+        .tool-chip {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid #1E88E5;
+            background: rgba(15,95,168,0.22);
+            color: #E6F0FA;
+            font-size: 0.82rem;
+            letter-spacing: 0.4px;
+        }
+        .tool-note {
+            margin-top: 12px;
+            color: #9CC8F3;
+            font-size: 0.95rem;
+        }
+        .insight-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+        .insight-card {
+            background: rgba(10,31,51,0.85);
+            border: 1px solid #0F5FA8;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .insight-card .eyebrow {
+            color: #2A6FAF;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 8px;
+        }
+        .insight-card .value {
+            color: #E6F0FA;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            line-height: 1.45;
+        }
+        .preset-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .preset-btn {
+            background: rgba(15,95,168,0.18);
+            color: #E6F0FA;
+            border: 1px solid #1E88E5;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.92rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .preset-btn:hover {
+            transform: translateY(-2px);
+            border-color: #00CFFF;
+            background: rgba(15,95,168,0.30);
+        }
+        .section-topline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .section-topline .section-title {
+            margin-bottom: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .cluster-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .mini-btn {
+            background: transparent;
+            color: #9CC8F3;
+            border: 1px solid #1E88E5;
+            padding: 7px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+        }
+        .mini-btn:hover {
+            color: #00CFFF;
+            border-color: #00CFFF;
+        }
+        .cluster-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 14px;
+        }
+        .option-card {
+            background: rgba(10,31,51,0.45);
+            border: 1px solid rgba(30,136,229,0.35);
+            border-radius: 10px;
+            padding: 12px;
+        }
+        .option-card:hover {
+            border-color: #00CFFF;
+        }
+        .option-card .checkbox-item {
+            background: transparent;
+            border: none;
+            padding: 0;
+            align-items: flex-start;
+        }
+        .option-card .checkbox-item:hover {
+            transform: none;
+            background: transparent;
+        }
+        .value-wrap {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed rgba(30,136,229,0.45);
+        }
+        .value-wrap .input-field {
+            padding: 12px 14px;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 768px) {
+            .section-topline {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .cluster-actions {
+                width: 100%;
+            }
+            .mini-btn {
+                flex: 1;
+            }
+            .cluster-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=post-exploitation">Post-Exploitation</a>
+            <span class="separator">›</span>
+            <span class="current">PowerShell Empire</span>
+        </div>
+
+        <div class="tool-header">
+            <h1>POWERSHELL EMPIRE</h1>
+            <p>Post-exploitation framework</p>
+            <div class="tool-chip-row"><span class="tool-chip">Listeners</span><span class="tool-chip">Stagers</span><span class="tool-chip">Agents</span></div>
+            
+        </div>
+
+        <div class="section powershell-empire-panel">
+            <div class="section-title"><span>⚡</span> OPERATOR SNAPSHOT</div>
+            <div class="insight-grid">
+                <div class="insight-card">
+                    <div class="eyebrow">Primary Focus</div>
+                    <div class="value">Listeners</div>
+                </div>
+                <div class="insight-card">
+                    <div class="eyebrow">Quick Start</div>
+                    <div class="value">HTTP Listener</div>
+                </div>
+                <div class="insight-card">
+                    <div class="eyebrow">Output Base</div>
+                    <div class="value">/home/kali/postex/</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title"><span>📌</span> TARGET SPECIFICATION</div>
+            <div class="input-group">
+                <label class="input-label">Listener name, agent tag, or staging host</label>
+                <input type="text" class="input-field" id="target" placeholder="http_listener">
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title"><span>⚙️</span> QUICK PRESETS</div>
+            <div class="preset-row"><button type="button" class="preset-btn" data-preset="HTTP Listener"><span>🌐</span>HTTP Listener</button><button type="button" class="preset-btn" data-preset="Launcher Build"><span>🚀</span>Launcher Build</button><button type="button" class="preset-btn" data-preset="Module Dispatch"><span>🧰</span>Module Dispatch</button></div>
+        </div>
+
+        
+        <div class="section option-cluster" id="section-listeners">
+            <div class="section-topline">
+                <div class="section-title"><span>⚡</span> LISTENER SETUP</div>
+                <div class="cluster-actions"><button type="button" class="mini-btn select-all">All</button><button type="button" class="mini-btn clear-all">Clear</button></div>
+            </div>
+            <div class="cluster-grid">
+                
+        <div class="option-card" data-section="listeners" data-flag="listeners">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="listeners" data-flag="listeners" >
+                <span class="checkbox-label">Open Listener Menu</span>
+                <span class="checkbox-flag">listeners</span>
+            </label>
+            
+        </div>
+    
+        <div class="option-card" data-section="listeners" data-flag="usestager">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="listeners" data-flag="usestager" data-has-value="true">
+                <span class="checkbox-label">Select Stager</span>
+                <span class="checkbox-flag">usestager</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="listeners" data-flag="usestager" placeholder="Enter value..." value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="listeners" data-flag="set Name">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="listeners" data-flag="set Name" data-has-value="true">
+                <span class="checkbox-label">Listener Name</span>
+                <span class="checkbox-flag">set Name</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="listeners" data-flag="set Name" placeholder="Enter value..." value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="listeners" data-flag="set Host">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="listeners" data-flag="set Host" data-has-value="true">
+                <span class="checkbox-label">Listener Host</span>
+                <span class="checkbox-flag">set Host</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="listeners" data-flag="set Host" placeholder="Enter value..." value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="listeners" data-flag="set Port">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="listeners" data-flag="set Port" data-has-value="true">
+                <span class="checkbox-label">Listener Port</span>
+                <span class="checkbox-flag">set Port</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="listeners" data-flag="set Port" placeholder="Enter value..." value="">
+            </div>
+        
+        </div>
+    
+            </div>
+        </div>
+    
+        <div class="section option-cluster" id="section-agents">
+            <div class="section-topline">
+                <div class="section-title"><span>🤖</span> AGENT CONTROL</div>
+                <div class="cluster-actions"><button type="button" class="mini-btn select-all">All</button><button type="button" class="mini-btn clear-all">Clear</button></div>
+            </div>
+            <div class="cluster-grid">
+                
+        <div class="option-card" data-section="agents" data-flag="set DefaultDelay">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="agents" data-flag="set DefaultDelay" data-has-value="true">
+                <span class="checkbox-label">Agent Delay</span>
+                <span class="checkbox-flag">set DefaultDelay</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="agents" data-flag="set DefaultDelay" placeholder="Enter value..." value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="agents" data-flag="set DefaultJitter">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="agents" data-flag="set DefaultJitter" data-has-value="true">
+                <span class="checkbox-label">Agent Jitter</span>
+                <span class="checkbox-flag">set DefaultJitter</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="agents" data-flag="set DefaultJitter" placeholder="Enter value..." value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="agents" data-flag="set WorkingHours">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="agents" data-flag="set WorkingHours" data-has-value="true">
+                <span class="checkbox-label">Working Hours</span>
+                <span class="checkbox-flag">set WorkingHours</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="agents" data-flag="set WorkingHours" placeholder="Enter value..." value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="agents" data-flag="set KillDate">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="agents" data-flag="set KillDate" data-has-value="true">
+                <span class="checkbox-label">Kill Date</span>
+                <span class="checkbox-flag">set KillDate</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="agents" data-flag="set KillDate" placeholder="Enter value..." value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="agents" data-flag="interact">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="agents" data-flag="interact" data-has-value="true">
+                <span class="checkbox-label">Interact With Agent</span>
+                <span class="checkbox-flag">interact</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="agents" data-flag="interact" placeholder="Enter value..." value="">
+            </div>
+        
+        </div>
+    
+            </div>
+        </div>
+    
+        <div class="section option-cluster" id="section-modules">
+            <div class="section-topline">
+                <div class="section-title"><span>🧩</span> MODULES &amp; LOGGING</div>
+                <div class="cluster-actions"><button type="button" class="mini-btn select-all">All</button><button type="button" class="mini-btn clear-all">Clear</button></div>
+            </div>
+            <div class="cluster-grid">
+                
+        <div class="option-card" data-section="modules" data-flag="usemodule">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="modules" data-flag="usemodule" data-has-value="true">
+                <span class="checkbox-label">Use Module</span>
+                <span class="checkbox-flag">usemodule</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="modules" data-flag="usemodule" placeholder="Enter value..." value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="modules" data-flag="execute">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="modules" data-flag="execute" >
+                <span class="checkbox-label">Execute Selected Module</span>
+                <span class="checkbox-flag">execute</span>
+            </label>
+            
+        </div>
+    
+        <div class="option-card" data-section="modules" data-flag="set LogLevel">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="modules" data-flag="set LogLevel" data-has-value="true">
+                <span class="checkbox-label">Log Level</span>
+                <span class="checkbox-flag">set LogLevel</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="modules" data-flag="set LogLevel" placeholder="Enter value..." value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="modules" data-flag="set OutFile">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="modules" data-flag="set OutFile" data-has-value="true">
+                <span class="checkbox-label">Output File</span>
+                <span class="checkbox-flag">set OutFile</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="modules" data-flag="set OutFile" placeholder="Enter value..." value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="modules" data-flag="save">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="modules" data-flag="save" >
+                <span class="checkbox-label">Save Listener Config</span>
+                <span class="checkbox-flag">save</span>
+            </label>
+            
+        </div>
+    
+            </div>
+        </div>
+    
+
+        <div class="section">
+            <div class="section-title"><span>📁</span> OUTPUT CONFIGURATION</div>
+            <div class="output-row">
+                <div class="input-group">
+                    <label class="input-label">Output Path</label>
+                    <input type="text" class="input-field" id="outputPath" value="/home/kali/postex/">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Filename</label>
+                    <input type="text" class="input-field" id="outputFile" placeholder="powershell-empire_session">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">File Type</label>
+                    <select class="file-type-select" id="fileType">
+                        <option value=".txt">.txt (Text)</option>
+<option value=".json">.json (JSON)</option>
+<option value=".csv">.csv (CSV)</option>
+<option value=".log">.log (Log)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title"><span>⚡</span> CUSTOM OPTIONS</div>
+            <div class="input-group">
+                <label class="input-label">Additional flags (space separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="--extra-flag --another-flag">
+            </div>
+        </div>
+
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Command name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Command</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">powershell-empire</div>
+            <div class="command-info" id="commandInfo">No options selected - will run default command</div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand"><span>📋</span> COPY COMMAND</button>
+            <button class="btn btn-secondary" id="clearAll"><span>🗑️</span> CLEAR ALL</button>
+        </div>
+
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/command-builder.js"></script>
+    <script src="../js/utils.js"></script>
+    <script>
+        const pageConfig = {"command": "powershell-empire", "targetLabel": "Listener name, agent tag, or staging host", "targetPlaceholder": "http_listener", "outputPath": "/home/kali/postex/", "tags": ["Listeners", "Stagers", "Agents"], "sections": [{"key": "listeners", "title": "LISTENER SETUP", "icon": "\u26a1", "options": [{"flag": "listeners", "name": "Open Listener Menu", "description": ""}, {"flag": "usestager", "name": "Select Stager", "description": "", "hasValue": true, "placeholder": "Enter value..."}, {"flag": "set Name", "name": "Listener Name", "description": "", "hasValue": true, "placeholder": "Enter value..."}, {"flag": "set Host", "name": "Listener Host", "description": "", "hasValue": true, "placeholder": "Enter value..."}, {"flag": "set Port", "name": "Listener Port", "description": "", "hasValue": true, "placeholder": "Enter value..."}]}, {"key": "agents", "title": "AGENT CONTROL", "icon": "\ud83e\udd16", "options": [{"flag": "set DefaultDelay", "name": "Agent Delay", "description": "", "hasValue": true, "placeholder": "Enter value..."}, {"flag": "set DefaultJitter", "name": "Agent Jitter", "description": "", "hasValue": true, "placeholder": "Enter value..."}, {"flag": "set WorkingHours", "name": "Working Hours", "description": "", "hasValue": true, "placeholder": "Enter value..."}, {"flag": "set KillDate", "name": "Kill Date", "description": "", "hasValue": true, "placeholder": "Enter value..."}, {"flag": "interact", "name": "Interact With Agent", "description": "", "hasValue": true, "placeholder": "Enter value..."}]}, {"key": "modules", "title": "MODULES & LOGGING", "icon": "\ud83e\udde9", "options": [{"flag": "usemodule", "name": "Use Module", "description": "", "hasValue": true, "placeholder": "Enter value..."}, {"flag": "execute", "name": "Execute Selected Module", "description": ""}, {"flag": "set LogLevel", "name": "Log Level", "description": "", "hasValue": true, "placeholder": "Enter value..."}, {"flag": "set OutFile", "name": "Output File", "description": "", "hasValue": true, "placeholder": "Enter value..."}, {"flag": "save", "name": "Save Listener Config", "description": ""}]}], "presets": [{"name": "HTTP Listener", "icon": "\ud83c\udf10", "selections": [["listeners", "listeners", null], ["listeners", "set Name", "http_listener"], ["listeners", "set Host", "http://192.168.56.1"], ["listeners", "set Port", "8080"]]}, {"name": "Launcher Build", "icon": "\ud83d\ude80", "selections": [["listeners", "usestager", "multi/launcher"], ["agents", "set DefaultDelay", "5"], ["modules", "set OutFile", "launcher.txt"]]}, {"name": "Module Dispatch", "icon": "\ud83e\uddf0", "selections": [["agents", "interact", "AGENT01"], ["modules", "usemodule", "powershell/credentials/mimikatz/logonpasswords"], ["modules", "execute", null]]}]};
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const builder = new CommandBuilder(pageConfig.command, { options: {} });
+            const targetInput = document.getElementById('target');
+            const outputPath = document.getElementById('outputPath');
+            const outputFile = document.getElementById('outputFile');
+            const fileType = document.getElementById('fileType');
+            const customFlags = document.getElementById('customFlags');
+
+            function collectSelectedOptions() {
+                const selected = {};
+                document.querySelectorAll('.option-checkbox').forEach(cb => {
+                    if (!cb.checked) return;
+                    const section = cb.dataset.section;
+                    const flag = cb.dataset.flag;
+                    const hasValue = cb.dataset.hasValue === 'true';
+                    if (!selected[section]) selected[section] = [];
+                    const item = { flag, hasValue };
+                    if (hasValue) {
+                        const input = document.querySelector(`.value-input[data-section="${section}"][data-flag="${CSS.escape(flag)}"]`);
+                        if (input && input.value.trim()) {
+                            item.value = input.value.trim();
+                        }
+                    }
+                    selected[section].push(item);
+                });
+                return selected;
+            }
+
+            function updateCommand() {
+                builder.setTarget(targetInput.value || '');
+                builder.setOutput(outputPath.value || pageConfig.outputPath, outputFile.value || '', fileType.value || '.txt');
+                builder.setCustomFlags(customFlags.value || '');
+                builder.selectedOptions = collectSelectedOptions();
+                document.getElementById('commandPreview').textContent = builder.generateCommand();
+                const selectedCount = Object.values(builder.selectedOptions).reduce((n, arr) => n + arr.length, 0);
+                let info = builder.generateExplanation();
+                if (selectedCount > 0) {
+                    info += ` • Presets available: ${pageConfig.presets.length}`;
+                }
+                document.getElementById('commandInfo').textContent = info;
+            }
+
+            function snapshotState() {
+                const inputs = {};
+                document.querySelectorAll('.value-input').forEach(input => {
+                    inputs[`${input.dataset.section}::${input.dataset.flag}`] = input.value;
+                });
+                const checks = {};
+                document.querySelectorAll('.option-checkbox').forEach(cb => {
+                    checks[`${cb.dataset.section}::${cb.dataset.flag}`] = cb.checked;
+                });
+                return {
+                    target: targetInput.value,
+                    outputPath: outputPath.value,
+                    outputFile: outputFile.value,
+                    fileType: fileType.value,
+                    customFlags: customFlags.value,
+                    inputs,
+                    checks
+                };
+            }
+
+            function loadSnapshot(state) {
+                targetInput.value = state.target || '';
+                outputPath.value = state.outputPath || pageConfig.outputPath;
+                outputFile.value = state.outputFile || '';
+                fileType.value = state.fileType || fileType.value;
+                customFlags.value = state.customFlags || '';
+
+                document.querySelectorAll('.option-checkbox').forEach(cb => {
+                    const key = `${cb.dataset.section}::${cb.dataset.flag}`;
+                    cb.checked = !!(state.checks && state.checks[key]);
+                    const wrap = cb.closest('.option-card').querySelector('.value-wrap');
+                    if (wrap) wrap.style.display = cb.checked ? 'block' : 'none';
+                });
+                document.querySelectorAll('.value-input').forEach(input => {
+                    const key = `${input.dataset.section}::${input.dataset.flag}`;
+                    input.value = state.inputs && state.inputs[key] ? state.inputs[key] : (input.defaultValue || '');
+                });
+                updateCommand();
+            }
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved[pageConfig.command]) saved[pageConfig.command] = [];
+                const existingIndex = saved[pageConfig.command].findIndex(item => item.name === name);
+                const entry = {
+                    name,
+                    command: builder.generateCommand(),
+                    state: snapshotState(),
+                    timestamp: new Date().toISOString()
+                };
+                if (existingIndex >= 0) saved[pageConfig.command][existingIndex] = entry;
+                else saved[pageConfig.command].push(entry);
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved[pageConfig.command] || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved[pageConfig.command] && saved[pageConfig.command][index]) {
+                    saved[pageConfig.command].splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function updateSavedCommandsList() {
+                const container = document.getElementById('savedCommandsList');
+                const saved = loadSavedCommands();
+                if (!saved.length) {
+                    container.style.display = 'none';
+                    container.innerHTML = '';
+                    return;
+                }
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (e.target.classList.contains('delete-saved')) return;
+                        const index = parseInt(item.dataset.index, 10);
+                        loadSnapshot(saved[index].state);
+                        Utils.showNotification(`Loaded: ${saved[index].name}`, 'success');
+                    });
+                });
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteSavedCommand(parseInt(btn.dataset.index, 10));
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            function applyPreset(name) {
+                const preset = pageConfig.presets.find(item => item.name === name);
+                if (!preset) return;
+                document.querySelectorAll('.option-checkbox').forEach(cb => {
+                    cb.checked = false;
+                    const wrap = cb.closest('.option-card').querySelector('.value-wrap');
+                    if (wrap) wrap.style.display = 'none';
+                });
+                preset.selections.forEach(([section, flag, value]) => {
+                    const checkbox = document.querySelector(`.option-checkbox[data-section="${section}"][data-flag="${CSS.escape(flag)}"]`);
+                    if (!checkbox) return;
+                    checkbox.checked = true;
+                    const wrap = checkbox.closest('.option-card').querySelector('.value-wrap');
+                    if (wrap) {
+                        wrap.style.display = 'block';
+                        const input = wrap.querySelector('.value-input');
+                        if (input && value !== null && value !== undefined) input.value = value;
+                    }
+                });
+                updateCommand();
+                Utils.showNotification(`Preset applied: ${name}`, 'success');
+            }
+
+            document.querySelectorAll('.option-checkbox').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    const wrap = cb.closest('.option-card').querySelector('.value-wrap');
+                    if (wrap) wrap.style.display = cb.checked ? 'block' : 'none';
+                    updateCommand();
+                });
+            });
+            document.querySelectorAll('.value-input').forEach(input => input.addEventListener('input', updateCommand));
+            [targetInput, outputPath, outputFile, fileType, customFlags].forEach(el => el.addEventListener('input', updateCommand));
+            fileType.addEventListener('change', updateCommand);
+
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
+            });
+
+            document.querySelectorAll('.option-cluster').forEach(sectionEl => {
+                const allBtn = sectionEl.querySelector('.select-all');
+                const clearBtn = sectionEl.querySelector('.clear-all');
+                allBtn?.addEventListener('click', () => {
+                    sectionEl.querySelectorAll('.option-checkbox').forEach(cb => {
+                        cb.checked = true;
+                        const wrap = cb.closest('.option-card').querySelector('.value-wrap');
+                        if (wrap) wrap.style.display = 'block';
+                    });
+                    updateCommand();
+                });
+                clearBtn?.addEventListener('click', () => {
+                    sectionEl.querySelectorAll('.option-checkbox').forEach(cb => {
+                        cb.checked = false;
+                        const wrap = cb.closest('.option-card').querySelector('.value-wrap');
+                        if (wrap) wrap.style.display = 'none';
+                    });
+                    updateCommand();
+                });
+            });
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value.trim();
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this command', 'warning');
+                    return;
+                }
+                saveCommand(name);
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+                Utils.showNotification('✅ Command saved!', 'success');
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', updateSavedCommandsList);
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const ok = await builder.copyToClipboard();
+                Utils.showNotification(ok ? '✅ Command copied to clipboard!' : '❌ Failed to copy command', ok ? 'success' : 'error');
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                targetInput.value = '';
+                outputPath.value = pageConfig.outputPath;
+                outputFile.value = '';
+                customFlags.value = '';
+                document.querySelectorAll('.option-checkbox').forEach(cb => {
+                    cb.checked = false;
+                    const wrap = cb.closest('.option-card').querySelector('.value-wrap');
+                    if (wrap) wrap.style.display = 'none';
+                });
+                document.querySelectorAll('.value-input').forEach(input => {
+                    input.value = input.defaultValue || '';
+                });
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

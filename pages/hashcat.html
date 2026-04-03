@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hashcat - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles specific to Hashcat */
+        .hashcat-option-group {
+            background: rgba(15, 95, 168, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid #00CFFF;
+        }
+        .hashcat-option-title {
+            color: #00CFFF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .attack-mode-box {
+            flex: 1;
+            background: rgba(15, 95, 168, 0.1);
+            border: 2px solid #0F5FA8;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 5px;
+            min-width: 150px;
+        }
+        .attack-mode-box:hover {
+            background: rgba(15, 95, 168, 0.3);
+            border-color: #00CFFF;
+        }
+        .attack-mode-box.selected {
+            background: rgba(0, 207, 255, 0.2);
+            border-color: #00CFFF;
+        }
+        .attack-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .hash-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(15, 95, 168, 0.05);
+            border-radius: 8px;
+        }
+        .hash-type-item {
+            background: rgba(15, 95, 168, 0.1);
+            border: 1px solid #0F5FA8;
+            border-radius: 6px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .hash-type-item:hover {
+            background: rgba(15, 95, 168, 0.3);
+            border-color: #00CFFF;
+        }
+        .hash-type-item.selected {
+            background: rgba(0, 207, 255, 0.2);
+            border-color: #00CFFF;
+        }
+        .hash-id {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #00CFFF;
+            width: 60px;
+            font-weight: bold;
+        }
+        .hash-name {
+            flex: 1;
+            font-size: 0.9rem;
+            color: #E6F0FA;
+        }
+        .gpu-status {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(15, 95, 168, 0.1);
+            border-radius: 8px;
+            border: 1px solid #0F5FA8;
+            flex-wrap: wrap;
+        }
+        .gpu-device {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: rgba(0, 207, 255, 0.1);
+            border-radius: 20px;
+            border: 1px solid #00CFFF;
+        }
+        .gpu-icon {
+            font-size: 1.2rem;
+        }
+        .benchmark-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .stat-card {
+            background: rgba(15, 95, 168, 0.1);
+            border: 1px solid #0F5FA8;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            color: #00CFFF;
+            font-weight: bold;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: #2A6FAF;
+        }
+        .rule-preview {
+            background: #0A1F33;
+            border: 1px solid #00CFFF;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #E6F0FA;
+            max-height: 150px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=password-attacks">Password Attacks</a>
+            <span class="separator">›</span>
+            <span class="current">Hashcat</span>
+        </div>
+
+        <!-- Tool Header -->
+        <div class="tool-header">
+            <h1>HASHCAT</h1>
+            <p>Advanced Password Recovery - World's fastest password cracker with GPU acceleration</p>
+        </div>
+
+        <!-- Target Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🎯</span> TARGET CONFIGURATION
+            </div>
+
+            <div class="hashcat-option-group">
+                <div class="hashcat-option-title">
+                    <span>📄</span> HASH FILE
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Hash File Path</label>
+                    <input type="text" class="input-field" id="hash_file" placeholder="/home/kali/hashes.txt" value="/home/kali/hashes.txt">
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Single Hash</label>
+                    <input type="text" class="input-field" id="single_hash" placeholder="Enter hash string directly">
+                </div>
+
+                <div class="checkbox-item" style="margin-top: 15px;">
+                    <input type="checkbox" id="hash_stdin">
+                    <label class="checkbox-label" for="hash_stdin">Read from STDIN</label>
+                    <span class="checkbox-flag">--stdin</span>
+                </div>
+            </div>
+
+            <div class="hashcat-option-group">
+                <div class="hashcat-option-title">
+                    <span>🔢</span> HASH TYPE
+                </div>
+                
+                <div class="hash-type-grid" id="hash-type-grid">
+                    <!-- Populated by JavaScript -->
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Custom Hash Type ID</label>
+                    <input type="number" class="input-field" id="custom_hash_type" placeholder="e.g., 1000 for NTLM">
+                </div>
+            </div>
+        </div>
+
+        <!-- Attack Modes -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚔️</span> ATTACK MODES
+            </div>
+
+            <div style="display: flex; flex-wrap: wrap; margin: -5px;">
+                <div class="attack-mode-box selected" id="mode-wordlist">
+                    <div class="attack-icon">📚</div>
+                    <div><strong>Wordlist</strong></div>
+                    <div style="font-size: 0.8rem; color: #00CFFF;">-a 0</div>
+                    <div style="font-size: 0.7rem;">Dictionary attack</div>
+                </div>
+                <div class="attack-mode-box" id="mode-combination">
+                    <div class="attack-icon">➕</div>
+                    <div><strong>Combination</strong></div>
+                    <div style="font-size: 0.8rem; color: #00CFFF;">-a 1</div>
+                    <div style="font-size: 0.7rem;">Combine two wordlists</div>
+                </div>
+                <div class="attack-mode-box" id="mode-rule">
+                    <div class="attack-icon">📜</div>
+                    <div><strong>Rule-based</strong></div>
+                    <div style="font-size: 0.8rem; color: #00CFFF;">-a 0 + -r</div>
+                    <div style="font-size: 0.7rem;">Wordlist + rules</div>
+                </div>
+                <div class="attack-mode-box" id="mode-brute">
+                    <div class="attack-icon">🔄</div>
+                    <div><strong>Brute-force</strong></div>
+                    <div style="font-size: 0.8rem; color: #00CFFF;">-a 3</div>
+                    <div style="font-size: 0.7rem;">Mask attack</div>
+                </div>
+                <div class="attack-mode-box" id="mode-hybrid">
+                    <div class="attack-icon">🔄➕</div>
+                    <div><strong>Hybrid</strong></div>
+                    <div style="font-size: 0.8rem; color: #00CFFF;">-a 6/7</div>
+                    <div style="font-size: 0.7rem;">Wordlist + mask</div>
+                </div>
+                <div class="attack-mode-box" id="mode-association">
+                    <div class="attack-icon">🔗</div>
+                    <div><strong>Association</strong></div>
+                    <div style="font-size: 0.8rem; color: #00CFFF;">-a 9</div>
+                    <div style="font-size: 0.7rem;">Associated file</div>
+                </div>
+            </div>
+
+            <!-- Wordlist Options -->
+            <div id="wordlist-options" class="hashcat-option-group" style="margin-top: 20px;">
+                <div class="hashcat-option-title">
+                    <span>📚</span> WORDLIST OPTIONS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Wordlist Path</label>
+                    <input type="text" class="input-field" id="wordlist" value="/usr/share/wordlists/rockyou.txt">
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Second Wordlist (for combination)</label>
+                        <input type="text" class="input-field" id="wordlist2" placeholder="/usr/share/wordlists/darkc0de.txt">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mask Options -->
+            <div id="mask-options" class="hashcat-option-group" style="display: none; margin-top: 20px;">
+                <div class="hashcat-option-title">
+                    <span>🎭</span> MASK OPTIONS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Mask Pattern</label>
+                    <input type="text" class="input-field" id="mask" value="?l?l?l?l?d?d">
+                </div>
+
+                <div class="checkbox-item" style="margin-top: 15px;">
+                    <input type="checkbox" id="increment">
+                    <label class="checkbox-label" for="increment">Enable Increment</label>
+                    <span class="checkbox-flag">-i</span>
+                </div>
+
+                <div id="increment-options" style="display: none; margin-top: 15px;">
+                    <div class="output-row">
+                        <div class="input-group">
+                            <label class="input-label">Min Length</label>
+                            <input type="number" class="input-field" id="min_length" value="1" min="1" max="64">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Max Length</label>
+                            <input type="number" class="input-field" id="max_length" value="8" min="1" max="64">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rule-preview">
+                    <strong>Mask Placeholders:</strong><br>
+                    ?l - lowercase (a-z)<br>
+                    ?u - uppercase (A-Z)<br>
+                    ?d - digit (0-9)<br>
+                    ?s - special chars (!@#$%)<br>
+                    ?a - any printable<br>
+                    ?b - hex (0x00-0xff)
+                </div>
+            </div>
+
+            <!-- Rule Options -->
+            <div id="rule-options" class="hashcat-option-group" style="display: none; margin-top: 20px;">
+                <div class="hashcat-option-title">
+                    <span>📜</span> RULE OPTIONS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Rules File</label>
+                    <input type="text" class="input-field" id="rules_file" value="/usr/share/hashcat/rules/best64.rule">
+                </div>
+
+                <div class="rule-preview" style="margin-top: 15px;">
+                    <strong>Common rule files:</strong><br>
+                    best64.rule - Top 64 most effective rules<br>
+                    dive.rule - Deep, comprehensive rules<br>
+                    rockyou-30000.rule - 30,000 rules<br>
+                    generated.rule - Custom generated rules
+                </div>
+            </div>
+        </div>
+
+        <!-- GPU Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🎮</span> GPU CONFIGURATION
+            </div>
+
+            <div class="gpu-status">
+                <div class="gpu-device">
+                    <span class="gpu-icon">🎮</span>
+                    <span>GPU 0: NVIDIA RTX 3080</span>
+                </div>
+                <div class="gpu-device">
+                    <span class="gpu-icon">🎮</span>
+                    <span>GPU 1: NVIDIA RTX 3060</span>
+                </div>
+                <div class="gpu-device">
+                    <span class="gpu-icon">💻</span>
+                    <span>CPU: Intel i9 (8 cores)</span>
+                </div>
+            </div>
+
+            <div class="hashcat-option-group">
+                <div class="hashcat-option-title">
+                    <span>⚙️</span> DEVICE OPTIONS
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">GPU Devices</label>
+                        <input type="text" class="input-field" id="gpu_devices" value="0,1" placeholder="e.g., 0,1,2">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">CPU Devices</label>
+                        <input type="text" class="input-field" id="cpu_devices" value="" placeholder="e.g., 2,3">
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Workload Profile</label>
+                        <select class="file-type-select" id="workload">
+                            <option value="1">Low (1) - Minimal impact</option>
+                            <option value="2" selected>Default (2) - Balanced</option>
+                            <option value="3">High (3) - Aggressive</option>
+                            <option value="4">Nightmare (4) - Maximum</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Kernel Threads</label>
+                        <input type="number" class="input-field" id="kernel_threads" value="4096" min="256" max="16384" step="256">
+                    </div>
+                </div>
+            </div>
+
+            <div class="benchmark-stats">
+                <div class="stat-card">
+                    <div class="stat-value">28.5 GH/s</div>
+                    <div class="stat-label">NTLM Speed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">450 MH/s</div>
+                    <div class="stat-label">MD5 Speed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">65 kH/s</div>
+                    <div class="stat-label">bcrypt Speed</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> PERFORMANCE OPTIONS
+            </div>
+
+            <div class="hashcat-option-group">
+                <div class="hashcat-option-title">
+                    <span>⚡</span> OPTIMIZATION
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="optimized_kernel">
+                        <label class="checkbox-label" for="optimized_kernel">Optimized Kernels</label>
+                        <span class="checkbox-flag">-O</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="force">
+                        <label class="checkbox-label" for="force">Force (ignore warnings)</label>
+                        <span class="checkbox-flag">--force</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="loopback">
+                        <label class="checkbox-label" for="loopback">Loopback</label>
+                        <span class="checkbox-flag">--loopback</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="markov">
+                        <label class="checkbox-label" for="markov">Markov Disable</label>
+                        <span class="checkbox-flag">--markov-disable</span>
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Segment Size (MB)</label>
+                        <input type="number" class="input-field" id="segment_size" value="32" min="1" max="256">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Bitmaps Max</label>
+                        <input type="number" class="input-field" id="bitmaps_max" value="24" min="8" max="32">
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Spin Delay</label>
+                        <input type="number" class="input-field" id="spin_delay" value="1" min="0" max="100">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">HW Monitor</label>
+                        <select class="file-type-select" id="hwmon">
+                            <option value="0">Disabled</option>
+                            <option value="1" selected>Enabled</option>
+                            <option value="2">Verbose</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📊</span> OUTPUT CONFIGURATION
+            </div>
+
+            <div class="hashcat-option-group">
+                <div class="hashcat-option-title">
+                    <span>📁</span> OUTPUT FILES
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_potfile">
+                        <label class="checkbox-label" for="output_potfile">Save to Potfile</label>
+                        <span class="checkbox-flag">-o</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_show">
+                        <label class="checkbox-label" for="output_show">Show Cracked</label>
+                        <span class="checkbox-flag">--show</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_stdout">
+                        <label class="checkbox-label" for="output_stdout">Stdout (debug)</label>
+                        <span class="checkbox-flag">--stdout</span>
+                    </div>
+                </div>
+
+                <div id="output_filename_container" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Output File</label>
+                    <input type="text" class="input-field" id="output_file" value="/home/kali/hashcat.pot">
+                </div>
+            </div>
+
+            <div class="hashcat-option-group">
+                <div class="hashcat-option-title">
+                    <span>⚡</span> STATUS & VERBOSITY
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Status Timer (sec)</label>
+                        <input type="number" class="input-field" id="status_timer" value="1" min="1" max="60">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Verbosity</label>
+                        <select class="file-type-select" id="verbosity">
+                            <option value="1">Quiet</option>
+                            <option value="2">Normal</option>
+                            <option value="3">Verbose</option>
+                            <option value="4">Debug</option>
+                            <option value="5">Very Debug</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="checkbox-grid" style="margin-top: 15px;">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="status">
+                        <label class="checkbox-label" for="status">Enable Status Updates</label>
+                        <span class="checkbox-flag">--status</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="machine_readable">
+                        <label class="checkbox-label" for="machine_readable">Machine Readable</label>
+                        <span class="checkbox-flag">--machine-readable</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Session Management -->
+        <div class="section">
+            <div class="section-title">
+                <span>💾</span> SESSION MANAGEMENT
+            </div>
+
+            <div class="hashcat-option-group">
+                <div class="hashcat-option-title">
+                    <span>📝</span> SESSION OPTIONS
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Session Name</label>
+                        <input type="text" class="input-field" id="session" value="hashcat_session">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Restore Session</label>
+                        <input type="text" class="input-field" id="restore" placeholder="session.restore">
+                    </div>
+                </div>
+
+                <div class="checkbox-grid" style="margin-top: 15px;">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="restore_timer">
+                        <label class="checkbox-label" for="restore_timer">Enable Restore Timer</label>
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Restore Timer (sec)</label>
+                        <input type="number" class="input-field" id="restore_timer_value" value="600" min="60" max="86400">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CUSTOM OPTIONS
+            </div>
+            <div class="input-group">
+                <label class="input-label">Additional flags (space separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="--keep-guessing --self-test-disable">
+            </div>
+        </div>
+
+        <!-- Save/Load Panel -->
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Configuration name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Configuration</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+        
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <!-- Command Preview -->
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">hashcat</div>
+            <div class="command-info" id="commandInfo">No hash file specified</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand">
+                <span>📋</span> COPY COMMAND
+            </button>
+            <button class="btn btn-secondary" id="clearAll">
+                <span>🗑️</span> CLEAR ALL
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ============ COMMAND BUILDER FOR HASHCAT ============
+            
+            // Hash types database
+            const hashTypes = [
+                { id: 0, name: 'MD5' },
+                { id: 10, name: 'md5($pass.$salt)' },
+                { id: 20, name: 'md5($salt.$pass)' },
+                { id: 30, name: 'md5(utf16le($pass).$salt)' },
+                { id: 40, name: 'md5($salt.utf16le($pass))' },
+                { id: 50, name: 'HMAC-MD5 (key = $pass)' },
+                { id: 60, name: 'HMAC-MD5 (key = $salt)' },
+                { id: 100, name: 'SHA1' },
+                { id: 110, name: 'sha1($pass.$salt)' },
+                { id: 120, name: 'sha1($salt.$pass)' },
+                { id: 130, name: 'sha1(utf16le($pass).$salt)' },
+                { id: 140, name: 'sha1($salt.utf16le($pass))' },
+                { id: 200, name: 'MySQL323' },
+                { id: 300, name: 'MySQL4.1/MySQL5' },
+                { id: 400, name: 'phpass (WordPress)' },
+                { id: 500, name: 'md5crypt, MD5 (Unix)' },
+                { id: 600, name: 'BLAKE2b-512' },
+                { id: 900, name: 'MD4' },
+                { id: 1000, name: 'NTLM' },
+                { id: 1100, name: 'Domain Cached Credentials (DCC)' },
+                { id: 1300, name: 'SHA2-224' },
+                { id: 1400, name: 'SHA2-256' },
+                { id: 1410, name: 'sha256($pass.$salt)' },
+                { id: 1420, name: 'sha256($salt.$pass)' },
+                { id: 1700, name: 'SHA2-512' },
+                { id: 1710, name: 'sha512($pass.$salt)' },
+                { id: 1720, name: 'sha512($salt.$pass)' },
+                { id: 1800, name: 'sha512crypt (SHA512 Unix)' },
+                { id: 2100, name: 'Domain Cached Credentials 2 (DCC2)' },
+                { id: 2400, name: 'Cisco-PIX MD5' },
+                { id: 2500, name: 'WPA/WPA2' },
+                { id: 2600, name: 'md5(md5($pass))' },
+                { id: 3000, name: 'LM' },
+                { id: 3200, name: 'bcrypt (Blowfish)' },
+                { id: 3500, name: 'md5(md5(md5($pass)))' },
+                { id: 3710, name: 'md5($salt.md5($pass))' },
+                { id: 3800, name: 'md5($salt.$pass.$salt)' },
+                { id: 3910, name: 'md5(md5($pass).md5($salt))' },
+                { id: 4010, name: 'md5($salt.md5($salt.$pass))' },
+                { id: 4110, name: 'md5($salt.md5($pass.$salt))' },
+                { id: 4500, name: 'sha1(sha1($pass))' },
+                { id: 4520, name: 'sha1($salt.sha1($pass))' },
+                { id: 4700, name: 'sha1(md5($pass))' },
+                { id: 4800, name: 'iSCSI CHAP authentication' },
+                { id: 4900, name: 'sha1($salt.$pass.$salt)' },
+                { id: 5000, name: 'sha1(sha1($salt.$pass))' },
+                { id: 5100, name: 'Half MD5' },
+                { id: 5200, name: 'Password Safe v3' },
+                { id: 5300, name: 'IKE-PSK MD5' },
+                { id: 5400, name: 'IKE-PSK SHA1' },
+                { id: 5500, name: 'NetNTLMv1' },
+                { id: 5600, name: 'NetNTLMv2' },
+                { id: 5700, name: 'Cisco-IOS type 4 (SHA256)' },
+                { id: 5800, name: 'Samsung Android Password/PIN' },
+                { id: 6000, name: 'RIPEMD-160' },
+                { id: 6100, name: 'Whirlpool' },
+                { id: 6200, name: 'TrueCrypt RIPEMD160' },
+                { id: 6211, name: 'TrueCrypt SHA512' },
+                { id: 6221, name: 'TrueCrypt Whirlpool' },
+                { id: 6300, name: 'AIX {smd5}' },
+                { id: 6400, name: 'AIX {ssha256}' },
+                { id: 6500, name: 'AIX {ssha512}' },
+                { id: 6700, name: 'AIX {ssha1}' },
+                { id: 6800, name: 'LastPass + LastPass sniff' },
+                { id: 6900, name: 'GOST R 34.11-94' },
+                { id: 7000, name: 'FortiGate (FortiOS)' },
+                { id: 7100, name: 'macOS v10.8+ (PBKDF2)' },
+                { id: 7200, name: 'GRUB 2' },
+                { id: 7300, name: 'IPMI2 RAKP HMAC-SHA1' },
+                { id: 7400, name: 'sha256crypt (SHA256 Unix)' },
+                { id: 7500, name: 'Kerberos 5 AS-REQ Pre-Auth' },
+                { id: 7700, name: 'SAP CODVN B (BCODE)' },
+                { id: 7800, name: 'SAP CODVN F/G (PASSCODE)' },
+                { id: 7900, name: 'Drupal7' },
+                { id: 8000, name: 'Sybase ASE' },
+                { id: 8100, name: 'Cisco-DRP' },
+                { id: 8200, name: '1Password, cloud keychain' },
+                { id: 8300, name: 'DNSSEC (NSEC3)' },
+                { id: 8400, name: 'WBB3 (WoltLab)' },
+                { id: 8500, name: 'RACF' },
+                { id: 8600, name: 'Lotus Notes/Domino 5' },
+                { id: 8700, name: 'Lotus Notes/Domino 6' },
+                { id: 8800, name: 'Android FDE <= 4.3' },
+                { id: 8900, name: 'scrypt' },
+                { id: 9000, name: 'OpenConnect' },
+                { id: 9100, name: 'Oracle H: Type (Oracle 7+)' },
+                { id: 9200, name: 'Cisco $8$ (PBKDF2)' },
+                { id: 9300, name: 'Cisco $9$ (scrypt)' },
+                { id: 9400, name: 'Office 2007' },
+                { id: 9500, name: 'Office 2010' },
+                { id: 9600, name: 'Office 2013' },
+                { id: 9700, name: 'MS Office ⇐ 2003 MD5 + RC4' },
+                { id: 9710, name: 'MS Office ⇐ 2003 SHA1 + RC4' },
+                { id: 9720, name: 'MS Office ⇐ 2003 SHA1 + RC4 (collision)' },
+                { id: 9800, name: 'MS Office 2007' },
+                { id: 9810, name: 'MS Office 2010' },
+                { id: 9820, name: 'MS Office 2013' },
+                { id: 9900, name: 'Radmin2' }
+            ];
+
+            // State
+            let state = {
+                hash_file: '/home/kali/hashes.txt',
+                single_hash: '',
+                hash_stdin: false,
+                hash_type: 1000,
+                custom_hash_type: '',
+                attack_mode: 'wordlist',
+                wordlist: '/usr/share/wordlists/rockyou.txt',
+                wordlist2: '',
+                mask: '?l?l?l?l?d?d',
+                increment: false,
+                min_length: 1,
+                max_length: 8,
+                rules_file: '/usr/share/hashcat/rules/best64.rule',
+                gpu_devices: '0,1',
+                cpu_devices: '',
+                workload: '2',
+                kernel_threads: 4096,
+                optimized_kernel: false,
+                force: false,
+                loopback: false,
+                markov: false,
+                segment_size: 32,
+                bitmaps_max: 24,
+                spin_delay: 1,
+                hwmon: '1',
+                output_potfile: false,
+                output_show: false,
+                output_stdout: false,
+                output_file: '/home/kali/hashcat.pot',
+                status_timer: 1,
+                verbosity: '2',
+                status: false,
+                machine_readable: false,
+                session: 'hashcat_session',
+                restore: '',
+                restore_timer: false,
+                restore_timer_value: 600,
+                customFlags: ''
+            };
+
+            // DOM Elements
+            const hashFile = document.getElementById('hash_file');
+            const singleHash = document.getElementById('single_hash');
+            const hashStdin = document.getElementById('hash_stdin');
+            const customHashType = document.getElementById('custom_hash_type');
+            
+            // Attack modes
+            const modeWordlist = document.getElementById('mode-wordlist');
+            const modeCombination = document.getElementById('mode-combination');
+            const modeRule = document.getElementById('mode-rule');
+            const modeBrute = document.getElementById('mode-brute');
+            const modeHybrid = document.getElementById('mode-hybrid');
+            const modeAssociation = document.getElementById('mode-association');
+            
+            const wordlistOptions = document.getElementById('wordlist-options');
+            const maskOptions = document.getElementById('mask-options');
+            const ruleOptions = document.getElementById('rule-options');
+            
+            const wordlist = document.getElementById('wordlist');
+            const wordlist2 = document.getElementById('wordlist2');
+            const mask = document.getElementById('mask');
+            const increment = document.getElementById('increment');
+            const incrementOptions = document.getElementById('increment-options');
+            const minLength = document.getElementById('min_length');
+            const maxLength = document.getElementById('max_length');
+            const rulesFile = document.getElementById('rules_file');
+            
+            const gpuDevices = document.getElementById('gpu_devices');
+            const cpuDevices = document.getElementById('cpu_devices');
+            const workload = document.getElementById('workload');
+            const kernelThreads = document.getElementById('kernel_threads');
+            
+            const optimizedKernel = document.getElementById('optimized_kernel');
+            const force = document.getElementById('force');
+            const loopback = document.getElementById('loopback');
+            const markov = document.getElementById('markov');
+            const segmentSize = document.getElementById('segment_size');
+            const bitmapsMax = document.getElementById('bitmaps_max');
+            const spinDelay = document.getElementById('spin_delay');
+            const hwmon = document.getElementById('hwmon');
+            
+            const outputPotfile = document.getElementById('output_potfile');
+            const outputShow = document.getElementById('output_show');
+            const outputStdout = document.getElementById('output_stdout');
+            const outputFilenameContainer = document.getElementById('output_filename_container');
+            const outputFile = document.getElementById('output_file');
+            const statusTimer = document.getElementById('status_timer');
+            const verbosity = document.getElementById('verbosity');
+            const status = document.getElementById('status');
+            const machineReadable = document.getElementById('machine_readable');
+            
+            const session = document.getElementById('session');
+            const restore = document.getElementById('restore');
+            const restoreTimer = document.getElementById('restore_timer');
+            const restoreTimerValue = document.getElementById('restore_timer_value');
+            
+            const customFlags = document.getElementById('customFlags');
+
+            // Populate hash types
+            const hashTypeGrid = document.getElementById('hash-type-grid');
+            hashTypes.forEach(hash => {
+                const div = document.createElement('div');
+                div.className = 'hash-type-item' + (hash.id === 1000 ? ' selected' : '');
+                div.dataset.id = hash.id;
+                div.innerHTML = `
+                    <span class="hash-id">${hash.id}</span>
+                    <span class="hash-name">${hash.name}</span>
+                `;
+                div.addEventListener('click', function() {
+                    document.querySelectorAll('.hash-type-item').forEach(el => el.classList.remove('selected'));
+                    this.classList.add('selected');
+                    state.hash_type = hash.id;
+                    customHashType.value = hash.id;
+                    updateCommand();
+                });
+                hashTypeGrid.appendChild(div);
+            });
+
+            // ============ EVENT LISTENERS ============
+
+            // Target
+            hashFile.addEventListener('input', (e) => { state.hash_file = e.target.value; updateCommand(); });
+            singleHash.addEventListener('input', (e) => { state.single_hash = e.target.value; updateCommand(); });
+            hashStdin.addEventListener('change', (e) => { state.hash_stdin = e.target.checked; updateCommand(); });
+            customHashType.addEventListener('input', (e) => { 
+                state.custom_hash_type = e.target.value;
+                if (e.target.value) {
+                    state.hash_type = parseInt(e.target.value);
+                }
+                updateCommand(); 
+            });
+
+            // Attack mode selection
+            function selectAttackMode(mode) {
+                const modes = [modeWordlist, modeCombination, modeRule, modeBrute, modeHybrid, modeAssociation];
+                modes.forEach(m => m.classList.remove('selected'));
+                
+                wordlistOptions.style.display = 'none';
+                maskOptions.style.display = 'none';
+                ruleOptions.style.display = 'none';
+                
+                if (mode === 'wordlist') {
+                    modeWordlist.classList.add('selected');
+                    wordlistOptions.style.display = 'block';
+                    state.attack_mode = 'wordlist';
+                } else if (mode === 'combination') {
+                    modeCombination.classList.add('selected');
+                    wordlistOptions.style.display = 'block';
+                    state.attack_mode = 'combination';
+                } else if (mode === 'rule') {
+                    modeRule.classList.add('selected');
+                    wordlistOptions.style.display = 'block';
+                    ruleOptions.style.display = 'block';
+                    state.attack_mode = 'rule';
+                } else if (mode === 'brute') {
+                    modeBrute.classList.add('selected');
+                    maskOptions.style.display = 'block';
+                    state.attack_mode = 'brute';
+                } else if (mode === 'hybrid') {
+                    modeHybrid.classList.add('selected');
+                    wordlistOptions.style.display = 'block';
+                    maskOptions.style.display = 'block';
+                    state.attack_mode = 'hybrid';
+                } else if (mode === 'association') {
+                    modeAssociation.classList.add('selected');
+                    state.attack_mode = 'association';
+                }
+                updateCommand();
+            }
+
+            modeWordlist.addEventListener('click', () => selectAttackMode('wordlist'));
+            modeCombination.addEventListener('click', () => selectAttackMode('combination'));
+            modeRule.addEventListener('click', () => selectAttackMode('rule'));
+            modeBrute.addEventListener('click', () => selectAttackMode('brute'));
+            modeHybrid.addEventListener('click', () => selectAttackMode('hybrid'));
+            modeAssociation.addEventListener('click', () => selectAttackMode('association'));
+
+            // Wordlist options
+            wordlist.addEventListener('input', (e) => { state.wordlist = e.target.value; updateCommand(); });
+            wordlist2.addEventListener('input', (e) => { state.wordlist2 = e.target.value; updateCommand(); });
+
+            // Mask options
+            mask.addEventListener('input', (e) => { state.mask = e.target.value; updateCommand(); });
+            
+            increment.addEventListener('change', (e) => { 
+                state.increment = e.target.checked;
+                incrementOptions.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            
+            minLength.addEventListener('input', (e) => { state.min_length = parseInt(e.target.value) || 1; updateCommand(); });
+            maxLength.addEventListener('input', (e) => { state.max_length = parseInt(e.target.value) || 8; updateCommand(); });
+
+            // Rule options
+            rulesFile.addEventListener('input', (e) => { state.rules_file = e.target.value; updateCommand(); });
+
+            // GPU options
+            gpuDevices.addEventListener('input', (e) => { state.gpu_devices = e.target.value; updateCommand(); });
+            cpuDevices.addEventListener('input', (e) => { state.cpu_devices = e.target.value; updateCommand(); });
+            workload.addEventListener('change', (e) => { state.workload = e.target.value; updateCommand(); });
+            kernelThreads.addEventListener('input', (e) => { state.kernel_threads = parseInt(e.target.value) || 4096; updateCommand(); });
+
+            // Performance options
+            optimizedKernel.addEventListener('change', (e) => { state.optimized_kernel = e.target.checked; updateCommand(); });
+            force.addEventListener('change', (e) => { state.force = e.target.checked; updateCommand(); });
+            loopback.addEventListener('change', (e) => { state.loopback = e.target.checked; updateCommand(); });
+            markov.addEventListener('change', (e) => { state.markov = e.target.checked; updateCommand(); });
+            segmentSize.addEventListener('input', (e) => { state.segment_size = parseInt(e.target.value) || 32; updateCommand(); });
+            bitmapsMax.addEventListener('input', (e) => { state.bitmaps_max = parseInt(e.target.value) || 24; updateCommand(); });
+            spinDelay.addEventListener('input', (e) => { state.spin_delay = parseInt(e.target.value) || 1; updateCommand(); });
+            hwmon.addEventListener('change', (e) => { state.hwmon = e.target.value; updateCommand(); });
+
+            // Output options
+            outputPotfile.addEventListener('change', (e) => { 
+                state.output_potfile = e.target.checked; 
+                outputFilenameContainer.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            outputShow.addEventListener('change', (e) => { state.output_show = e.target.checked; updateCommand(); });
+            outputStdout.addEventListener('change', (e) => { state.output_stdout = e.target.checked; updateCommand(); });
+            outputFile.addEventListener('input', (e) => { state.output_file = e.target.value; updateCommand(); });
+            statusTimer.addEventListener('input', (e) => { state.status_timer = parseInt(e.target.value) || 1; updateCommand(); });
+            verbosity.addEventListener('change', (e) => { state.verbosity = e.target.value; updateCommand(); });
+            status.addEventListener('change', (e) => { state.status = e.target.checked; updateCommand(); });
+            machineReadable.addEventListener('change', (e) => { state.machine_readable = e.target.checked; updateCommand(); });
+
+            // Session options
+            session.addEventListener('input', (e) => { state.session = e.target.value; updateCommand(); });
+            restore.addEventListener('input', (e) => { state.restore = e.target.value; updateCommand(); });
+            restoreTimer.addEventListener('change', (e) => { 
+                state.restore_timer = e.target.checked;
+                updateCommand();
+            });
+            restoreTimerValue.addEventListener('input', (e) => { state.restore_timer_value = parseInt(e.target.value) || 600; updateCommand(); });
+
+            // Custom flags
+            customFlags.addEventListener('input', (e) => { state.customFlags = e.target.value; updateCommand(); });
+
+            // ============ COMMAND GENERATION ============
+
+            function generateCommand() {
+                if (!state.hash_file && !state.single_hash && !state.hash_stdin) {
+                    return 'hashcat --help (specify a hash target)';
+                }
+
+                let command = 'hashcat';
+                const parts = [];
+
+                // Hash target
+                if (state.hash_stdin) {
+                    // Hash from stdin
+                } else if (state.single_hash) {
+                    parts.push(`-a ${state.hash_type} '${state.single_hash}'`);
+                } else if (state.hash_file) {
+                    parts.push(`-m ${state.hash_type} ${state.hash_file}`);
+                }
+
+                // Attack mode
+                if (state.attack_mode === 'wordlist') {
+                    parts.push('-a 0');
+                    if (state.wordlist) parts.push(state.wordlist);
+                } else if (state.attack_mode === 'combination') {
+                    parts.push('-a 1');
+                    if (state.wordlist && state.wordlist2) {
+                        parts.push(state.wordlist + ' ' + state.wordlist2);
+                    }
+                } else if (state.attack_mode === 'rule') {
+                    parts.push('-a 0');
+                    if (state.wordlist) parts.push(state.wordlist);
+                    if (state.rules_file) parts.push(`-r ${state.rules_file}`);
+                } else if (state.attack_mode === 'brute') {
+                    parts.push('-a 3');
+                    if (state.mask) parts.push(state.mask);
+                    if (state.increment) {
+                        parts.push('-i');
+                        parts.push(`--increment-min=${state.min_length}`);
+                        parts.push(`--increment-max=${state.max_length}`);
+                    }
+                } else if (state.attack_mode === 'hybrid') {
+                    parts.push('-a 6');
+                    if (state.wordlist) parts.push(state.wordlist);
+                    if (state.mask) parts.push(state.mask);
+                } else if (state.attack_mode === 'association') {
+                    parts.push('-a 9');
+                }
+
+                // GPU devices
+                if (state.gpu_devices) {
+                    parts.push(`-D 2 -d ${state.gpu_devices}`);
+                }
+                if (state.cpu_devices) {
+                    parts.push(`-D 1 -d ${state.cpu_devices}`);
+                }
+
+                // Performance
+                if (state.workload !== '2') parts.push(`-w ${state.workload}`);
+                if (state.kernel_threads !== 4096) parts.push(`-n ${state.kernel_threads}`);
+                if (state.optimized_kernel) parts.push('-O');
+                if (state.force) parts.push('--force');
+                if (state.loopback) parts.push('--loopback');
+                if (state.markov) parts.push('--markov-disable');
+                if (state.segment_size !== 32) parts.push(`-c ${state.segment_size}`);
+                if (state.bitmaps_max !== 24) parts.push(`-b ${state.bitmaps_max}`);
+                if (state.spin_delay !== 1) parts.push(`--spin-damp=${state.spin_delay}`);
+                if (state.hwmon !== '1') parts.push(`--hwmon-${state.hwmon === '0' ? 'disable' : 'verbose'}`);
+
+                // Output
+                if (state.output_potfile && state.output_file) {
+                    parts.push(`-o ${state.output_file}`);
+                }
+                if (state.output_show) parts.push('--show');
+                if (state.output_stdout) parts.push('--stdout');
+
+                // Status
+                if (state.status) {
+                    parts.push(`--status --status-timer=${state.status_timer}`);
+                }
+                if (state.machine_readable) parts.push('--machine-readable');
+                if (state.verbosity !== '2') parts.push(`-v ${state.verbosity}`);
+
+                // Session
+                if (state.session) parts.push(`--session=${state.session}`);
+                if (state.restore) parts.push(`--restore=${state.restore}`);
+                if (state.restore_timer) parts.push(`--restore-timer=${state.restore_timer_value}`);
+
+                // Custom flags
+                if (state.customFlags) {
+                    const customParts = state.customFlags.trim().split(/\s+/);
+                    customParts.forEach(part => parts.push(part));
+                }
+
+                return command + ' ' + parts.join(' ');
+            }
+
+            function generateExplanation() {
+                const explanations = [];
+                
+                if (state.hash_file) {
+                    const filename = state.hash_file.split('/').pop();
+                    explanations.push(`File: ${filename}`);
+                }
+                
+                const hashType = hashTypes.find(h => h.id === state.hash_type);
+                if (hashType) {
+                    explanations.push(`Hash: ${hashType.name}`);
+                }
+                
+                const modeNames = {
+                    'wordlist': 'Wordlist',
+                    'combination': 'Combination',
+                    'rule': 'Rule-based',
+                    'brute': 'Brute-force',
+                    'hybrid': 'Hybrid',
+                    'association': 'Association'
+                };
+                explanations.push(`Mode: ${modeNames[state.attack_mode]}`);
+                
+                if (state.attack_mode === 'wordlist' && state.wordlist) {
+                    const wlName = state.wordlist.split('/').pop();
+                    explanations.push(`Wordlist: ${wlName}`);
+                }
+                
+                if (state.gpu_devices) {
+                    explanations.push(`GPU: ${state.gpu_devices}`);
+                }
+                
+                if (state.optimized_kernel) {
+                    explanations.push('Optimized');
+                }
+                
+                return explanations.length > 0 
+                    ? `Hashcat cracking: ${explanations.join(' • ')}`
+                    : 'No cracking parameters specified';
+            }
+
+            function updateCommand() {
+                document.getElementById('commandPreview').textContent = generateCommand();
+                document.getElementById('commandInfo').textContent = generateExplanation();
+            }
+
+            // ============ SAVE/LOAD FUNCTIONS ============
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved.hashcat) saved.hashcat = [];
+                
+                saved.hashcat.push({
+                    name: name,
+                    state: { ...state },
+                    timestamp: new Date().toISOString()
+                });
+                
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved.hashcat || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved.hashcat && saved.hashcat[index]) {
+                    saved.hashcat.splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function loadStateIntoSavedCommands(savedState) {
+                // Restore state
+                state = JSON.parse(JSON.stringify(savedState));
+                
+                // Update UI
+                hashFile.value = state.hash_file || '/home/kali/hashes.txt';
+                singleHash.value = state.single_hash || '';
+                hashStdin.checked = state.hash_stdin || false;
+                customHashType.value = state.hash_type || 1000;
+                
+                // Select hash type
+                document.querySelectorAll('.hash-type-item').forEach(el => {
+                    if (parseInt(el.dataset.id) === state.hash_type) {
+                        el.classList.add('selected');
+                    } else {
+                        el.classList.remove('selected');
+                    }
+                });
+                
+                selectAttackMode(state.attack_mode || 'wordlist');
+                
+                wordlist.value = state.wordlist || '/usr/share/wordlists/rockyou.txt';
+                wordlist2.value = state.wordlist2 || '';
+                mask.value = state.mask || '?l?l?l?l?d?d';
+                increment.checked = state.increment || false;
+                incrementOptions.style.display = state.increment ? 'block' : 'none';
+                minLength.value = state.min_length || 1;
+                maxLength.value = state.max_length || 8;
+                rulesFile.value = state.rules_file || '/usr/share/hashcat/rules/best64.rule';
+                
+                gpuDevices.value = state.gpu_devices || '0,1';
+                cpuDevices.value = state.cpu_devices || '';
+                workload.value = state.workload || '2';
+                kernelThreads.value = state.kernel_threads || 4096;
+                
+                optimizedKernel.checked = state.optimized_kernel || false;
+                force.checked = state.force || false;
+                loopback.checked = state.loopback || false;
+                markov.checked = state.markov || false;
+                segmentSize.value = state.segment_size || 32;
+                bitmapsMax.value = state.bitmaps_max || 24;
+                spinDelay.value = state.spin_delay || 1;
+                hwmon.value = state.hwmon || '1';
+                
+                outputPotfile.checked = state.output_potfile || false;
+                outputShow.checked = state.output_show || false;
+                outputStdout.checked = state.output_stdout || false;
+                outputFilenameContainer.style.display = state.output_potfile ? 'block' : 'none';
+                outputFile.value = state.output_file || '/home/kali/hashcat.pot';
+                statusTimer.value = state.status_timer || 1;
+                verbosity.value = state.verbosity || '2';
+                status.checked = state.status || false;
+                machineReadable.checked = state.machine_readable || false;
+                
+                session.value = state.session || 'hashcat_session';
+                restore.value = state.restore || '';
+                restoreTimer.checked = state.restore_timer || false;
+                restoreTimerValue.value = state.restore_timer_value || 600;
+                
+                customFlags.value = state.customFlags || '';
+                
+                updateCommand();
+            }
+
+            function updateSavedCommandsList() {
+                const saved = loadSavedCommands();
+                const container = document.getElementById('savedCommandsList');
+                
+                if (saved.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-saved')) {
+                            const index = item.dataset.index;
+                            const cmd = saved[index];
+                            loadStateIntoSavedCommands(cmd.state);
+                            Utils.showNotification(`Loaded: ${cmd.name}`, 'success');
+                        }
+                    });
+                });
+                
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = btn.dataset.index;
+                        deleteSavedCommand(index);
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            // ============ BUTTON HANDLERS ============
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value;
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this configuration', 'warning');
+                    return;
+                }
+                
+                saveCommand(name);
+                Utils.showNotification('✅ Configuration saved!', 'success');
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', () => {
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const command = generateCommand();
+                try {
+                    await navigator.clipboard.writeText(command);
+                    Utils.showNotification('✅ Command copied to clipboard!', 'success');
+                } catch (err) {
+                    Utils.showNotification('❌ Failed to copy command', 'error');
+                }
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                // Reset state
+                state = {
+                    hash_file: '/home/kali/hashes.txt',
+                    single_hash: '',
+                    hash_stdin: false,
+                    hash_type: 1000,
+                    custom_hash_type: '',
+                    attack_mode: 'wordlist',
+                    wordlist: '/usr/share/wordlists/rockyou.txt',
+                    wordlist2: '',
+                    mask: '?l?l?l?l?d?d',
+                    increment: false,
+                    min_length: 1,
+                    max_length: 8,
+                    rules_file: '/usr/share/hashcat/rules/best64.rule',
+                    gpu_devices: '0,1',
+                    cpu_devices: '',
+                    workload: '2',
+                    kernel_threads: 4096,
+                    optimized_kernel: false,
+                    force: false,
+                    loopback: false,
+                    markov: false,
+                    segment_size: 32,
+                    bitmaps_max: 24,
+                    spin_delay: 1,
+                    hwmon: '1',
+                    output_potfile: false,
+                    output_show: false,
+                    output_stdout: false,
+                    output_file: '/home/kali/hashcat.pot',
+                    status_timer: 1,
+                    verbosity: '2',
+                    status: false,
+                    machine_readable: false,
+                    session: 'hashcat_session',
+                    restore: '',
+                    restore_timer: false,
+                    restore_timer_value: 600,
+                    customFlags: ''
+                };
+                
+                // Reset UI
+                hashFile.value = '/home/kali/hashes.txt';
+                singleHash.value = '';
+                hashStdin.checked = false;
+                customHashType.value = '';
+                
+                // Reset hash type selection
+                document.querySelectorAll('.hash-type-item').forEach(el => {
+                    if (parseInt(el.dataset.id) === 1000) {
+                        el.classList.add('selected');
+                    } else {
+                        el.classList.remove('selected');
+                    }
+                });
+                
+                selectAttackMode('wordlist');
+                
+                wordlist.value = '/usr/share/wordlists/rockyou.txt';
+                wordlist2.value = '';
+                mask.value = '?l?l?l?l?d?d';
+                increment.checked = false;
+                incrementOptions.style.display = 'none';
+                minLength.value = 1;
+                maxLength.value = 8;
+                rulesFile.value = '/usr/share/hashcat/rules/best64.rule';
+                
+                gpuDevices.value = '0,1';
+                cpuDevices.value = '';
+                workload.value = '2';
+                kernelThreads.value = 4096;
+                
+                optimizedKernel.checked = false;
+                force.checked = false;
+                loopback.checked = false;
+                markov.checked = false;
+                segmentSize.value = 32;
+                bitmapsMax.value = 24;
+                spinDelay.value = 1;
+                hwmon.value = '1';
+                
+                outputPotfile.checked = false;
+                outputShow.checked = false;
+                outputStdout.checked = false;
+                outputFilenameContainer.style.display = 'none';
+                outputFile.value = '/home/kali/hashcat.pot';
+                statusTimer.value = 1;
+                verbosity.value = '2';
+                status.checked = false;
+                machineReadable.checked = false;
+                
+                session.value = 'hashcat_session';
+                restore.value = '';
+                restoreTimer.checked = false;
+                restoreTimerValue.value = 600;
+                
+                customFlags.value = '';
+                
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            // Initial update
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

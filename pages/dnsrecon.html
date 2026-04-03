@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNSRecon - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles specific to DNSRecon */
+        .dns-option-group {
+            background: rgba(15, 95, 168, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid #00CFFF;
+        }
+        .dns-option-title {
+            color: #00CFFF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .record-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .record-item {
+            background: rgba(15, 95, 168, 0.1);
+            border: 1px solid #0F5FA8;
+            border-radius: 6px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .record-item:hover {
+            background: rgba(15, 95, 168, 0.3);
+            border-color: #1E88E5;
+        }
+        .record-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #00CFFF;
+        }
+        .record-item label {
+            flex: 1;
+            cursor: pointer;
+            color: #E6F0FA;
+            font-size: 0.9rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .dns-server-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .range-input {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=information-gathering">Information Gathering</a>
+            <span class="separator">›</span>
+            <span class="current">DNSRecon</span>
+        </div>
+
+        <!-- Tool Header -->
+        <div class="tool-header">
+            <h1>DNSRECON</h1>
+            <p>DNS Enumeration Script - Advanced DNS record gathering and zone enumeration</p>
+        </div>
+
+        <!-- Target Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🎯</span> TARGET CONFIGURATION
+            </div>
+            <div class="input-group">
+                <label class="input-label">Domain or IP Range</label>
+                <input type="text" class="input-field" id="target" placeholder="example.com or 192.168.1.0/24" value="">
+                <small style="color: #2A6FAF; margin-top: 5px; display: block;">Domain name, IP address, or CIDR range</small>
+            </div>
+
+            <div class="dns-option-group" style="margin-top: 15px;">
+                <div class="dns-option-title">
+                    <span>🖧</span> DNS SERVER
+                </div>
+                <div class="dns-server-input">
+                    <div style="flex: 2;">
+                        <label class="input-label">Custom DNS Server</label>
+                        <input type="text" class="input-field" id="dns_server" placeholder="8.8.8.8">
+                    </div>
+                    <div style="flex: 1; display: flex; align-items: center; gap: 10px; margin-top: 20px;">
+                        <input type="checkbox" id="use_dns_server">
+                        <label for="use_dns_server">Use custom DNS server</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scan Types -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔍</span> SCAN TYPES
+            </div>
+
+            <div class="dns-option-group">
+                <div class="dns-option-title">
+                    <span>🌐</span> STANDARD SCANS
+                </div>
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="radio" name="scan_type" id="scan_std" value="std" checked>
+                        <label class="checkbox-label" for="scan_std">Standard Enumeration</label>
+                        <span class="checkbox-flag">-d</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="scan_type" id="scan_rvl" value="rvl">
+                        <label class="checkbox-label" for="scan_rvl">Reverse Lookup</label>
+                        <span class="checkbox-flag">-r</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="scan_type" id="scan_brt" value="brt">
+                        <label class="checkbox-label" for="scan_brt">Brute Force</label>
+                        <span class="checkbox-flag">-b</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="scan_type" id="scan_srv" value="srv">
+                        <label class="checkbox-label" for="scan_srv">SRV Records</label>
+                        <span class="checkbox-flag">-s</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="scan_type" id="scan_axfr" value="axfr">
+                        <label class="checkbox-label" for="scan_axfr">Zone Transfer</label>
+                        <span class="checkbox-flag">-a</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="scan_type" id="scan_goo" value="goo">
+                        <label class="checkbox-label" for="scan_goo">Google Search</label>
+                        <span class="checkbox-flag">-g</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="scan_type" id="scan_whois" value="whois">
+                        <label class="checkbox-label" for="scan_whois">Whois Query</label>
+                        <span class="checkbox-flag">-w</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="scan_type" id="scan_zonewalk" value="zonewalk">
+                        <label class="checkbox-label" for="scan_zonewalk">Zone Walk</label>
+                        <span class="checkbox-flag">-z</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Scan Options -->
+            <div id="bruteforce_options" style="display: none; margin-top: 15px;">
+                <div class="dns-option-group">
+                    <div class="dns-option-title">
+                        <span>🔨</span> BRUTE FORCE OPTIONS
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Dictionary File</label>
+                        <input type="text" class="input-field" id="dictionary" placeholder="/usr/share/wordlists/dnsmap.txt" value="/usr/share/wordlists/dnsmap.txt">
+                    </div>
+                    <div class="checkbox-grid">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="dictionary_enum">
+                            <label class="checkbox-label" for="dictionary_enum">Use Dictionary</label>
+                            <span class="checkbox-flag">-D</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="reverse_options" style="display: none; margin-top: 15px;">
+                <div class="dns-option-group">
+                    <div class="dns-option-title">
+                        <span>🔄</span> REVERSE LOOKUP OPTIONS
+                    </div>
+                    <div class="range-input">
+                        <div class="input-group">
+                            <label class="input-label">Start IP</label>
+                            <input type="text" class="input-field" id="range_start" placeholder="192.168.1.1">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">End IP</label>
+                            <input type="text" class="input-field" id="range_end" placeholder="192.168.1.254">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Record Types -->
+        <div class="section">
+            <div class="section-title">
+                <span>📋</span> RECORD TYPES
+            </div>
+
+            <div class="record-type-grid">
+                <div class="record-item">
+                    <input type="checkbox" id="record_a" checked>
+                    <label for="record_a">A</label>
+                </div>
+                <div class="record-item">
+                    <input type="checkbox" id="record_aaaa" checked>
+                    <label for="record_aaaa">AAAA</label>
+                </div>
+                <div class="record-item">
+                    <input type="checkbox" id="record_cname" checked>
+                    <label for="record_cname">CNAME</label>
+                </div>
+                <div class="record-item">
+                    <input type="checkbox" id="record_mx" checked>
+                    <label for="record_mx">MX</label>
+                </div>
+                <div class="record-item">
+                    <input type="checkbox" id="record_ns" checked>
+                    <label for="record_ns">NS</label>
+                </div>
+                <div class="record-item">
+                    <input type="checkbox" id="record_soa" checked>
+                    <label for="record_soa">SOA</label>
+                </div>
+                <div class="record-item">
+                    <input type="checkbox" id="record_txt" checked>
+                    <label for="record_txt">TXT</label>
+                </div>
+                <div class="record-item">
+                    <input type="checkbox" id="record_spf">
+                    <label for="record_spf">SPF</label>
+                </div>
+                <div class="record-item">
+                    <input type="checkbox" id="record_ptr">
+                    <label for="record_ptr">PTR</label>
+                </div>
+                <div class="record-item">
+                    <input type="checkbox" id="record_srv">
+                    <label for="record_srv">SRV</label>
+                </div>
+                <div class="record-item">
+                    <input type="checkbox" id="record_axfr">
+                    <label for="record_axfr">AXFR</label>
+                </div>
+                <div class="record-item">
+                    <input type="checkbox" id="record_all">
+                    <label for="record_all">All Records</label>
+                </div>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="disable_checking">
+                    <label class="checkbox-label" for="disable_checking">Disable Recursion Check</label>
+                    <span class="checkbox-flag">--disable_check_recursion</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="disable_bindversion">
+                    <label class="checkbox-label" for="disable_bindversion">Disable BIND Version Check</label>
+                    <span class="checkbox-flag">--disable_check_bindversion</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚙️</span> ADVANCED OPTIONS
+            </div>
+
+            <div class="checkbox-grid">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="ipv6">
+                    <label class="checkbox-label" for="ipv6">IPv6 Support</label>
+                    <span class="checkbox-flag">-6</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="threads">
+                    <label class="checkbox-label" for="threads">Threading</label>
+                    <span class="checkbox-flag">-t</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="lifetime">
+                    <label class="checkbox-label" for="lifetime">Set Lifetime</label>
+                    <span class="checkbox-flag">-l</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="timeout">
+                    <label class="checkbox-label" for="timeout">Set Timeout</label>
+                    <span class="checkbox-flag">--timeout</span>
+                </div>
+            </div>
+
+            <div id="threads_options" style="display: none; margin-top: 15px;">
+                <label class="input-label">Number of Threads</label>
+                <input type="number" class="input-field" id="thread_count" value="10" min="1" max="50">
+            </div>
+
+            <div id="lifetime_options" style="display: none; margin-top: 15px;">
+                <label class="input-label">Lifetime (seconds)</label>
+                <input type="number" class="input-field" id="lifetime_value" value="5" min="1" max="30">
+            </div>
+
+            <div id="timeout_options" style="display: none; margin-top: 15px;">
+                <label class="input-label">Timeout (seconds)</label>
+                <input type="number" class="input-field" id="timeout_value" value="3" min="1" max="30">
+            </div>
+        </div>
+
+        <!-- Output Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📁</span> OUTPUT CONFIGURATION
+            </div>
+
+            <div class="checkbox-grid">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="output_xml">
+                    <label class="checkbox-label" for="output_xml">XML Output</label>
+                    <span class="checkbox-flag">-x</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="output_csv">
+                    <label class="checkbox-label" for="output_csv">CSV Output</label>
+                    <span class="checkbox-flag">-c</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="output_json">
+                    <label class="checkbox-label" for="output_json">JSON Output</label>
+                    <span class="checkbox-flag">-j</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="output_db">
+                    <label class="checkbox-label" for="output_db">SQLite Database</label>
+                    <span class="checkbox-flag">-db</span>
+                </div>
+            </div>
+
+            <div id="output_filename_container" style="display: none; margin-top: 15px;">
+                <label class="input-label">Output Filename (without extension)</label>
+                <input type="text" class="input-field" id="output_filename" placeholder="dnsrecon_results">
+            </div>
+
+            <div style="margin-top: 15px;">
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Output Path</label>
+                        <input type="text" class="input-field" id="outputPath" value="/home/kali/dnsrecon/">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Verbosity</label>
+                        <select class="file-type-select" id="verbosity">
+                            <option value="0">Normal</option>
+                            <option value="1">Verbose</option>
+                            <option value="2">Very Verbose</option>
+                            <option value="3">Debug</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CUSTOM OPTIONS
+            </div>
+            <div class="input-group">
+                <label class="input-label">Additional flags (space separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="--no-color --wildcard">
+            </div>
+        </div>
+
+        <!-- Save/Load Panel -->
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Command name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Command</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+        
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <!-- Command Preview -->
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">dnsrecon</div>
+            <div class="command-info" id="commandInfo">No options selected</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand">
+                <span>📋</span> COPY COMMAND
+            </button>
+            <button class="btn btn-secondary" id="clearAll">
+                <span>🗑️</span> CLEAR ALL
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ============ COMMAND BUILDER FOR DNSRECON ============
+            
+            // State
+            let state = {
+                target: '',
+                dns_server: '',
+                use_dns_server: false,
+                scan_type: 'std',
+                dictionary: '/usr/share/wordlists/dnsmap.txt',
+                use_dictionary: false,
+                range_start: '',
+                range_end: '',
+                records: {
+                    a: true,
+                    aaaa: true,
+                    cname: true,
+                    mx: true,
+                    ns: true,
+                    soa: true,
+                    txt: true,
+                    spf: false,
+                    ptr: false,
+                    srv: false,
+                    axfr: false,
+                    all: false
+                },
+                disable_recursion: false,
+                disable_bindversion: false,
+                ipv6: false,
+                threads: false,
+                thread_count: 10,
+                lifetime: false,
+                lifetime_value: 5,
+                timeout: false,
+                timeout_value: 3,
+                output: {
+                    xml: false,
+                    csv: false,
+                    json: false,
+                    db: false,
+                    filename: ''
+                },
+                outputPath: '/home/kali/dnsrecon/',
+                verbosity: '0',
+                customFlags: ''
+            };
+
+            // DOM Elements
+            const target = document.getElementById('target');
+            const dnsServer = document.getElementById('dns_server');
+            const useDnsServer = document.getElementById('use_dns_server');
+            
+            // Scan types
+            const scanStd = document.getElementById('scan_std');
+            const scanRvl = document.getElementById('scan_rvl');
+            const scanBrt = document.getElementById('scan_brt');
+            const scanSrv = document.getElementById('scan_srv');
+            const scanAxfr = document.getElementById('scan_axfr');
+            const scanGoo = document.getElementById('scan_goo');
+            const scanWhois = document.getElementById('scan_whois');
+            const scanZonewalk = document.getElementById('scan_zonewalk');
+            
+            // Brute force options
+            const bruteforceOptions = document.getElementById('bruteforce_options');
+            const reverseOptions = document.getElementById('reverse_options');
+            const dictionary = document.getElementById('dictionary');
+            const useDictionary = document.getElementById('dictionary_enum');
+            
+            // Reverse options
+            const rangeStart = document.getElementById('range_start');
+            const rangeEnd = document.getElementById('range_end');
+            
+            // Record types
+            const recordA = document.getElementById('record_a');
+            const recordAaaa = document.getElementById('record_aaaa');
+            const recordCname = document.getElementById('record_cname');
+            const recordMx = document.getElementById('record_mx');
+            const recordNs = document.getElementById('record_ns');
+            const recordSoa = document.getElementById('record_soa');
+            const recordTxt = document.getElementById('record_txt');
+            const recordSpf = document.getElementById('record_spf');
+            const recordPtr = document.getElementById('record_ptr');
+            const recordSrv = document.getElementById('record_srv');
+            const recordAxfr = document.getElementById('record_axfr');
+            const recordAll = document.getElementById('record_all');
+            
+            const disableRecursion = document.getElementById('disable_checking');
+            const disableBindversion = document.getElementById('disable_bindversion');
+            
+            // Advanced options
+            const ipv6 = document.getElementById('ipv6');
+            const threads = document.getElementById('threads');
+            const threadsOptions = document.getElementById('threads_options');
+            const threadCount = document.getElementById('thread_count');
+            const lifetime = document.getElementById('lifetime');
+            const lifetimeOptions = document.getElementById('lifetime_options');
+            const lifetimeValue = document.getElementById('lifetime_value');
+            const timeout = document.getElementById('timeout');
+            const timeoutOptions = document.getElementById('timeout_options');
+            const timeoutValue = document.getElementById('timeout_value');
+            
+            // Output
+            const outputXml = document.getElementById('output_xml');
+            const outputCsv = document.getElementById('output_csv');
+            const outputJson = document.getElementById('output_json');
+            const outputDb = document.getElementById('output_db');
+            const outputFilename = document.getElementById('output_filename');
+            const outputFilenameContainer = document.getElementById('output_filename_container');
+            const outputPath = document.getElementById('outputPath');
+            const verbosity = document.getElementById('verbosity');
+            
+            // Custom flags
+            const customFlags = document.getElementById('customFlags');
+
+            // ============ EVENT LISTENERS ============
+
+            // Target
+            target.addEventListener('input', (e) => { state.target = e.target.value; updateCommand(); });
+            dnsServer.addEventListener('input', (e) => { state.dns_server = e.target.value; updateCommand(); });
+            useDnsServer.addEventListener('change', (e) => { state.use_dns_server = e.target.checked; updateCommand(); });
+
+            // Scan type
+            function updateScanTypeVisibility() {
+                const type = state.scan_type;
+                bruteforceOptions.style.display = type === 'brt' ? 'block' : 'none';
+                reverseOptions.style.display = type === 'rvl' ? 'block' : 'none';
+            }
+
+            scanStd.addEventListener('change', (e) => { if(e.target.checked) { state.scan_type = 'std'; updateScanTypeVisibility(); updateCommand(); } });
+            scanRvl.addEventListener('change', (e) => { if(e.target.checked) { state.scan_type = 'rvl'; updateScanTypeVisibility(); updateCommand(); } });
+            scanBrt.addEventListener('change', (e) => { if(e.target.checked) { state.scan_type = 'brt'; updateScanTypeVisibility(); updateCommand(); } });
+            scanSrv.addEventListener('change', (e) => { if(e.target.checked) { state.scan_type = 'srv'; updateScanTypeVisibility(); updateCommand(); } });
+            scanAxfr.addEventListener('change', (e) => { if(e.target.checked) { state.scan_type = 'axfr'; updateScanTypeVisibility(); updateCommand(); } });
+            scanGoo.addEventListener('change', (e) => { if(e.target.checked) { state.scan_type = 'goo'; updateScanTypeVisibility(); updateCommand(); } });
+            scanWhois.addEventListener('change', (e) => { if(e.target.checked) { state.scan_type = 'whois'; updateScanTypeVisibility(); updateCommand(); } });
+            scanZonewalk.addEventListener('change', (e) => { if(e.target.checked) { state.scan_type = 'zonewalk'; updateScanTypeVisibility(); updateCommand(); } });
+
+            // Brute force
+            dictionary.addEventListener('input', (e) => { state.dictionary = e.target.value; updateCommand(); });
+            useDictionary.addEventListener('change', (e) => { state.use_dictionary = e.target.checked; updateCommand(); });
+
+            // Reverse
+            rangeStart.addEventListener('input', (e) => { state.range_start = e.target.value; updateCommand(); });
+            rangeEnd.addEventListener('input', (e) => { state.range_end = e.target.value; updateCommand(); });
+
+            // Record types
+            recordA.addEventListener('change', (e) => { state.records.a = e.target.checked; updateRecordAll(); updateCommand(); });
+            recordAaaa.addEventListener('change', (e) => { state.records.aaaa = e.target.checked; updateRecordAll(); updateCommand(); });
+            recordCname.addEventListener('change', (e) => { state.records.cname = e.target.checked; updateRecordAll(); updateCommand(); });
+            recordMx.addEventListener('change', (e) => { state.records.mx = e.target.checked; updateRecordAll(); updateCommand(); });
+            recordNs.addEventListener('change', (e) => { state.records.ns = e.target.checked; updateRecordAll(); updateCommand(); });
+            recordSoa.addEventListener('change', (e) => { state.records.soa = e.target.checked; updateRecordAll(); updateCommand(); });
+            recordTxt.addEventListener('change', (e) => { state.records.txt = e.target.checked; updateRecordAll(); updateCommand(); });
+            recordSpf.addEventListener('change', (e) => { state.records.spf = e.target.checked; updateRecordAll(); updateCommand(); });
+            recordPtr.addEventListener('change', (e) => { state.records.ptr = e.target.checked; updateRecordAll(); updateCommand(); });
+            recordSrv.addEventListener('change', (e) => { state.records.srv = e.target.checked; updateRecordAll(); updateCommand(); });
+            recordAxfr.addEventListener('change', (e) => { state.records.axfr = e.target.checked; updateRecordAll(); updateCommand(); });
+            
+            recordAll.addEventListener('change', (e) => {
+                const checked = e.target.checked;
+                state.records.all = checked;
+                if (checked) {
+                    state.records.a = true;
+                    state.records.aaaa = true;
+                    state.records.cname = true;
+                    state.records.mx = true;
+                    state.records.ns = true;
+                    state.records.soa = true;
+                    state.records.txt = true;
+                    state.records.spf = true;
+                    state.records.ptr = true;
+                    state.records.srv = true;
+                    state.records.axfr = true;
+                }
+                updateCheckboxes();
+                updateCommand();
+            });
+
+            function updateRecordAll() {
+                const all = state.records.a && state.records.aaaa && state.records.cname && 
+                           state.records.mx && state.records.ns && state.records.soa && 
+                           state.records.txt && state.records.spf && state.records.ptr && 
+                           state.records.srv && state.records.axfr;
+                state.records.all = all;
+                recordAll.checked = all;
+            }
+
+            function updateCheckboxes() {
+                recordA.checked = state.records.a;
+                recordAaaa.checked = state.records.aaaa;
+                recordCname.checked = state.records.cname;
+                recordMx.checked = state.records.mx;
+                recordNs.checked = state.records.ns;
+                recordSoa.checked = state.records.soa;
+                recordTxt.checked = state.records.txt;
+                recordSpf.checked = state.records.spf;
+                recordPtr.checked = state.records.ptr;
+                recordSrv.checked = state.records.srv;
+                recordAxfr.checked = state.records.axfr;
+                recordAll.checked = state.records.all;
+            }
+
+            disableRecursion.addEventListener('change', (e) => { state.disable_recursion = e.target.checked; updateCommand(); });
+            disableBindversion.addEventListener('change', (e) => { state.disable_bindversion = e.target.checked; updateCommand(); });
+
+            // Advanced options
+            ipv6.addEventListener('change', (e) => { state.ipv6 = e.target.checked; updateCommand(); });
+            
+            threads.addEventListener('change', (e) => {
+                state.threads = e.target.checked;
+                threadsOptions.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            threadCount.addEventListener('input', (e) => { state.thread_count = parseInt(e.target.value) || 10; updateCommand(); });
+            
+            lifetime.addEventListener('change', (e) => {
+                state.lifetime = e.target.checked;
+                lifetimeOptions.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            lifetimeValue.addEventListener('input', (e) => { state.lifetime_value = parseInt(e.target.value) || 5; updateCommand(); });
+            
+            timeout.addEventListener('change', (e) => {
+                state.timeout = e.target.checked;
+                timeoutOptions.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            timeoutValue.addEventListener('input', (e) => { state.timeout_value = parseInt(e.target.value) || 3; updateCommand(); });
+
+            // Output
+            outputXml.addEventListener('change', (e) => { state.output.xml = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputCsv.addEventListener('change', (e) => { state.output.csv = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputJson.addEventListener('change', (e) => { state.output.json = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputDb.addEventListener('change', (e) => { state.output.db = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputFilename.addEventListener('input', (e) => { state.output.filename = e.target.value; updateCommand(); });
+            outputPath.addEventListener('input', (e) => { state.outputPath = e.target.value; updateCommand(); });
+            verbosity.addEventListener('change', (e) => { state.verbosity = e.target.value; updateCommand(); });
+
+            function updateOutputVisibility() {
+                const anyOutput = state.output.xml || state.output.csv || state.output.json || state.output.db;
+                outputFilenameContainer.style.display = anyOutput ? 'block' : 'none';
+            }
+
+            // Custom flags
+            customFlags.addEventListener('input', (e) => { state.customFlags = e.target.value; updateCommand(); });
+
+            // ============ COMMAND GENERATION ============
+
+            function generateCommand() {
+                let command = 'dnsrecon';
+                const parts = [];
+
+                // Target
+                if (state.target) {
+                    if (state.scan_type === 'rvl' && state.range_start && state.range_end) {
+                        // For reverse lookup, we use -r with range
+                        parts.push(`-r ${state.range_start}-${state.range_end}`);
+                    } else {
+                        parts.push(`-d ${state.target}`);
+                    }
+                }
+
+                // DNS Server
+                if (state.use_dns_server && state.dns_server) {
+                    parts.push(`-n ${state.dns_server}`);
+                }
+
+                // Scan type
+                switch(state.scan_type) {
+                    case 'std':
+                        // Standard is default, no flag needed
+                        break;
+                    case 'rvl':
+                        // Already handled above
+                        break;
+                    case 'brt':
+                        parts.push('-b');
+                        if (state.use_dictionary && state.dictionary) {
+                            parts.push(`-D ${state.dictionary}`);
+                        }
+                        break;
+                    case 'srv':
+                        parts.push('-s');
+                        break;
+                    case 'axfr':
+                        parts.push('-a');
+                        break;
+                    case 'goo':
+                        parts.push('-g');
+                        break;
+                    case 'whois':
+                        parts.push('-w');
+                        break;
+                    case 'zonewalk':
+                        parts.push('-z');
+                        break;
+                }
+
+                // Record types (if not using standard scan)
+                if (state.scan_type === 'std') {
+                    const recordTypes = [];
+                    if (state.records.a) recordTypes.push('A');
+                    if (state.records.aaaa) recordTypes.push('AAAA');
+                    if (state.records.cname) recordTypes.push('CNAME');
+                    if (state.records.mx) recordTypes.push('MX');
+                    if (state.records.ns) recordTypes.push('NS');
+                    if (state.records.soa) recordTypes.push('SOA');
+                    if (state.records.txt) recordTypes.push('TXT');
+                    if (state.records.spf) recordTypes.push('SPF');
+                    if (state.records.ptr) recordTypes.push('PTR');
+                    if (state.records.srv) recordTypes.push('SRV');
+                    if (state.records.axfr) recordTypes.push('AXFR');
+                    
+                    if (recordTypes.length > 0 && recordTypes.length < 11) {
+                        parts.push(`-t ${recordTypes.join(',')}`);
+                    }
+                }
+
+                // Disable checks
+                if (state.disable_recursion) {
+                    parts.push('--disable_check_recursion');
+                }
+                if (state.disable_bindversion) {
+                    parts.push('--disable_check_bindversion');
+                }
+
+                // Advanced options
+                if (state.ipv6) parts.push('-6');
+                if (state.threads) parts.push(`-t ${state.thread_count}`);
+                if (state.lifetime) parts.push(`-l ${state.lifetime_value}`);
+                if (state.timeout) parts.push(`--timeout ${state.timeout_value}`);
+
+                // Output formats
+                if (state.output.xml && state.output.filename) {
+                    parts.push(`-x ${state.outputPath}${state.output.filename}.xml`);
+                }
+                if (state.output.csv && state.output.filename) {
+                    parts.push(`-c ${state.outputPath}${state.output.filename}.csv`);
+                }
+                if (state.output.json && state.output.filename) {
+                    parts.push(`-j ${state.outputPath}${state.output.filename}.json`);
+                }
+                if (state.output.db && state.output.filename) {
+                    parts.push(`-db ${state.outputPath}${state.output.filename}.db`);
+                }
+
+                // Verbosity
+                if (state.verbosity !== '0') {
+                    parts.push(`-v`); // DNSRecon uses -v for verbose, more v's for more verbosity
+                    if (state.verbosity === '2') parts.push('-v');
+                    if (state.verbosity === '3') parts.push('-v -v');
+                }
+
+                // Custom flags
+                if (state.customFlags) {
+                    const customParts = state.customFlags.trim().split(/\s+/);
+                    customParts.forEach(part => parts.push(part));
+                }
+
+                // Build command
+                if (parts.length > 0) {
+                    command += ' ' + parts.join(' ');
+                }
+
+                return command;
+            }
+
+            function generateExplanation() {
+                const explanations = [];
+                
+                if (state.target) explanations.push(`Target: ${state.target}`);
+                if (state.use_dns_server && state.dns_server) explanations.push(`DNS: ${state.dns_server}`);
+                
+                const scanTypeNames = {
+                    'std': 'Standard Enum',
+                    'rvl': 'Reverse Lookup',
+                    'brt': 'Brute Force',
+                    'srv': 'SRV Records',
+                    'axfr': 'Zone Transfer',
+                    'goo': 'Google Search',
+                    'whois': 'Whois',
+                    'zonewalk': 'Zone Walk'
+                };
+                explanations.push(`Type: ${scanTypeNames[state.scan_type]}`);
+                
+                const recordCount = Object.values(state.records).filter(v => v === true && typeof v === 'boolean').length;
+                if (recordCount > 0 && state.scan_type === 'std') {
+                    explanations.push(`${recordCount} record types`);
+                }
+                
+                if (state.threads) explanations.push(`Threads: ${state.thread_count}`);
+                
+                const outputFormats = [];
+                if (state.output.xml) outputFormats.push('XML');
+                if (state.output.csv) outputFormats.push('CSV');
+                if (state.output.json) outputFormats.push('JSON');
+                if (state.output.db) outputFormats.push('DB');
+                
+                if (outputFormats.length > 0) {
+                    explanations.push(`Output: ${outputFormats.join(', ')}`);
+                }
+                
+                return explanations.length > 0 
+                    ? `Command includes: ${explanations.join(' • ')}`
+                    : 'No options selected';
+            }
+
+            function updateCommand() {
+                document.getElementById('commandPreview').textContent = generateCommand();
+                document.getElementById('commandInfo').textContent = generateExplanation();
+            }
+
+            // ============ SAVE/LOAD FUNCTIONS ============
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved.dnsrecon) saved.dnsrecon = [];
+                
+                saved.dnsrecon.push({
+                    name: name,
+                    state: { ...state },
+                    timestamp: new Date().toISOString()
+                });
+                
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved.dnsrecon || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved.dnsrecon && saved.dnsrecon[index]) {
+                    saved.dnsrecon.splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function loadStateIntoSavedCommands(savedState) {
+                // Restore state
+                state = JSON.parse(JSON.stringify(savedState));
+                
+                // Update UI
+                target.value = state.target || '';
+                dnsServer.value = state.dns_server || '';
+                useDnsServer.checked = state.use_dns_server || false;
+                
+                // Scan type
+                const scanTypeMap = {
+                    'std': scanStd,
+                    'rvl': scanRvl,
+                    'brt': scanBrt,
+                    'srv': scanSrv,
+                    'axfr': scanAxfr,
+                    'goo': scanGoo,
+                    'whois': scanWhois,
+                    'zonewalk': scanZonewalk
+                };
+                if (scanTypeMap[state.scan_type]) {
+                    scanTypeMap[state.scan_type].checked = true;
+                }
+                updateScanTypeVisibility();
+                
+                // Brute force
+                dictionary.value = state.dictionary || '/usr/share/wordlists/dnsmap.txt';
+                useDictionary.checked = state.use_dictionary || false;
+                
+                // Reverse
+                rangeStart.value = state.range_start || '';
+                rangeEnd.value = state.range_end || '';
+                
+                // Records
+                updateCheckboxes();
+                
+                disableRecursion.checked = state.disable_recursion || false;
+                disableBindversion.checked = state.disable_bindversion || false;
+                
+                // Advanced
+                ipv6.checked = state.ipv6 || false;
+                threads.checked = state.threads || false;
+                threadsOptions.style.display = state.threads ? 'block' : 'none';
+                threadCount.value = state.thread_count || 10;
+                lifetime.checked = state.lifetime || false;
+                lifetimeOptions.style.display = state.lifetime ? 'block' : 'none';
+                lifetimeValue.value = state.lifetime_value || 5;
+                timeout.checked = state.timeout || false;
+                timeoutOptions.style.display = state.timeout ? 'block' : 'none';
+                timeoutValue.value = state.timeout_value || 3;
+                
+                // Output
+                outputXml.checked = state.output?.xml || false;
+                outputCsv.checked = state.output?.csv || false;
+                outputJson.checked = state.output?.json || false;
+                outputDb.checked = state.output?.db || false;
+                outputFilename.value = state.output?.filename || '';
+                outputPath.value = state.outputPath || '/home/kali/dnsrecon/';
+                verbosity.value = state.verbosity || '0';
+                updateOutputVisibility();
+                
+                // Custom flags
+                customFlags.value = state.customFlags || '';
+                
+                updateCommand();
+            }
+
+            function updateSavedCommandsList() {
+                const saved = loadSavedCommands();
+                const container = document.getElementById('savedCommandsList');
+                
+                if (saved.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-saved')) {
+                            const index = item.dataset.index;
+                            const cmd = saved[index];
+                            loadStateIntoSavedCommands(cmd.state);
+                            Utils.showNotification(`Loaded: ${cmd.name}`, 'success');
+                        }
+                    });
+                });
+                
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = btn.dataset.index;
+                        deleteSavedCommand(index);
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            // ============ BUTTON HANDLERS ============
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value;
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this command', 'warning');
+                    return;
+                }
+                
+                saveCommand(name);
+                Utils.showNotification('✅ Command saved!', 'success');
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', () => {
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const command = generateCommand();
+                try {
+                    await navigator.clipboard.writeText(command);
+                    Utils.showNotification('✅ Command copied to clipboard!', 'success');
+                } catch (err) {
+                    Utils.showNotification('❌ Failed to copy command', 'error');
+                }
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                // Reset state
+                state = {
+                    target: '',
+                    dns_server: '',
+                    use_dns_server: false,
+                    scan_type: 'std',
+                    dictionary: '/usr/share/wordlists/dnsmap.txt',
+                    use_dictionary: false,
+                    range_start: '',
+                    range_end: '',
+                    records: {
+                        a: true, aaaa: true, cname: true, mx: true, ns: true,
+                        soa: true, txt: true, spf: false, ptr: false, srv: false,
+                        axfr: false, all: false
+                    },
+                    disable_recursion: false,
+                    disable_bindversion: false,
+                    ipv6: false,
+                    threads: false,
+                    thread_count: 10,
+                    lifetime: false,
+                    lifetime_value: 5,
+                    timeout: false,
+                    timeout_value: 3,
+                    output: {
+                        xml: false, csv: false, json: false, db: false, filename: ''
+                    },
+                    outputPath: '/home/kali/dnsrecon/',
+                    verbosity: '0',
+                    customFlags: ''
+                };
+                
+                // Reset UI
+                target.value = '';
+                dnsServer.value = '';
+                useDnsServer.checked = false;
+                scanStd.checked = true;
+                bruteforceOptions.style.display = 'none';
+                reverseOptions.style.display = 'none';
+                
+                dictionary.value = '/usr/share/wordlists/dnsmap.txt';
+                useDictionary.checked = false;
+                
+                rangeStart.value = '';
+                rangeEnd.value = '';
+                
+                // Reset records (A, AAAA, CNAME, MX, NS, SOA, TXT checked by default)
+                recordA.checked = true;
+                recordAaaa.checked = true;
+                recordCname.checked = true;
+                recordMx.checked = true;
+                recordNs.checked = true;
+                recordSoa.checked = true;
+                recordTxt.checked = true;
+                recordSpf.checked = false;
+                recordPtr.checked = false;
+                recordSrv.checked = false;
+                recordAxfr.checked = false;
+                recordAll.checked = false;
+                
+                disableRecursion.checked = false;
+                disableBindversion.checked = false;
+                
+                ipv6.checked = false;
+                threads.checked = false;
+                threadsOptions.style.display = 'none';
+                threadCount.value = 10;
+                lifetime.checked = false;
+                lifetimeOptions.style.display = 'none';
+                lifetimeValue.value = 5;
+                timeout.checked = false;
+                timeoutOptions.style.display = 'none';
+                timeoutValue.value = 3;
+                
+                outputXml.checked = false;
+                outputCsv.checked = false;
+                outputJson.checked = false;
+                outputDb.checked = false;
+                outputFilenameContainer.style.display = 'none';
+                outputFilename.value = '';
+                outputPath.value = '/home/kali/dnsrecon/';
+                verbosity.value = '0';
+                
+                customFlags.value = '';
+                
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            // Initial update
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

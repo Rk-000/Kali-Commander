@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpiderFoot - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles specific to SpiderFoot */
+        .module-group {
+            background: rgba(15, 95, 168, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid #00CFFF;
+        }
+        .module-title {
+            color: #00CFFF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .module-category {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .module-item {
+            background: rgba(15, 95, 168, 0.1);
+            border: 1px solid #0F5FA8;
+            border-radius: 6px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .module-item:hover {
+            background: rgba(15, 95, 168, 0.3);
+            border-color: #1E88E5;
+            transform: translateX(3px);
+        }
+        .module-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #00CFFF;
+        }
+        .module-item .module-name {
+            flex: 1;
+            color: #E6F0FA;
+            font-size: 0.9rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .module-item .module-desc {
+            font-size: 0.75rem;
+            color: #2A6FAF;
+        }
+        .correlation-rule {
+            background: rgba(0, 207, 255, 0.05);
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 10px;
+            border: 1px solid #1E88E5;
+        }
+        .scan-option {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        .scan-option label {
+            color: #E6F0FA;
+        }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=information-gathering">Information Gathering</a>
+            <span class="separator">›</span>
+            <span class="current">SpiderFoot</span>
+        </div>
+
+        <!-- Tool Header -->
+        <div class="tool-header">
+            <h1>SPIDERFOOT</h1>
+            <p>Automated OSINT Framework - Scan targets and gather intelligence from 200+ data sources</p>
+        </div>
+
+        <!-- Target Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🎯</span> TARGET CONFIGURATION
+            </div>
+            <div class="input-group">
+                <label class="input-label">Target</label>
+                <input type="text" class="input-field" id="target" placeholder="example.com, 192.168.1.1, user@example.com" value="">
+                <small style="color: #2A6FAF; margin-top: 5px; display: block;">Domain, IP, email, name, or other seed value</small>
+            </div>
+            
+            <div class="entity-type" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 15px;">
+                <div class="entity-item" style="background: rgba(15, 95, 168, 0.1); border: 1px solid #0F5FA8; border-radius: 6px; padding: 8px; display: flex; align-items: center; gap: 8px;">
+                    <input type="radio" name="target_type" id="type_domain" value="DOMAIN" checked>
+                    <label for="type_domain">🌐 Domain</label>
+                </div>
+                <div class="entity-item" style="background: rgba(15, 95, 168, 0.1); border: 1px solid #0F5FA8; border-radius: 6px; padding: 8px; display: flex; align-items: center; gap: 8px;">
+                    <input type="radio" name="target_type" id="type_ip" value="IP_ADDRESS">
+                    <label for="type_ip">🔢 IP Address</label>
+                </div>
+                <div class="entity-item" style="background: rgba(15, 95, 168, 0.1); border: 1px solid #0F5FA8; border-radius: 6px; padding: 8px; display: flex; align-items: center; gap: 8px;">
+                    <input type="radio" name="target_type" id="type_email" value="EMAIL_ADDRESS">
+                    <label for="type_email">📧 Email</label>
+                </div>
+                <div class="entity-item" style="background: rgba(15, 95, 168, 0.1); border: 1px solid #0F5FA8; border-radius: 6px; padding: 8px; display: flex; align-items: center; gap: 8px;">
+                    <input type="radio" name="target_type" id="type_name" value="NAME">
+                    <label for="type_name">👤 Person Name</label>
+                </div>
+                <div class="entity-item" style="background: rgba(15, 95, 168, 0.1); border: 1px solid #0F5FA8; border-radius: 6px; padding: 8px; display: flex; align-items: center; gap: 8px;">
+                    <input type="radio" name="target_type" id="type_phone" value="PHONE_NUMBER">
+                    <label for="type_phone">📱 Phone</label>
+                </div>
+                <div class="entity-item" style="background: rgba(15, 95, 168, 0.1); border: 1px solid #0F5FA8; border-radius: 6px; padding: 8px; display: flex; align-items: center; gap: 8px;">
+                    <input type="radio" name="target_type" id="type_username" value="USERNAME">
+                    <label for="type_username">👤 Username</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scan Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚙️</span> SCAN CONFIGURATION
+            </div>
+            
+            <div class="scan-option">
+                <div style="flex: 1;">
+                    <label class="input-label">Scan Name</label>
+                    <input type="text" class="input-field" id="scan_name" placeholder="my_osint_scan" value="scan_1">
+                </div>
+                <div style="flex: 1;">
+                    <label class="input-label">Correlation Rules</label>
+                    <select class="file-type-select" id="correlation_rules">
+                        <option value="all">All Rules</option>
+                        <option value="basic">Basic Only</option>
+                        <option value="advanced">Advanced Only</option>
+                        <option value="none">No Correlation</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="checkbox-grid">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="use_correlation" checked>
+                    <label class="checkbox-label" for="use_correlation">Enable Correlation</label>
+                    <span class="checkbox-flag">--correlate</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="seedless">
+                    <label class="checkbox-label" for="seedless">Seedless Scan</label>
+                    <span class="checkbox-flag">--seedless</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="listen">
+                    <label class="checkbox-label" for="listen">Listen Mode</label>
+                    <span class="checkbox-flag">--listen</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="debug">
+                    <label class="checkbox-label" for="debug">Debug Output</label>
+                    <span class="checkbox-flag">--debug</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module Selection by Category -->
+        <div class="section">
+            <div class="section-title">
+                <span>🧩</span> MODULES
+            </div>
+
+            <!-- Scan Types -->
+            <div class="module-group">
+                <div class="module-title">
+                    <span>⚡</span> SCAN PRESETS
+                </div>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button class="btn btn-secondary" id="preset_all">All Modules</button>
+                    <button class="btn btn-secondary" id="preset_footprint">Footprint</button>
+                    <button class="btn btn-secondary" id="preset_passive">Passive</button>
+                    <button class="btn btn-secondary" id="preset_investigate">Investigate</button>
+                    <button class="btn btn-secondary" id="preset_clear">Clear All</button>
+                </div>
+            </div>
+
+            <!-- DNS Modules -->
+            <div class="module-group">
+                <div class="module-title">
+                    <span>🌐</span> DNS MODULES
+                </div>
+                <div class="module-category" id="dns_modules">
+                    <div class="module-item">
+                        <input type="checkbox" id="module_dns_resolve">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_dnsresolve</div>
+                            <div class="module-desc">DNS resolution and lookup</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_dns_brute">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_dnsbrute</div>
+                            <div class="module-desc">DNS brute force subdomains</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_dns_zone">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_dnszone</div>
+                            <div class="module-desc">DNS zone transfer attempts</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_dns_reverse">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_reversedns</div>
+                            <div class="module-desc">Reverse DNS lookup</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WHOIS Modules -->
+            <div class="module-group">
+                <div class="module-title">
+                    <span>📋</span> WHOIS MODULES
+                </div>
+                <div class="module-category" id="whois_modules">
+                    <div class="module-item">
+                        <input type="checkbox" id="module_whois">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_whois</div>
+                            <div class="module-desc">WHOIS information lookup</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_whois_org">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_whoisorg</div>
+                            <div class="module-desc">Organization WHOIS lookup</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Engine Modules -->
+            <div class="module-group">
+                <div class="module-title">
+                    <span>🔍</span> SEARCH ENGINE MODULES
+                </div>
+                <div class="module-category" id="search_modules">
+                    <div class="module-item">
+                        <input type="checkbox" id="module_google">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_google</div>
+                            <div class="module-desc">Google search</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_bing">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_bing</div>
+                            <div class="module-desc">Bing search</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_yahoo">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_yahoo</div>
+                            <div class="module-desc">Yahoo search</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_baidu">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_baidu</div>
+                            <div class="module-desc">Baidu search</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Social Media Modules -->
+            <div class="module-group">
+                <div class="module-title">
+                    <span>📱</span> SOCIAL MEDIA MODULES
+                </div>
+                <div class="module-category" id="social_modules">
+                    <div class="module-item">
+                        <input type="checkbox" id="module_twitter">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_twitter</div>
+                            <div class="module-desc">Twitter profile search</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_linkedin">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_linkedin</div>
+                            <div class="module-desc">LinkedIn profile search</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_facebook">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_facebook</div>
+                            <div class="module-desc">Facebook profile search</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_instagram">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_instagram</div>
+                            <div class="module-desc">Instagram profile search</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email Modules -->
+            <div class="module-group">
+                <div class="module-title">
+                    <span>📧</span> EMAIL MODULES
+                </div>
+                <div class="module-category" id="email_modules">
+                    <div class="module-item">
+                        <input type="checkbox" id="module_email">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_email</div>
+                            <div class="module-desc">Email address harvesting</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_emailrep">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_emailrep</div>
+                            <div class="module-desc">Email reputation check</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_hunter">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_hunter</div>
+                            <div class="module-desc">Hunter.io email search</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IP Intelligence Modules -->
+            <div class="module-group">
+                <div class="module-title">
+                    <span>🔢</span> IP INTELLIGENCE MODULES
+                </div>
+                <div class="module-category" id="ip_modules">
+                    <div class="module-item">
+                        <input type="checkbox" id="module_shodan">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_shodan</div>
+                            <div class="module-desc">Shodan IP intelligence</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_censys">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_censys</div>
+                            <div class="module-desc">Censys.io certificate search</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_ipinfo">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_ipinfo</div>
+                            <div class="module-desc">IPinfo.io geolocation</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_abuseipdb">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_abuseipdb</div>
+                            <div class="module-desc">AbuseIPDB reputation</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dark Web Modules -->
+            <div class="module-group">
+                <div class="module-title">
+                    <span>🌑</span> DARK WEB MODULES
+                </div>
+                <div class="module-category" id="darkweb_modules">
+                    <div class="module-item">
+                        <input type="checkbox" id="module_onion">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_onioncity</div>
+                            <div class="module-desc">Onion City search</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_ahmia">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_ahmia</div>
+                            <div class="module-desc">Ahmia dark web search</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Breach Data Modules -->
+            <div class="module-group">
+                <div class="module-title">
+                    <span>💥</span> BREACH DATA MODULES
+                </div>
+                <div class="module-category" id="breach_modules">
+                    <div class="module-item">
+                        <input type="checkbox" id="module_hibp">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_haveibeenpwned</div>
+                            <div class="module-desc">Have I Been Pwned breach check</div>
+                        </div>
+                    </div>
+                    <div class="module-item">
+                        <input type="checkbox" id="module_intelx">
+                        <div style="flex: 1;">
+                            <div class="module-name">sfp_intelx</div>
+                            <div class="module-desc">IntelligenceX search</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Keys Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔑</span> API KEYS
+            </div>
+            <div class="checkbox-grid">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="configure_api_keys">
+                    <label class="checkbox-label" for="configure_api_keys">Configure API Keys</label>
+                    <span class="checkbox-flag">--keys</span>
+                </div>
+            </div>
+            
+            <div id="api_keys_container" style="display: none; margin-top: 15px;">
+                <div class="input-group">
+                    <label class="input-label">Shodan API Key</label>
+                    <input type="password" class="input-field" id="shodan_key" placeholder="Enter Shodan API key">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Censys API Key</label>
+                    <input type="password" class="input-field" id="censys_key" placeholder="Enter Censys API key">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Hunter.io API Key</label>
+                    <input type="password" class="input-field" id="hunter_key" placeholder="Enter Hunter.io API key">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">IPInfo API Key</label>
+                    <input type="password" class="input-field" id="ipinfo_key" placeholder="Enter IPInfo API key">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Have I Been Pwned API Key</label>
+                    <input type="password" class="input-field" id="hibp_key" placeholder="Enter HIBP API key">
+                </div>
+            </div>
+        </div>
+
+        <!-- Output and Reporting -->
+        <div class="section">
+            <div class="section-title">
+                <span>📊</span> OUTPUT & REPORTING
+            </div>
+            
+            <div class="checkbox-grid">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="output_json">
+                    <label class="checkbox-label" for="output_json">JSON Output</label>
+                    <span class="checkbox-flag">--output-json</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="output_csv">
+                    <label class="checkbox-label" for="output_csv">CSV Output</label>
+                    <span class="checkbox-flag">--output-csv</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="output_gEX">
+                    <label class="checkbox-label" for="output_gEX">GEXF (Gephi) Output</label>
+                    <span class="checkbox-flag">--output-gexf</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="output_graph">
+                    <label class="checkbox-label" for="output_graph">Graph Visualization</label>
+                    <span class="checkbox-flag">--visualise</span>
+                </div>
+            </div>
+
+            <div id="output_filename_container" style="display: none; margin-top: 15px;">
+                <label class="input-label">Output Filename (without extension)</label>
+                <input type="text" class="input-field" id="output_filename" placeholder="spiderfoot_results">
+            </div>
+
+            <div style="margin-top: 15px;">
+                <label class="input-label">Output Directory</label>
+                <input type="text" class="input-field" id="output_dir" value="/home/kali/spiderfoot/">
+            </div>
+        </div>
+
+        <!-- Server Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🖥️</span> SERVER CONFIGURATION
+            </div>
+            
+            <div class="checkbox-grid">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="start_server">
+                    <label class="checkbox-label" for="start_server">Start Web Interface</label>
+                    <span class="checkbox-flag">--server</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="cli_mode" checked>
+                    <label class="checkbox-label" for="cli_mode">CLI Mode</label>
+                    <span class="checkbox-flag">--cli</span>
+                </div>
+            </div>
+
+            <div id="server_config" style="display: none; margin-top: 15px;">
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Host</label>
+                        <input type="text" class="input-field" id="server_host" value="127.0.0.1">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Port</label>
+                        <input type="number" class="input-field" id="server_port" value="5001" min="1" max="65535">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CUSTOM OPTIONS
+            </div>
+            <div class="input-group">
+                <label class="input-label">Additional flags (space separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="--proxy http://proxy:8080 --user-agent 'Mozilla/5.0'">
+            </div>
+        </div>
+
+        <!-- Save/Load Panel -->
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Command name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Command</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+        
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <!-- Command Preview -->
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">spiderfoot</div>
+            <div class="command-info" id="commandInfo">CLI mode - no modules selected</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand">
+                <span>📋</span> COPY COMMAND
+            </button>
+            <button class="btn btn-secondary" id="clearAll">
+                <span>🗑️</span> CLEAR ALL
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ============ COMMAND BUILDER FOR SPIDERFOOT ============
+            
+            // State
+            let state = {
+                target: '',
+                target_type: 'DOMAIN',
+                scan_name: 'scan_1',
+                correlation_rules: 'all',
+                use_correlation: true,
+                seedless: false,
+                listen: false,
+                debug: false,
+                modules: {
+                    // DNS
+                    dns_resolve: false,
+                    dns_brute: false,
+                    dns_zone: false,
+                    dns_reverse: false,
+                    // WHOIS
+                    whois: false,
+                    whois_org: false,
+                    // Search
+                    google: false,
+                    bing: false,
+                    yahoo: false,
+                    baidu: false,
+                    // Social
+                    twitter: false,
+                    linkedin: false,
+                    facebook: false,
+                    instagram: false,
+                    // Email
+                    email: false,
+                    emailrep: false,
+                    hunter: false,
+                    // IP
+                    shodan: false,
+                    censys: false,
+                    ipinfo: false,
+                    abuseipdb: false,
+                    // Dark Web
+                    onion: false,
+                    ahmia: false,
+                    // Breach
+                    hibp: false,
+                    intelx: false
+                },
+                api_keys: {
+                    configure: false,
+                    shodan: '',
+                    censys: '',
+                    hunter: '',
+                    ipinfo: '',
+                    hibp: ''
+                },
+                output: {
+                    json: false,
+                    csv: false,
+                    gexf: false,
+                    graph: false,
+                    filename: '',
+                    dir: '/home/kali/spiderfoot/'
+                },
+                server: {
+                    start: false,
+                    host: '127.0.0.1',
+                    port: 5001,
+                    cli: true
+                },
+                customFlags: ''
+            };
+
+            // DOM Elements
+            const target = document.getElementById('target');
+            const typeDomain = document.getElementById('type_domain');
+            const typeIp = document.getElementById('type_ip');
+            const typeEmail = document.getElementById('type_email');
+            const typeName = document.getElementById('type_name');
+            const typePhone = document.getElementById('type_phone');
+            const typeUsername = document.getElementById('type_username');
+            
+            const scanName = document.getElementById('scan_name');
+            const correlationRules = document.getElementById('correlation_rules');
+            const useCorrelation = document.getElementById('use_correlation');
+            const seedless = document.getElementById('seedless');
+            const listen = document.getElementById('listen');
+            const debug = document.getElementById('debug');
+            
+            // Module checkboxes
+            const moduleDnsResolve = document.getElementById('module_dns_resolve');
+            const moduleDnsBrute = document.getElementById('module_dns_brute');
+            const moduleDnsZone = document.getElementById('module_dns_zone');
+            const moduleDnsReverse = document.getElementById('module_dns_reverse');
+            const moduleWhois = document.getElementById('module_whois');
+            const moduleWhoisOrg = document.getElementById('module_whois_org');
+            const moduleGoogle = document.getElementById('module_google');
+            const moduleBing = document.getElementById('module_bing');
+            const moduleYahoo = document.getElementById('module_yahoo');
+            const moduleBaidu = document.getElementById('module_baidu');
+            const moduleTwitter = document.getElementById('module_twitter');
+            const moduleLinkedin = document.getElementById('module_linkedin');
+            const moduleFacebook = document.getElementById('module_facebook');
+            const moduleInstagram = document.getElementById('module_instagram');
+            const moduleEmail = document.getElementById('module_email');
+            const moduleEmailrep = document.getElementById('module_emailrep');
+            const moduleHunter = document.getElementById('module_hunter');
+            const moduleShodan = document.getElementById('module_shodan');
+            const moduleCensys = document.getElementById('module_censys');
+            const moduleIpinfo = document.getElementById('module_ipinfo');
+            const moduleAbuseipdb = document.getElementById('module_abuseipdb');
+            const moduleOnion = document.getElementById('module_onion');
+            const moduleAhmia = document.getElementById('module_ahmia');
+            const moduleHibp = document.getElementById('module_hibp');
+            const moduleIntelx = document.getElementById('module_intelx');
+            
+            // Preset buttons
+            const presetAll = document.getElementById('preset_all');
+            const presetFootprint = document.getElementById('preset_footprint');
+            const presetPassive = document.getElementById('preset_passive');
+            const presetInvestigate = document.getElementById('preset_investigate');
+            const presetClear = document.getElementById('preset_clear');
+            
+            // API Keys
+            const configureApiKeys = document.getElementById('configure_api_keys');
+            const apiKeysContainer = document.getElementById('api_keys_container');
+            const shodanKey = document.getElementById('shodan_key');
+            const censysKey = document.getElementById('censys_key');
+            const hunterKey = document.getElementById('hunter_key');
+            const ipinfoKey = document.getElementById('ipinfo_key');
+            const hibpKey = document.getElementById('hibp_key');
+            
+            // Output
+            const outputJson = document.getElementById('output_json');
+            const outputCsv = document.getElementById('output_csv');
+            const outputGexf = document.getElementById('output_gEX');
+            const outputGraph = document.getElementById('output_graph');
+            const outputFilename = document.getElementById('output_filename');
+            const outputFilenameContainer = document.getElementById('output_filename_container');
+            const outputDir = document.getElementById('output_dir');
+            
+            // Server
+            const startServer = document.getElementById('start_server');
+            const cliMode = document.getElementById('cli_mode');
+            const serverConfig = document.getElementById('server_config');
+            const serverHost = document.getElementById('server_host');
+            const serverPort = document.getElementById('server_port');
+            
+            // Custom flags
+            const customFlags = document.getElementById('customFlags');
+
+            // ============ EVENT LISTENERS ============
+
+            // Target
+            target.addEventListener('input', (e) => { state.target = e.target.value; updateCommand(); });
+            
+            typeDomain.addEventListener('change', (e) => { if(e.target.checked) state.target_type = 'DOMAIN'; updateCommand(); });
+            typeIp.addEventListener('change', (e) => { if(e.target.checked) state.target_type = 'IP_ADDRESS'; updateCommand(); });
+            typeEmail.addEventListener('change', (e) => { if(e.target.checked) state.target_type = 'EMAIL_ADDRESS'; updateCommand(); });
+            typeName.addEventListener('change', (e) => { if(e.target.checked) state.target_type = 'NAME'; updateCommand(); });
+            typePhone.addEventListener('change', (e) => { if(e.target.checked) state.target_type = 'PHONE_NUMBER'; updateCommand(); });
+            typeUsername.addEventListener('change', (e) => { if(e.target.checked) state.target_type = 'USERNAME'; updateCommand(); });
+
+            // Scan config
+            scanName.addEventListener('input', (e) => { state.scan_name = e.target.value; updateCommand(); });
+            correlationRules.addEventListener('change', (e) => { state.correlation_rules = e.target.value; updateCommand(); });
+            useCorrelation.addEventListener('change', (e) => { state.use_correlation = e.target.checked; updateCommand(); });
+            seedless.addEventListener('change', (e) => { state.seedless = e.target.checked; updateCommand(); });
+            listen.addEventListener('change', (e) => { state.listen = e.target.checked; updateCommand(); });
+            debug.addEventListener('change', (e) => { state.debug = e.target.checked; updateCommand(); });
+
+            // Module listeners
+            moduleDnsResolve.addEventListener('change', (e) => { state.modules.dns_resolve = e.target.checked; updateCommand(); });
+            moduleDnsBrute.addEventListener('change', (e) => { state.modules.dns_brute = e.target.checked; updateCommand(); });
+            moduleDnsZone.addEventListener('change', (e) => { state.modules.dns_zone = e.target.checked; updateCommand(); });
+            moduleDnsReverse.addEventListener('change', (e) => { state.modules.dns_reverse = e.target.checked; updateCommand(); });
+            moduleWhois.addEventListener('change', (e) => { state.modules.whois = e.target.checked; updateCommand(); });
+            moduleWhoisOrg.addEventListener('change', (e) => { state.modules.whois_org = e.target.checked; updateCommand(); });
+            moduleGoogle.addEventListener('change', (e) => { state.modules.google = e.target.checked; updateCommand(); });
+            moduleBing.addEventListener('change', (e) => { state.modules.bing = e.target.checked; updateCommand(); });
+            moduleYahoo.addEventListener('change', (e) => { state.modules.yahoo = e.target.checked; updateCommand(); });
+            moduleBaidu.addEventListener('change', (e) => { state.modules.baidu = e.target.checked; updateCommand(); });
+            moduleTwitter.addEventListener('change', (e) => { state.modules.twitter = e.target.checked; updateCommand(); });
+            moduleLinkedin.addEventListener('change', (e) => { state.modules.linkedin = e.target.checked; updateCommand(); });
+            moduleFacebook.addEventListener('change', (e) => { state.modules.facebook = e.target.checked; updateCommand(); });
+            moduleInstagram.addEventListener('change', (e) => { state.modules.instagram = e.target.checked; updateCommand(); });
+            moduleEmail.addEventListener('change', (e) => { state.modules.email = e.target.checked; updateCommand(); });
+            moduleEmailrep.addEventListener('change', (e) => { state.modules.emailrep = e.target.checked; updateCommand(); });
+            moduleHunter.addEventListener('change', (e) => { state.modules.hunter = e.target.checked; updateCommand(); });
+            moduleShodan.addEventListener('change', (e) => { state.modules.shodan = e.target.checked; updateCommand(); });
+            moduleCensys.addEventListener('change', (e) => { state.modules.censys = e.target.checked; updateCommand(); });
+            moduleIpinfo.addEventListener('change', (e) => { state.modules.ipinfo = e.target.checked; updateCommand(); });
+            moduleAbuseipdb.addEventListener('change', (e) => { state.modules.abuseipdb = e.target.checked; updateCommand(); });
+            moduleOnion.addEventListener('change', (e) => { state.modules.onion = e.target.checked; updateCommand(); });
+            moduleAhmia.addEventListener('change', (e) => { state.modules.ahmia = e.target.checked; updateCommand(); });
+            moduleHibp.addEventListener('change', (e) => { state.modules.hibp = e.target.checked; updateCommand(); });
+            moduleIntelx.addEventListener('change', (e) => { state.modules.intelx = e.target.checked; updateCommand(); });
+
+            // Preset buttons
+            presetAll.addEventListener('click', () => {
+                for(let key in state.modules) {
+                    state.modules[key] = true;
+                }
+                updateCheckboxes();
+                updateCommand();
+                Utils.showNotification('All modules enabled', 'info');
+            });
+
+            presetFootprint.addEventListener('click', () => {
+                // Reset all
+                for(let key in state.modules) {
+                    state.modules[key] = false;
+                }
+                // Enable footprint modules
+                state.modules.dns_resolve = true;
+                state.modules.dns_brute = true;
+                state.modules.whois = true;
+                state.modules.whois_org = true;
+                state.modules.google = true;
+                state.modules.bing = true;
+                updateCheckboxes();
+                updateCommand();
+                Utils.showNotification('Footprint preset loaded', 'success');
+            });
+
+            presetPassive.addEventListener('click', () => {
+                for(let key in state.modules) {
+                    state.modules[key] = false;
+                }
+                // Enable passive modules
+                state.modules.google = true;
+                state.modules.bing = true;
+                state.modules.yahoo = true;
+                state.modules.twitter = true;
+                state.modules.linkedin = true;
+                state.modules.email = true;
+                updateCheckboxes();
+                updateCommand();
+                Utils.showNotification('Passive preset loaded', 'success');
+            });
+
+            presetInvestigate.addEventListener('click', () => {
+                for(let key in state.modules) {
+                    state.modules[key] = false;
+                }
+                // Enable investigation modules
+                state.modules.shodan = true;
+                state.modules.censys = true;
+                state.modules.ipinfo = true;
+                state.modules.abuseipdb = true;
+                state.modules.hibp = true;
+                state.modules.intelx = true;
+                state.modules.onion = true;
+                updateCheckboxes();
+                updateCommand();
+                Utils.showNotification('Investigate preset loaded', 'success');
+            });
+
+            presetClear.addEventListener('click', () => {
+                for(let key in state.modules) {
+                    state.modules[key] = false;
+                }
+                updateCheckboxes();
+                updateCommand();
+                Utils.showNotification('All modules cleared', 'info');
+            });
+
+            function updateCheckboxes() {
+                moduleDnsResolve.checked = state.modules.dns_resolve;
+                moduleDnsBrute.checked = state.modules.dns_brute;
+                moduleDnsZone.checked = state.modules.dns_zone;
+                moduleDnsReverse.checked = state.modules.dns_reverse;
+                moduleWhois.checked = state.modules.whois;
+                moduleWhoisOrg.checked = state.modules.whois_org;
+                moduleGoogle.checked = state.modules.google;
+                moduleBing.checked = state.modules.bing;
+                moduleYahoo.checked = state.modules.yahoo;
+                moduleBaidu.checked = state.modules.baidu;
+                moduleTwitter.checked = state.modules.twitter;
+                moduleLinkedin.checked = state.modules.linkedin;
+                moduleFacebook.checked = state.modules.facebook;
+                moduleInstagram.checked = state.modules.instagram;
+                moduleEmail.checked = state.modules.email;
+                moduleEmailrep.checked = state.modules.emailrep;
+                moduleHunter.checked = state.modules.hunter;
+                moduleShodan.checked = state.modules.shodan;
+                moduleCensys.checked = state.modules.censys;
+                moduleIpinfo.checked = state.modules.ipinfo;
+                moduleAbuseipdb.checked = state.modules.abuseipdb;
+                moduleOnion.checked = state.modules.onion;
+                moduleAhmia.checked = state.modules.ahmia;
+                moduleHibp.checked = state.modules.hibp;
+                moduleIntelx.checked = state.modules.intelx;
+            }
+
+            // API Keys
+            configureApiKeys.addEventListener('change', (e) => {
+                state.api_keys.configure = e.target.checked;
+                apiKeysContainer.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            shodanKey.addEventListener('input', (e) => { state.api_keys.shodan = e.target.value; updateCommand(); });
+            censysKey.addEventListener('input', (e) => { state.api_keys.censys = e.target.value; updateCommand(); });
+            hunterKey.addEventListener('input', (e) => { state.api_keys.hunter = e.target.value; updateCommand(); });
+            ipinfoKey.addEventListener('input', (e) => { state.api_keys.ipinfo = e.target.value; updateCommand(); });
+            hibpKey.addEventListener('input', (e) => { state.api_keys.hibp = e.target.value; updateCommand(); });
+
+            // Output
+            outputJson.addEventListener('change', (e) => { state.output.json = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputCsv.addEventListener('change', (e) => { state.output.csv = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputGexf.addEventListener('change', (e) => { state.output.gexf = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputGraph.addEventListener('change', (e) => { state.output.graph = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputFilename.addEventListener('input', (e) => { state.output.filename = e.target.value; updateCommand(); });
+            outputDir.addEventListener('input', (e) => { state.output.dir = e.target.value; updateCommand(); });
+
+            function updateOutputVisibility() {
+                const anyOutput = state.output.json || state.output.csv || state.output.gexf || state.output.graph;
+                outputFilenameContainer.style.display = anyOutput ? 'block' : 'none';
+            }
+
+            // Server
+            startServer.addEventListener('change', (e) => {
+                state.server.start = e.target.checked;
+                serverConfig.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            cliMode.addEventListener('change', (e) => { state.server.cli = e.target.checked; updateCommand(); });
+            serverHost.addEventListener('input', (e) => { state.server.host = e.target.value; updateCommand(); });
+            serverPort.addEventListener('input', (e) => { state.server.port = parseInt(e.target.value) || 5001; updateCommand(); });
+
+            // Custom flags
+            customFlags.addEventListener('input', (e) => { state.customFlags = e.target.value; updateCommand(); });
+
+            // ============ COMMAND GENERATION ============
+
+            function generateCommand() {
+                if (state.server.start && !state.server.cli) {
+                    return `spiderfoot --server --host ${state.server.host} --port ${state.server.port}`;
+                }
+
+                let command = 'spiderfoot --cli';
+                const parts = [];
+
+                // Scan configuration
+                if (state.scan_name) {
+                    parts.push(`--scan-name "${state.scan_name}"`);
+                }
+
+                // Target
+                if (state.target) {
+                    parts.push(`--target "${state.target}"`);
+                    parts.push(`--type ${state.target_type}`);
+                }
+
+                // Correlation
+                if (state.use_correlation) {
+                    parts.push('--correlate');
+                }
+                if (state.correlation_rules !== 'all') {
+                    parts.push(`--correlation-rules ${state.correlation_rules}`);
+                }
+
+                // Scan options
+                if (state.seedless) parts.push('--seedless');
+                if (state.listen) parts.push('--listen');
+                if (state.debug) parts.push('--debug');
+
+                // Modules
+                const modules = [];
+                if (state.modules.dns_resolve) modules.push('sfp_dnsresolve');
+                if (state.modules.dns_brute) modules.push('sfp_dnsbrute');
+                if (state.modules.dns_zone) modules.push('sfp_dnszone');
+                if (state.modules.dns_reverse) modules.push('sfp_reversedns');
+                if (state.modules.whois) modules.push('sfp_whois');
+                if (state.modules.whois_org) modules.push('sfp_whoisorg');
+                if (state.modules.google) modules.push('sfp_google');
+                if (state.modules.bing) modules.push('sfp_bing');
+                if (state.modules.yahoo) modules.push('sfp_yahoo');
+                if (state.modules.baidu) modules.push('sfp_baidu');
+                if (state.modules.twitter) modules.push('sfp_twitter');
+                if (state.modules.linkedin) modules.push('sfp_linkedin');
+                if (state.modules.facebook) modules.push('sfp_facebook');
+                if (state.modules.instagram) modules.push('sfp_instagram');
+                if (state.modules.email) modules.push('sfp_email');
+                if (state.modules.emailrep) modules.push('sfp_emailrep');
+                if (state.modules.hunter) modules.push('sfp_hunter');
+                if (state.modules.shodan) modules.push('sfp_shodan');
+                if (state.modules.censys) modules.push('sfp_censys');
+                if (state.modules.ipinfo) modules.push('sfp_ipinfo');
+                if (state.modules.abuseipdb) modules.push('sfp_abuseipdb');
+                if (state.modules.onion) modules.push('sfp_onioncity');
+                if (state.modules.ahmia) modules.push('sfp_ahmia');
+                if (state.modules.hibp) modules.push('sfp_haveibeenpwned');
+                if (state.modules.intelx) modules.push('sfp_intelx');
+
+                if (modules.length > 0) {
+                    parts.push(`--modules ${modules.join(',')}`);
+                }
+
+                // API Keys - in SpiderFoot, keys are set in config, not CLI
+                if (state.api_keys.configure) {
+                    // This would be handled separately in SpiderFoot's config
+                }
+
+                // Output
+                const outputFormats = [];
+                if (state.output.json) outputFormats.push('json');
+                if (state.output.csv) outputFormats.push('csv');
+                if (state.output.gexf) outputFormats.push('gexf');
+                
+                if (outputFormats.length > 0) {
+                    parts.push(`--output ${outputFormats.join(',')}`);
+                }
+                
+                if (state.output.filename) {
+                    parts.push(`--output-file "${state.output.dir}${state.output.filename}"`);
+                }
+
+                if (state.output.graph) {
+                    parts.push('--visualise');
+                }
+
+                // Custom flags
+                if (state.customFlags) {
+                    const customParts = state.customFlags.trim().split(/\s+/);
+                    customParts.forEach(part => parts.push(part));
+                }
+
+                // Build command
+                if (parts.length > 0) {
+                    command += ' ' + parts.join(' ');
+                }
+
+                return command;
+            }
+
+            function generateExplanation() {
+                const explanations = [];
+                
+                if (state.target) explanations.push(`Target: ${state.target} (${state.target_type})`);
+                if (state.scan_name) explanations.push(`Scan: ${state.scan_name}`);
+                
+                const moduleCount = Object.values(state.modules).filter(Boolean).length;
+                if (moduleCount > 0) explanations.push(`${moduleCount} modules`);
+                
+                if (state.use_correlation) explanations.push('Correlation enabled');
+                
+                const outputFormats = [];
+                if (state.output.json) outputFormats.push('JSON');
+                if (state.output.csv) outputFormats.push('CSV');
+                if (state.output.gexf) outputFormats.push('GEXF');
+                if (state.output.graph) outputFormats.push('Graph');
+                
+                if (outputFormats.length > 0) {
+                    explanations.push(`Output: ${outputFormats.join(', ')}`);
+                }
+                
+                if (state.server.start && !state.server.cli) {
+                    return `Web interface running on ${state.server.host}:${state.server.port}`;
+                }
+                
+                return explanations.length > 0 
+                    ? `Command includes: ${explanations.join(' • ')}`
+                    : 'CLI mode - no modules selected';
+            }
+
+            function updateCommand() {
+                document.getElementById('commandPreview').textContent = generateCommand();
+                document.getElementById('commandInfo').textContent = generateExplanation();
+            }
+
+            // ============ SAVE/LOAD FUNCTIONS ============
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved.spiderfoot) saved.spiderfoot = [];
+                
+                saved.spiderfoot.push({
+                    name: name,
+                    state: { ...state },
+                    timestamp: new Date().toISOString()
+                });
+                
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved.spiderfoot || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved.spiderfoot && saved.spiderfoot[index]) {
+                    saved.spiderfoot.splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function loadStateIntoSavedCommands(savedState) {
+                // Restore state
+                state = JSON.parse(JSON.stringify(savedState));
+                
+                // Update UI
+                target.value = state.target || '';
+                
+                // Target type
+                if (state.target_type === 'DOMAIN') typeDomain.checked = true;
+                else if (state.target_type === 'IP_ADDRESS') typeIp.checked = true;
+                else if (state.target_type === 'EMAIL_ADDRESS') typeEmail.checked = true;
+                else if (state.target_type === 'NAME') typeName.checked = true;
+                else if (state.target_type === 'PHONE_NUMBER') typePhone.checked = true;
+                else if (state.target_type === 'USERNAME') typeUsername.checked = true;
+                
+                scanName.value = state.scan_name || 'scan_1';
+                correlationRules.value = state.correlation_rules || 'all';
+                useCorrelation.checked = state.use_correlation !== false;
+                seedless.checked = state.seedless || false;
+                listen.checked = state.listen || false;
+                debug.checked = state.debug || false;
+                
+                // Modules
+                updateCheckboxes();
+                
+                // API Keys
+                configureApiKeys.checked = state.api_keys?.configure || false;
+                apiKeysContainer.style.display = state.api_keys?.configure ? 'block' : 'none';
+                shodanKey.value = state.api_keys?.shodan || '';
+                censysKey.value = state.api_keys?.censys || '';
+                hunterKey.value = state.api_keys?.hunter || '';
+                ipinfoKey.value = state.api_keys?.ipinfo || '';
+                hibpKey.value = state.api_keys?.hibp || '';
+                
+                // Output
+                outputJson.checked = state.output?.json || false;
+                outputCsv.checked = state.output?.csv || false;
+                outputGexf.checked = state.output?.gexf || false;
+                outputGraph.checked = state.output?.graph || false;
+                outputFilename.value = state.output?.filename || '';
+                outputDir.value = state.output?.dir || '/home/kali/spiderfoot/';
+                updateOutputVisibility();
+                
+                // Server
+                startServer.checked = state.server?.start || false;
+                cliMode.checked = state.server?.cli !== false;
+                serverConfig.style.display = state.server?.start ? 'block' : 'none';
+                serverHost.value = state.server?.host || '127.0.0.1';
+                serverPort.value = state.server?.port || 5001;
+                
+                // Custom flags
+                customFlags.value = state.customFlags || '';
+                
+                updateCommand();
+            }
+
+            function updateSavedCommandsList() {
+                const saved = loadSavedCommands();
+                const container = document.getElementById('savedCommandsList');
+                
+                if (saved.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-saved')) {
+                            const index = item.dataset.index;
+                            const cmd = saved[index];
+                            loadStateIntoSavedCommands(cmd.state);
+                            Utils.showNotification(`Loaded: ${cmd.name}`, 'success');
+                        }
+                    });
+                });
+                
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = btn.dataset.index;
+                        deleteSavedCommand(index);
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            // ============ BUTTON HANDLERS ============
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value;
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this command', 'warning');
+                    return;
+                }
+                
+                saveCommand(name);
+                Utils.showNotification('✅ Command saved!', 'success');
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', () => {
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const command = generateCommand();
+                try {
+                    await navigator.clipboard.writeText(command);
+                    Utils.showNotification('✅ Command copied to clipboard!', 'success');
+                } catch (err) {
+                    Utils.showNotification('❌ Failed to copy command', 'error');
+                }
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                // Reset state
+                state = {
+                    target: '',
+                    target_type: 'DOMAIN',
+                    scan_name: 'scan_1',
+                    correlation_rules: 'all',
+                    use_correlation: true,
+                    seedless: false,
+                    listen: false,
+                    debug: false,
+                    modules: {
+                        dns_resolve: false, dns_brute: false, dns_zone: false, dns_reverse: false,
+                        whois: false, whois_org: false,
+                        google: false, bing: false, yahoo: false, baidu: false,
+                        twitter: false, linkedin: false, facebook: false, instagram: false,
+                        email: false, emailrep: false, hunter: false,
+                        shodan: false, censys: false, ipinfo: false, abuseipdb: false,
+                        onion: false, ahmia: false,
+                        hibp: false, intelx: false
+                    },
+                    api_keys: {
+                        configure: false, shodan: '', censys: '', hunter: '', ipinfo: '', hibp: ''
+                    },
+                    output: {
+                        json: false, csv: false, gexf: false, graph: false, filename: '', dir: '/home/kali/spiderfoot/'
+                    },
+                    server: {
+                        start: false, host: '127.0.0.1', port: 5001, cli: true
+                    },
+                    customFlags: ''
+                };
+                
+                // Reset UI
+                target.value = '';
+                typeDomain.checked = true;
+                scanName.value = 'scan_1';
+                correlationRules.value = 'all';
+                useCorrelation.checked = true;
+                seedless.checked = false;
+                listen.checked = false;
+                debug.checked = false;
+                
+                document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                    if (cb.id !== 'use_correlation' && cb.id !== 'cli_mode') {
+                        cb.checked = false;
+                    }
+                });
+                
+                apiKeysContainer.style.display = 'none';
+                shodanKey.value = '';
+                censysKey.value = '';
+                hunterKey.value = '';
+                ipinfoKey.value = '';
+                hibpKey.value = '';
+                
+                outputFilenameContainer.style.display = 'none';
+                outputFilename.value = '';
+                outputDir.value = '/home/kali/spiderfoot/';
+                
+                serverConfig.style.display = 'none';
+                serverHost.value = '127.0.0.1';
+                serverPort.value = 5001;
+                cliMode.checked = true;
+                
+                customFlags.value = '';
+                
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            // Initial update
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

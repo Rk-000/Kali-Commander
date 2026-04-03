@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dirbuster - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles specific to Dirbuster */
+        .dirbuster-option-group {
+            background: rgba(15, 95, 168, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid #00CFFF;
+        }
+        .dirbuster-option-title {
+            color: #00CFFF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tree-view {
+            background: #0A1F33;
+            border: 2px solid #0F5FA8;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: #E6F0FA;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .tree-item {
+            padding: 3px 0 3px 20px;
+            border-left: 1px dashed #1E88E5;
+            margin-left: 10px;
+        }
+        .tree-item.found {
+            color: #00CFFF;
+            font-weight: bold;
+        }
+        .tree-item.dir {
+            color: #1E88E5;
+        }
+        .tree-item.file {
+            color: #E6F0FA;
+        }
+        .code-distribution {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .code-bar {
+            height: 10px;
+            background: #0F5FA8;
+            border-radius: 5px;
+            transition: width 0.3s;
+        }
+        .code-200 { background: #2E8B57; }
+        .code-403 { background: #FF4500; }
+        .code-404 { background: #8B0000; }
+        .code-500 { background: #FFA500; }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=web-application">Web Application Analysis</a>
+            <span class="separator">›</span>
+            <span class="current">Dirbuster</span>
+        </div>
+
+        <!-- Tool Header -->
+        <div class="tool-header">
+            <h1>DIRBUSTER</h1>
+            <p>Directory Brute-Forcing Tool - Multi-threaded web content scanner with GUI</p>
+        </div>
+
+        <!-- Launch Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🚀</span> LAUNCH CONFIGURATION
+            </div>
+
+            <div class="dirbuster-option-group">
+                <div class="dirbuster-option-title">
+                    <span>⚡</span> LAUNCH OPTIONS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="radio" name="launch_mode" id="launch_gui" value="gui" checked>
+                        <label class="checkbox-label" for="launch_gui">Launch GUI</label>
+                        <span class="checkbox-flag">(default)</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="launch_mode" id="launch_headless" value="headless">
+                        <label class="checkbox-label" for="launch_headless">Headless Mode</label>
+                        <span class="checkbox-flag">-H</span>
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">JVM Heap Size</label>
+                        <input type="text" class="input-field" id="heap_size" value="256" placeholder="256m">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Log Level</label>
+                        <select class="file-type-select" id="log_level">
+                            <option value="severe">Errors Only</option>
+                            <option value="warning" selected>Warnings</option>
+                            <option value="info">Info</option>
+                            <option value="fine">Debug</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Target Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🎯</span> TARGET CONFIGURATION
+            </div>
+
+            <div class="dirbuster-option-group">
+                <div class="dirbuster-option-title">
+                    <span>🌐</span> TARGET URL
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Base URL</label>
+                    <input type="url" class="input-field" id="url" placeholder="http://example.com/" value="http://">
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Port</label>
+                    <input type="number" class="input-field" id="port" value="80" min="1" max="65535">
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Protocol</label>
+                        <select class="file-type-select" id="protocol">
+                            <option value="http">HTTP</option>
+                            <option value="https">HTTPS</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Base Path</label>
+                        <input type="text" class="input-field" id="base_path" value="/">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wordlist Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📚</span> WORDLIST CONFIGURATION
+            </div>
+
+            <div class="dirbuster-option-group">
+                <div class="dirbuster-option-title">
+                    <span>📄</span> WORDLIST SELECTION
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Wordlist File</label>
+                    <input type="text" class="input-field" id="wordlist" value="/usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt">
+                    <button class="btn btn-secondary" style="margin-top: 5px;">Browse</button>
+                </div>
+
+                <div class="checkbox-grid" style="margin-top: 15px;">
+                    <div class="checkbox-item">
+                        <input type="radio" name="wordlist_source" id="wl_file" value="file" checked>
+                        <label class="checkbox-label" for="wl_file">File Wordlist</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="wordlist_source" id="wl_generate" value="generate">
+                        <label class="checkbox-label" for="wl_generate">Generate Wordlist</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="wordlist_source" id="wl_stdin" value="stdin">
+                        <label class="checkbox-label" for="wl_stdin">STDIN</label>
+                    </div>
+                </div>
+
+                <!-- Wordlist Preview -->
+                <div class="wordlist-preview" style="margin-top: 15px;">
+                    <strong>Preview (first 10 lines):</strong><br>
+                    admin<br>
+                    images<br>
+                    css<br>
+                    js<br>
+                    backup<br>
+                    tmp<br>
+                    logs<br>
+                    includes<br>
+                    modules<br>
+                    uploads
+                </div>
+            </div>
+
+            <div class="dirbuster-option-group" id="generate_options" style="display: none;">
+                <div class="dirbuster-option-title">
+                    <span>⚙️</span> WORDLIST GENERATION
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Charset</label>
+                        <input type="text" class="input-field" id="charset" value="abcdefghijklmnopqrstuvwxyz">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Min Length</label>
+                        <input type="number" class="input-field" id="min_length" value="1" min="1" max="10">
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Max Length</label>
+                        <input type="number" class="input-field" id="max_length" value="3" min="1" max="10">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Case</label>
+                        <select class="file-type-select" id="case">
+                            <option value="lower">Lowercase</option>
+                            <option value="upper">Uppercase</option>
+                            <option value="mixed">Mixed Case</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dirbuster-option-group">
+                <div class="dirbuster-option-title">
+                    <span>🔧</span> FILE EXTENSIONS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">File Extensions (space separated)</label>
+                    <input type="text" class="input-field" id="extensions" value="php asp aspx jsp html js">
+                </div>
+
+                <div class="checkbox-item" style="margin-top: 15px;">
+                    <input type="checkbox" id="append_slash">
+                    <label class="checkbox-label" for="append_slash">Append / to directories</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scan Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚙️</span> SCAN CONFIGURATION
+            </div>
+
+            <div class="dirbuster-option-group">
+                <div class="dirbuster-option-title">
+                    <span>⚡</span> THREADING
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Number of Threads</label>
+                        <input type="number" class="input-field" id="threads" value="10" min="1" max="100">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Retry on Fail</label>
+                        <input type="number" class="input-field" id="retry" value="2" min="0" max="5">
+                    </div>
+                </div>
+            </div>
+
+            <div class="dirbuster-option-group">
+                <div class="dirbuster-option-title">
+                    <span>⏱️</span> TIMING
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Timeout (seconds)</label>
+                        <input type="number" class="input-field" id="timeout" value="10" min="1" max="60">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Delay (ms)</label>
+                        <input type="number" class="input-field" id="delay" value="0" min="0" max="10000">
+                    </div>
+                </div>
+            </div>
+
+            <div class="dirbuster-option-group">
+                <div class="dirbuster-option-title">
+                    <span>🔄</span> RECURSION
+                </div>
+                
+                <div class="checkbox-item">
+                    <input type="checkbox" id="recursive">
+                    <label class="checkbox-label" for="recursive">Enable Recursion</label>
+                </div>
+
+                <div id="recursion_options" style="display: none; margin-top: 15px;">
+                    <div class="output-row">
+                        <div class="input-group">
+                            <label class="input-label">Max Depth</label>
+                            <input type="number" class="input-field" id="depth" value="3" min="1" max="10">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Max Directories</label>
+                            <input type="number" class="input-field" id="max_dirs" value="1000" min="1" max="10000">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dirbuster-option-group">
+                <div class="dirbuster-option-title">
+                    <span>🔍</span> SCAN TYPE
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="radio" name="scan_type" id="scan_both" value="both" checked>
+                        <label class="checkbox-label" for="scan_both">Directories and Files</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="scan_type" id="scan_dirs" value="dirs">
+                        <label class="checkbox-label" for="scan_dirs">Directories Only</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="scan_type" id="scan_files" value="files">
+                        <label class="checkbox-label" for="scan_files">Files Only</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HTTP Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>🌍</span> HTTP OPTIONS
+            </div>
+
+            <div class="dirbuster-option-group">
+                <div class="dirbuster-option-title">
+                    <span>🍪</span> COOKIES
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Cookie String</label>
+                    <input type="text" class="input-field" id="cookie" placeholder="PHPSESSID=abc123; security=low">
+                </div>
+            </div>
+
+            <div class="dirbuster-option-group">
+                <div class="dirbuster-option-title">
+                    <span>🔐</span> AUTHENTICATION
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Username</label>
+                    <input type="text" class="input-field" id="auth_user">
+                </div>
+                
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Password</label>
+                    <input type="password" class="input-field" id="auth_pass">
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Authentication Type</label>
+                    <select class="file-type-select" id="auth_type">
+                        <option value="basic">Basic</option>
+                        <option value="digest">Digest</option>
+                        <option value="ntlm">NTLM</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="dirbuster-option-group">
+                <div class="dirbuster-option-title">
+                    <span>📝</span> USER AGENT
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Custom User Agent</label>
+                    <input type="text" class="input-field" id="useragent" value="Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0">
+                </div>
+            </div>
+
+            <div class="dirbuster-option-group">
+                <div class="dirbuster-option-title">
+                    <span>🔀</span> PROXY
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Proxy URL</label>
+                    <input type="text" class="input-field" id="proxy" placeholder="http://127.0.0.1:8080">
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtering Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔍</span> FILTERING OPTIONS
+            </div>
+
+            <div class="dirbuster-option-group">
+                <div class="dirbuster-option-title">
+                    <span>✅</span> STATUS CODES TO INCLUDE
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Include Codes</label>
+                    <input type="text" class="input-field" id="include_codes" value="200,204,301,302,307,401,403">
+                </div>
+
+                <div class="code-distribution">
+                    <div style="flex: 1;">
+                        <div class="code-200 code-bar" style="width: 70%;"></div>
+                        <span>200 OK (70%)</span>
+                    </div>
+                    <div style="flex: 1;">
+                        <div class="code-403 code-bar" style="width: 15%;"></div>
+                        <span>403 Forbidden (15%)</span>
+                    </div>
+                    <div style="flex: 1;">
+                        <div class="code-404 code-bar" style="width: 10%;"></div>
+                        <span>404 Not Found (10%)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dirbuster-option-group">
+                <div class="dirbuster-option-title">
+                    <span>❌</span> STATUS CODES TO EXCLUDE
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Exclude Codes</label>
+                    <input type="text" class="input-field" id="exclude_codes" value="404">
+                </div>
+            </div>
+
+            <div class="dirbuster-option-group">
+                <div class="dirbuster-option-title">
+                    <span>📏</span> SIZE FILTERS
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Min Size (bytes)</label>
+                        <input type="number" class="input-field" id="min_size" value="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Max Size (bytes)</label>
+                        <input type="number" class="input-field" id="max_size" value="999999" min="0">
+                    </div>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Exclude Size (comma separated)</label>
+                    <input type="text" class="input-field" id="exclude_size" placeholder="1024,2048">
+                </div>
+            </div>
+
+            <div class="dirbuster-option-group">
+                <div class="dirbuster-option-title">
+                    <span>🔤</span> STRING FILTERS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Exclude if contains</label>
+                    <input type="text" class="input-field" id="exclude_string" placeholder="error, not found">
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📊</span> OUTPUT CONFIGURATION
+            </div>
+
+            <div class="dirbuster-option-group">
+                <div class="dirbuster-option-title">
+                    <span>📁</span> OUTPUT OPTIONS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_txt">
+                        <label class="checkbox-label" for="output_txt">Text Output</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_xml">
+                        <label class="checkbox-label" for="output_xml">XML Output</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_html">
+                        <label class="checkbox-label" for="output_html">HTML Report</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_tree">
+                        <label class="checkbox-label" for="output_tree">Tree Structure</label>
+                    </div>
+                </div>
+
+                <div id="output_filename_container" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Output Filename</label>
+                    <input type="text" class="input-field" id="output_filename" placeholder="dirbuster_scan">
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <label class="input-label">Output Directory</label>
+                    <input type="text" class="input-field" id="output_dir" value="/home/kali/dirbuster/">
+                </div>
+            </div>
+
+            <div class="dirbuster-option-group">
+                <div class="dirbuster-option-title">
+                    <span>📋</span> RESULTS PREVIEW
+                </div>
+                
+                <div class="tree-view">
+                    <div class="tree-item dir">📁 /admin/ <span style="color: #2E8B57;">[200]</span></div>
+                    <div class="tree-item dir">📁 /images/ <span style="color: #2E8B57;">[200]</span></div>
+                    <div class="tree-item dir">📁 /css/ <span style="color: #2E8B57;">[200]</span></div>
+                    <div class="tree-item dir">📁 /js/ <span style="color: #2E8B57;">[200]</span></div>
+                    <div class="tree-item file">📄 /backup.zip <span style="color: #2E8B57;">[200]</span></div>
+                    <div class="tree-item file">📄 /robots.txt <span style="color: #2E8B57;">[200]</span></div>
+                    <div class="tree-item file">📄 /wp-config.php <span style="color: #2E8B57;">[200]</span></div>
+                    <div class="tree-item dir">📁 /tmp/ <span style="color: #FF4500;">[403]</span></div>
+                    <div class="tree-item file">📄 /secret.html <span style="color: #2E8B57;">[200]</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CUSTOM OPTIONS
+            </div>
+            <div class="input-group">
+                <label class="input-label">Additional JVM Arguments</label>
+                <input type="text" class="input-field" id="jvm_args" placeholder="-Xmx512m -Djava.awt.headless=true">
+            </div>
+            <div class="input-group" style="margin-top: 15px;">
+                <label class="input-label">Custom flags</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="-s -v">
+            </div>
+        </div>
+
+        <!-- Save/Load Panel -->
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Scan configuration name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Configuration</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+        
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <!-- Command Preview -->
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">dirbuster</div>
+            <div class="command-info" id="commandInfo">Launching Dirbuster GUI</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand">
+                <span>📋</span> COPY COMMAND
+            </button>
+            <button class="btn btn-secondary" id="clearAll">
+                <span>🗑️</span> CLEAR ALL
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ============ COMMAND BUILDER FOR DIRBUSTER ============
+            
+            // State
+            let state = {
+                launch_mode: 'gui',
+                heap_size: '256',
+                log_level: 'warning',
+                url: 'http://',
+                port: 80,
+                protocol: 'http',
+                base_path: '/',
+                wordlist: '/usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt',
+                wordlist_source: 'file',
+                charset: 'abcdefghijklmnopqrstuvwxyz',
+                min_length: 1,
+                max_length: 3,
+                case: 'lower',
+                extensions: 'php asp aspx jsp html js',
+                append_slash: false,
+                threads: 10,
+                retry: 2,
+                timeout: 10,
+                delay: 0,
+                recursive: false,
+                depth: 3,
+                max_dirs: 1000,
+                scan_type: 'both',
+                cookie: '',
+                auth_user: '',
+                auth_pass: '',
+                auth_type: 'basic',
+                useragent: 'Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0',
+                proxy: '',
+                include_codes: '200,204,301,302,307,401,403',
+                exclude_codes: '404',
+                min_size: 0,
+                max_size: 999999,
+                exclude_size: '',
+                exclude_string: '',
+                output: {
+                    txt: false,
+                    xml: false,
+                    html: false,
+                    tree: false,
+                    filename: ''
+                },
+                output_dir: '/home/kali/dirbuster/',
+                jvm_args: '',
+                customFlags: ''
+            };
+
+            // DOM Elements
+            const launchGui = document.getElementById('launch_gui');
+            const launchHeadless = document.getElementById('launch_headless');
+            const heapSize = document.getElementById('heap_size');
+            const logLevel = document.getElementById('log_level');
+            const url = document.getElementById('url');
+            const port = document.getElementById('port');
+            const protocol = document.getElementById('protocol');
+            const basePath = document.getElementById('base_path');
+            const wordlist = document.getElementById('wordlist');
+            const wlFile = document.getElementById('wl_file');
+            const wlGenerate = document.getElementById('wl_generate');
+            const wlStdin = document.getElementById('wl_stdin');
+            const generateOptions = document.getElementById('generate_options');
+            const charset = document.getElementById('charset');
+            const minLength = document.getElementById('min_length');
+            const maxLength = document.getElementById('max_length');
+            const caseSelect = document.getElementById('case');
+            const extensions = document.getElementById('extensions');
+            const appendSlash = document.getElementById('append_slash');
+            const threads = document.getElementById('threads');
+            const retry = document.getElementById('retry');
+            const timeout = document.getElementById('timeout');
+            const delay = document.getElementById('delay');
+            const recursive = document.getElementById('recursive');
+            const recursionOptions = document.getElementById('recursion_options');
+            const depth = document.getElementById('depth');
+            const maxDirs = document.getElementById('max_dirs');
+            const scanBoth = document.getElementById('scan_both');
+            const scanDirs = document.getElementById('scan_dirs');
+            const scanFiles = document.getElementById('scan_files');
+            const cookie = document.getElementById('cookie');
+            const authUser = document.getElementById('auth_user');
+            const authPass = document.getElementById('auth_pass');
+            const authType = document.getElementById('auth_type');
+            const useragent = document.getElementById('useragent');
+            const proxy = document.getElementById('proxy');
+            const includeCodes = document.getElementById('include_codes');
+            const excludeCodes = document.getElementById('exclude_codes');
+            const minSize = document.getElementById('min_size');
+            const maxSize = document.getElementById('max_size');
+            const excludeSize = document.getElementById('exclude_size');
+            const excludeString = document.getElementById('exclude_string');
+            
+            // Output
+            const outputTxt = document.getElementById('output_txt');
+            const outputXml = document.getElementById('output_xml');
+            const outputHtml = document.getElementById('output_html');
+            const outputTree = document.getElementById('output_tree');
+            const outputFilename = document.getElementById('output_filename');
+            const outputFilenameContainer = document.getElementById('output_filename_container');
+            const outputDir = document.getElementById('output_dir');
+            
+            const jvmArgs = document.getElementById('jvm_args');
+            const customFlags = document.getElementById('customFlags');
+
+            // ============ EVENT LISTENERS ============
+
+            // Launch mode
+            launchGui.addEventListener('change', (e) => { if(e.target.checked) state.launch_mode = 'gui'; updateCommand(); });
+            launchHeadless.addEventListener('change', (e) => { if(e.target.checked) state.launch_mode = 'headless'; updateCommand(); });
+            heapSize.addEventListener('input', (e) => { state.heap_size = e.target.value; updateCommand(); });
+            logLevel.addEventListener('change', (e) => { state.log_level = e.target.value; updateCommand(); });
+
+            // Target
+            url.addEventListener('input', (e) => { state.url = e.target.value; updateCommand(); });
+            port.addEventListener('input', (e) => { state.port = parseInt(e.target.value) || 80; updateCommand(); });
+            protocol.addEventListener('change', (e) => { state.protocol = e.target.value; updateCommand(); });
+            basePath.addEventListener('input', (e) => { state.base_path = e.target.value || '/'; updateCommand(); });
+
+            // Wordlist
+            wordlist.addEventListener('input', (e) => { state.wordlist = e.target.value; updateCommand(); });
+            
+            wlFile.addEventListener('change', (e) => { 
+                if(e.target.checked) {
+                    state.wordlist_source = 'file';
+                    generateOptions.style.display = 'none';
+                    updateCommand();
+                }
+            });
+            
+            wlGenerate.addEventListener('change', (e) => { 
+                if(e.target.checked) {
+                    state.wordlist_source = 'generate';
+                    generateOptions.style.display = 'block';
+                    updateCommand();
+                }
+            });
+            
+            wlStdin.addEventListener('change', (e) => { 
+                if(e.target.checked) {
+                    state.wordlist_source = 'stdin';
+                    generateOptions.style.display = 'none';
+                    updateCommand();
+                }
+            });
+
+            charset.addEventListener('input', (e) => { state.charset = e.target.value; updateCommand(); });
+            minLength.addEventListener('input', (e) => { state.min_length = parseInt(e.target.value) || 1; updateCommand(); });
+            maxLength.addEventListener('input', (e) => { state.max_length = parseInt(e.target.value) || 3; updateCommand(); });
+            caseSelect.addEventListener('change', (e) => { state.case = e.target.value; updateCommand(); });
+
+            extensions.addEventListener('input', (e) => { state.extensions = e.target.value; updateCommand(); });
+            appendSlash.addEventListener('change', (e) => { state.append_slash = e.target.checked; updateCommand(); });
+
+            // Scan config
+            threads.addEventListener('input', (e) => { state.threads = parseInt(e.target.value) || 10; updateCommand(); });
+            retry.addEventListener('input', (e) => { state.retry = parseInt(e.target.value) || 2; updateCommand(); });
+            timeout.addEventListener('input', (e) => { state.timeout = parseInt(e.target.value) || 10; updateCommand(); });
+            delay.addEventListener('input', (e) => { state.delay = parseInt(e.target.value) || 0; updateCommand(); });
+
+            recursive.addEventListener('change', (e) => {
+                state.recursive = e.target.checked;
+                recursionOptions.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            depth.addEventListener('input', (e) => { state.depth = parseInt(e.target.value) || 3; updateCommand(); });
+            maxDirs.addEventListener('input', (e) => { state.max_dirs = parseInt(e.target.value) || 1000; updateCommand(); });
+
+            scanBoth.addEventListener('change', (e) => { if(e.target.checked) state.scan_type = 'both'; updateCommand(); });
+            scanDirs.addEventListener('change', (e) => { if(e.target.checked) state.scan_type = 'dirs'; updateCommand(); });
+            scanFiles.addEventListener('change', (e) => { if(e.target.checked) state.scan_type = 'files'; updateCommand(); });
+
+            // HTTP
+            cookie.addEventListener('input', (e) => { state.cookie = e.target.value; updateCommand(); });
+            authUser.addEventListener('input', (e) => { state.auth_user = e.target.value; updateCommand(); });
+            authPass.addEventListener('input', (e) => { state.auth_pass = e.target.value; updateCommand(); });
+            authType.addEventListener('change', (e) => { state.auth_type = e.target.value; updateCommand(); });
+            useragent.addEventListener('input', (e) => { state.useragent = e.target.value; updateCommand(); });
+            proxy.addEventListener('input', (e) => { state.proxy = e.target.value; updateCommand(); });
+
+            // Filters
+            includeCodes.addEventListener('input', (e) => { state.include_codes = e.target.value; updateCommand(); });
+            excludeCodes.addEventListener('input', (e) => { state.exclude_codes = e.target.value; updateCommand(); });
+            minSize.addEventListener('input', (e) => { state.min_size = parseInt(e.target.value) || 0; updateCommand(); });
+            maxSize.addEventListener('input', (e) => { state.max_size = parseInt(e.target.value) || 999999; updateCommand(); });
+            excludeSize.addEventListener('input', (e) => { state.exclude_size = e.target.value; updateCommand(); });
+            excludeString.addEventListener('input', (e) => { state.exclude_string = e.target.value; updateCommand(); });
+
+            // Output
+            outputTxt.addEventListener('change', (e) => { state.output.txt = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputXml.addEventListener('change', (e) => { state.output.xml = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputHtml.addEventListener('change', (e) => { state.output.html = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputTree.addEventListener('change', (e) => { state.output.tree = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputFilename.addEventListener('input', (e) => { state.output.filename = e.target.value; updateCommand(); });
+            outputDir.addEventListener('input', (e) => { state.output_dir = e.target.value; updateCommand(); });
+
+            function updateOutputVisibility() {
+                const anyOutput = state.output.txt || state.output.xml || state.output.html || state.output.tree;
+                outputFilenameContainer.style.display = anyOutput ? 'block' : 'none';
+            }
+
+            // Custom options
+            jvmArgs.addEventListener('input', (e) => { state.jvm_args = e.target.value; updateCommand(); });
+            customFlags.addEventListener('input', (e) => { state.customFlags = e.target.value; updateCommand(); });
+
+            // ============ COMMAND GENERATION ============
+
+            function generateCommand() {
+                let command = 'dirbuster';
+
+                // For headless mode, we generate the command-line arguments
+                if (state.launch_mode === 'headless') {
+                    command = 'java';
+                    const parts = [];
+
+                    // JVM arguments
+                    if (state.jvm_args) {
+                        parts.push(state.jvm_args);
+                    } else {
+                        parts.push(`-Xmx${state.heap_size}m`);
+                    }
+
+                    // Dirbuster class
+                    parts.push('-jar /usr/share/dirbuster/DirBuster-1.0-RC1.jar');
+
+                    // Headless mode
+                    parts.push('-H');
+
+                    // Target URL
+                    let targetUrl = `${state.protocol}://${state.url.replace(/^https?:\/\//, '')}`;
+                    if (state.port !== 80 && state.port !== 443) {
+                        targetUrl += `:${state.port}`;
+                    }
+                    targetUrl += state.base_path;
+                    parts.push(`-u ${targetUrl}`);
+
+                    // Wordlist
+                    if (state.wordlist_source === 'file' && state.wordlist) {
+                        parts.push(`-l ${state.wordlist}`);
+                    }
+
+                    // Extensions
+                    if (state.extensions) {
+                        const extList = state.extensions.split(/\s+/).filter(e => e);
+                        parts.push(`-e ${extList.join(',')}`);
+                    }
+
+                    // Threads
+                    if (state.threads !== 10) {
+                        parts.push(`-t ${state.threads}`);
+                    }
+
+                    // Timeout
+                    if (state.timeout !== 10) {
+                        parts.push(`-T ${state.timeout}`);
+                    }
+
+                    // Recursion
+                    if (state.recursive) {
+                        parts.push(`-r -R ${state.depth}`);
+                    }
+
+                    // Scan type
+                    if (state.scan_type === 'dirs') {
+                        parts.push('-d');
+                    } else if (state.scan_type === 'files') {
+                        parts.push('-f');
+                    }
+
+                    // Cookies
+                    if (state.cookie) {
+                        parts.push(`-c "${state.cookie}"`);
+                    }
+
+                    // Authentication
+                    if (state.auth_user && state.auth_pass) {
+                        parts.push(`-a ${state.auth_user}:${state.auth_pass}`);
+                        if (state.auth_type !== 'basic') {
+                            parts.push(`-A ${state.auth_type}`);
+                        }
+                    }
+
+                    // User Agent
+                    if (state.useragent) {
+                        parts.push(`-U "${state.useragent}"`);
+                    }
+
+                    // Proxy
+                    if (state.proxy) {
+                        parts.push(`-p ${state.proxy}`);
+                    }
+
+                    // Include codes
+                    if (state.include_codes !== '200,204,301,302,307,401,403') {
+                        parts.push(`-i ${state.include_codes}`);
+                    }
+
+                    // Exclude codes
+                    if (state.exclude_codes !== '404') {
+                        parts.push(`-x ${state.exclude_codes}`);
+                    }
+
+                    // Output
+                    if (state.output.filename) {
+                        parts.push(`-o ${state.output_dir}${state.output.filename}.txt`);
+                    }
+
+                    // Custom flags
+                    if (state.customFlags) {
+                        const customParts = state.customFlags.trim().split(/\s+/);
+                        customParts.forEach(part => parts.push(part));
+                    }
+
+                    return command + ' ' + parts.join(' ');
+                }
+
+                // GUI mode - just launch dirbuster
+                return 'dirbuster';
+            }
+
+            function generateExplanation() {
+                const explanations = [];
+                
+                if (state.launch_mode === 'gui') {
+                    explanations.push('GUI Mode');
+                } else {
+                    explanations.push('Headless Mode');
+                }
+                
+                if (state.url) {
+                    let target = `${state.protocol}://${state.url.replace(/^https?:\/\//, '')}`;
+                    if (state.port !== 80 && state.port !== 443) {
+                        target += `:${state.port}`;
+                    }
+                    target += state.base_path;
+                    explanations.push(`Target: ${target}`);
+                }
+                
+                if (state.wordlist) {
+                    const wordlistName = state.wordlist.split('/').pop();
+                    explanations.push(`Wordlist: ${wordlistName}`);
+                }
+                
+                if (state.recursive) {
+                    explanations.push(`Depth: ${state.depth}`);
+                }
+                
+                if (state.threads > 10) explanations.push(`Threads: ${state.threads}`);
+                
+                if (state.auth_user) explanations.push('Authentication enabled');
+                
+                const outputFormats = [];
+                if (state.output.txt) outputFormats.push('TXT');
+                if (state.output.xml) outputFormats.push('XML');
+                if (state.output.html) outputFormats.push('HTML');
+                if (state.output.tree) outputFormats.push('Tree');
+                
+                if (outputFormats.length > 0) {
+                    explanations.push(`Output: ${outputFormats.join(', ')}`);
+                }
+                
+                return explanations.length > 0 
+                    ? `Scan includes: ${explanations.join(' • ')}`
+                    : 'No scan options selected';
+            }
+
+            function updateCommand() {
+                document.getElementById('commandPreview').textContent = generateCommand();
+                document.getElementById('commandInfo').textContent = generateExplanation();
+            }
+
+            // ============ SAVE/LOAD FUNCTIONS ============
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved.dirbuster) saved.dirbuster = [];
+                
+                saved.dirbuster.push({
+                    name: name,
+                    state: { ...state },
+                    timestamp: new Date().toISOString()
+                });
+                
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved.dirbuster || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved.dirbuster && saved.dirbuster[index]) {
+                    saved.dirbuster.splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function loadStateIntoSavedCommands(savedState) {
+                // Restore state
+                state = JSON.parse(JSON.stringify(savedState));
+                
+                // Update UI
+                if (state.launch_mode === 'gui') launchGui.checked = true;
+                if (state.launch_mode === 'headless') launchHeadless.checked = true;
+                heapSize.value = state.heap_size || '256';
+                logLevel.value = state.log_level || 'warning';
+                url.value = state.url || 'http://';
+                port.value = state.port || 80;
+                protocol.value = state.protocol || 'http';
+                basePath.value = state.base_path || '/';
+                wordlist.value = state.wordlist || '/usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt';
+                
+                if (state.wordlist_source === 'file') wlFile.checked = true;
+                if (state.wordlist_source === 'generate') wlGenerate.checked = true;
+                if (state.wordlist_source === 'stdin') wlStdin.checked = true;
+                
+                generateOptions.style.display = state.wordlist_source === 'generate' ? 'block' : 'none';
+                charset.value = state.charset || 'abcdefghijklmnopqrstuvwxyz';
+                minLength.value = state.min_length || 1;
+                maxLength.value = state.max_length || 3;
+                caseSelect.value = state.case || 'lower';
+                extensions.value = state.extensions || 'php asp aspx jsp html js';
+                appendSlash.checked = state.append_slash || false;
+                threads.value = state.threads || 10;
+                retry.value = state.retry || 2;
+                timeout.value = state.timeout || 10;
+                delay.value = state.delay || 0;
+                recursive.checked = state.recursive || false;
+                recursionOptions.style.display = state.recursive ? 'block' : 'none';
+                depth.value = state.depth || 3;
+                maxDirs.value = state.max_dirs || 1000;
+                
+                if (state.scan_type === 'both') scanBoth.checked = true;
+                if (state.scan_type === 'dirs') scanDirs.checked = true;
+                if (state.scan_type === 'files') scanFiles.checked = true;
+                
+                cookie.value = state.cookie || '';
+                authUser.value = state.auth_user || '';
+                authPass.value = state.auth_pass || '';
+                authType.value = state.auth_type || 'basic';
+                useragent.value = state.useragent || 'Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0';
+                proxy.value = state.proxy || '';
+                includeCodes.value = state.include_codes || '200,204,301,302,307,401,403';
+                excludeCodes.value = state.exclude_codes || '404';
+                minSize.value = state.min_size || 0;
+                maxSize.value = state.max_size || 999999;
+                excludeSize.value = state.exclude_size || '';
+                excludeString.value = state.exclude_string || '';
+                
+                outputTxt.checked = state.output.txt || false;
+                outputXml.checked = state.output.xml || false;
+                outputHtml.checked = state.output.html || false;
+                outputTree.checked = state.output.tree || false;
+                outputFilename.value = state.output.filename || '';
+                updateOutputVisibility();
+                outputDir.value = state.output_dir || '/home/kali/dirbuster/';
+                
+                jvmArgs.value = state.jvm_args || '';
+                customFlags.value = state.customFlags || '';
+                
+                updateCommand();
+            }
+
+            function updateSavedCommandsList() {
+                const saved = loadSavedCommands();
+                const container = document.getElementById('savedCommandsList');
+                
+                if (saved.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-saved')) {
+                            const index = item.dataset.index;
+                            const cmd = saved[index];
+                            loadStateIntoSavedCommands(cmd.state);
+                            Utils.showNotification(`Loaded: ${cmd.name}`, 'success');
+                        }
+                    });
+                });
+                
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = btn.dataset.index;
+                        deleteSavedCommand(index);
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            // ============ BUTTON HANDLERS ============
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value;
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this configuration', 'warning');
+                    return;
+                }
+                
+                saveCommand(name);
+                Utils.showNotification('✅ Configuration saved!', 'success');
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', () => {
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const command = generateCommand();
+                try {
+                    await navigator.clipboard.writeText(command);
+                    Utils.showNotification('✅ Command copied to clipboard!', 'success');
+                } catch (err) {
+                    Utils.showNotification('❌ Failed to copy command', 'error');
+                }
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                // Reset state
+                state = {
+                    launch_mode: 'gui',
+                    heap_size: '256',
+                    log_level: 'warning',
+                    url: 'http://',
+                    port: 80,
+                    protocol: 'http',
+                    base_path: '/',
+                    wordlist: '/usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt',
+                    wordlist_source: 'file',
+                    charset: 'abcdefghijklmnopqrstuvwxyz',
+                    min_length: 1,
+                    max_length: 3,
+                    case: 'lower',
+                    extensions: 'php asp aspx jsp html js',
+                    append_slash: false,
+                    threads: 10,
+                    retry: 2,
+                    timeout: 10,
+                    delay: 0,
+                    recursive: false,
+                    depth: 3,
+                    max_dirs: 1000,
+                    scan_type: 'both',
+                    cookie: '',
+                    auth_user: '',
+                    auth_pass: '',
+                    auth_type: 'basic',
+                    useragent: 'Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0',
+                    proxy: '',
+                    include_codes: '200,204,301,302,307,401,403',
+                    exclude_codes: '404',
+                    min_size: 0,
+                    max_size: 999999,
+                    exclude_size: '',
+                    exclude_string: '',
+                    output: { txt: false, xml: false, html: false, tree: false, filename: '' },
+                    output_dir: '/home/kali/dirbuster/',
+                    jvm_args: '',
+                    customFlags: ''
+                };
+                
+                // Reset UI
+                launchGui.checked = true;
+                launchHeadless.checked = false;
+                heapSize.value = '256';
+                logLevel.value = 'warning';
+                url.value = 'http://';
+                port.value = 80;
+                protocol.value = 'http';
+                basePath.value = '/';
+                wordlist.value = '/usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt';
+                wlFile.checked = true;
+                wlGenerate.checked = false;
+                wlStdin.checked = false;
+                generateOptions.style.display = 'none';
+                charset.value = 'abcdefghijklmnopqrstuvwxyz';
+                minLength.value = 1;
+                maxLength.value = 3;
+                caseSelect.value = 'lower';
+                extensions.value = 'php asp aspx jsp html js';
+                appendSlash.checked = false;
+                threads.value = 10;
+                retry.value = 2;
+                timeout.value = 10;
+                delay.value = 0;
+                recursive.checked = false;
+                recursionOptions.style.display = 'none';
+                depth.value = 3;
+                maxDirs.value = 1000;
+                scanBoth.checked = true;
+                scanDirs.checked = false;
+                scanFiles.checked = false;
+                cookie.value = '';
+                authUser.value = '';
+                authPass.value = '';
+                authType.value = 'basic';
+                useragent.value = 'Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0';
+                proxy.value = '';
+                includeCodes.value = '200,204,301,302,307,401,403';
+                excludeCodes.value = '404';
+                minSize.value = 0;
+                maxSize.value = 999999;
+                excludeSize.value = '';
+                excludeString.value = '';
+                
+                outputTxt.checked = false;
+                outputXml.checked = false;
+                outputHtml.checked = false;
+                outputTree.checked = false;
+                outputFilenameContainer.style.display = 'none';
+                outputFilename.value = '';
+                outputDir.value = '/home/kali/dirbuster/';
+                
+                jvmArgs.value = '';
+                customFlags.value = '';
+                
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            // Initial update
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

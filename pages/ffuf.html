@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FFUF - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles specific to FFUF */
+        .ffuf-option-group {
+            background: rgba(15, 95, 168, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid #00CFFF;
+        }
+        .ffuf-option-title {
+            color: #00CFFF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .matcher-badge {
+            display: inline-block;
+            background: rgba(15, 95, 168, 0.3);
+            border: 1px solid #1E88E5;
+            border-radius: 4px;
+            padding: 4px 8px;
+            margin: 2px;
+            font-size: 0.8rem;
+            color: #E6F0FA;
+        }
+        .filter-badge {
+            display: inline-block;
+            background: rgba(255, 69, 0, 0.3);
+            border: 1px solid #FF4500;
+            border-radius: 4px;
+            padding: 4px 8px;
+            margin: 2px;
+            font-size: 0.8rem;
+            color: #E6F0FA;
+        }
+        .payload-preview {
+            background: #0A1F33;
+            border: 1px solid #00CFFF;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #00CFFF;
+            max-height: 150px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .wordlist-preview {
+            background: #0A1F33;
+            border: 1px solid #1E88E5;
+            border-radius: 4px;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .wordlist-item {
+            padding: 2px 0;
+            color: #E6F0FA;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+        .wordlist-item:hover {
+            background: rgba(15, 95, 168, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=web-application">Web Application Analysis</a>
+            <span class="separator">›</span>
+            <span class="current">FFUF</span>
+        </div>
+
+        <!-- Tool Header -->
+        <div class="tool-header">
+            <h1>FFUF</h1>
+            <p>Fast Web Fuzzer - Directory discovery, parameter fuzzing, and vhost enumeration</p>
+        </div>
+
+        <!-- Target Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🎯</span> TARGET CONFIGURATION
+            </div>
+
+            <div class="ffuf-option-group">
+                <div class="ffuf-option-title">
+                    <span>🌐</span> TARGET URL
+                </div>
+                <div class="input-group">
+                    <label class="input-label">URL with FUZZ keyword</label>
+                    <input type="text" class="input-field" id="url" placeholder="http://example.com/FUZZ" value="http://example.com/FUZZ">
+                    <small style="color: #2A6FAF;">Use FUZZ keyword where payloads will be inserted</small>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">HTTP Method</label>
+                    <select class="file-type-select" id="method">
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="PUT">PUT</option>
+                        <option value="DELETE">DELETE</option>
+                        <option value="PATCH">PATCH</option>
+                        <option value="HEAD">HEAD</option>
+                        <option value="OPTIONS">OPTIONS</option>
+                    </select>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">POST Data</label>
+                    <textarea class="input-field" rows="3" id="data" placeholder="param1=FUZZ&param2=value"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wordlist Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📚</span> WORDLIST CONFIGURATION
+            </div>
+
+            <div class="ffuf-option-group">
+                <div class="ffuf-option-title">
+                    <span>📄</span> WORDLIST
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Wordlist Path</label>
+                    <input type="text" class="input-field" id="wordlist" value="/usr/share/wordlists/dirb/common.txt">
+                </div>
+
+                <div class="checkbox-grid" style="margin-top: 15px;">
+                    <div class="checkbox-item">
+                        <input type="radio" name="wordlist_type" id="wl_single" value="single" checked>
+                        <label class="checkbox-label" for="wl_single">Single Wordlist</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="wordlist_type" id="wl_multi" value="multi">
+                        <label class="checkbox-label" for="wl_multi">Multiple Wordlists</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="wordlist_type" id="wl_stdin" value="stdin">
+                        <label class="checkbox-label" for="wl_stdin">STDIN</label>
+                    </div>
+                </div>
+
+                <div id="multi_wordlist" style="display: none; margin-top: 15px;">
+                    <textarea class="input-field" rows="4" placeholder="/usr/share/wordlists/dirb/common.txt
+/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt
+/usr/share/wordlists/rockyou.txt"></textarea>
+                </div>
+
+                <div class="wordlist-preview" style="margin-top: 15px;">
+                    <div class="wordlist-item">admin</div>
+                    <div class="wordlist-item">images</div>
+                    <div class="wordlist-item">css</div>
+                    <div class="wordlist-item">js</div>
+                    <div class="wordlist-item">backup</div>
+                    <div class="wordlist-item">tmp</div>
+                    <div class="wordlist-item">logs</div>
+                    <div class="wordlist-item">includes</div>
+                    <div class="wordlist-item">modules</div>
+                    <div class="wordlist-item">uploads</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Multi-wordlist Mode -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔄</span> MULTI-WORDLIST MODE
+            </div>
+
+            <div class="ffuf-option-group">
+                <div class="ffuf-option-title">
+                    <span>📦</span> MULTIPLE KEYWORDS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">URL with multiple keywords</label>
+                    <input type="text" class="input-field" id="multi_url" placeholder="http://example.com/FUZZ1/FUZZ2">
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Wordlist 1</label>
+                        <input type="text" class="input-field" id="wordlist1" placeholder="/path/to/wordlist1.txt">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Keyword 1</label>
+                        <input type="text" class="input-field" id="keyword1" value="FUZZ1">
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Wordlist 2</label>
+                        <input type="text" class="input-field" id="wordlist2" placeholder="/path/to/wordlist2.txt">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Keyword 2</label>
+                        <input type="text" class="input-field" id="keyword2" value="FUZZ2">
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Wordlist 3</label>
+                        <input type="text" class="input-field" id="wordlist3" placeholder="/path/to/wordlist3.txt">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Keyword 3</label>
+                        <input type="text" class="input-field" id="keyword3" value="FUZZ3">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Matchers & Filters -->
+        <div class="section">
+            <div class="section-title">
+                <span>✅</span> MATCHERS & FILTERS
+            </div>
+
+            <div class="ffuf-option-group">
+                <div class="ffuf-option-title">
+                    <span>✅</span> MATCHERS (Show results)
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="match_status" checked>
+                        <label class="checkbox-label" for="match_status">Match Status Codes</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="match_size">
+                        <label class="checkbox-label" for="match_size">Match Size</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="match_words">
+                        <label class="checkbox-label" for="match_words">Match Word Count</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="match_lines">
+                        <label class="checkbox-label" for="match_lines">Match Line Count</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="match_regex">
+                        <label class="checkbox-label" for="match_regex">Match Regex</label>
+                    </div>
+                </div>
+
+                <div id="match_status_options" style="margin-top: 15px;">
+                    <label class="input-label">Status Codes (comma-separated)</label>
+                    <input type="text" class="input-field" id="match_status_codes" value="200,204,301,302,307,401,403">
+                </div>
+
+                <div id="match_size_options" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Size (bytes)</label>
+                    <input type="text" class="input-field" id="match_size_value" placeholder="1024">
+                </div>
+
+                <div id="match_words_options" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Word Count</label>
+                    <input type="text" class="input-field" id="match_words_value" placeholder="50">
+                </div>
+
+                <div id="match_lines_options" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Line Count</label>
+                    <input type="text" class="input-field" id="match_lines_value" placeholder="10">
+                </div>
+
+                <div id="match_regex_options" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Regex Pattern</label>
+                    <input type="text" class="input-field" id="match_regex_value" placeholder="^admin.*">
+                </div>
+            </div>
+
+            <div class="ffuf-option-group">
+                <div class="ffuf-option-title">
+                    <span>❌</span> FILTERS (Hide results)
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="filter_status">
+                        <label class="checkbox-label" for="filter_status">Filter Status Codes</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="filter_size">
+                        <label class="checkbox-label" for="filter_size">Filter Size</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="filter_words">
+                        <label class="checkbox-label" for="filter_words">Filter Word Count</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="filter_lines">
+                        <label class="checkbox-label" for="filter_lines">Filter Line Count</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="filter_regex">
+                        <label class="checkbox-label" for="filter_regex">Filter Regex</label>
+                    </div>
+                </div>
+
+                <div id="filter_status_options" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Status Codes (comma-separated)</label>
+                    <input type="text" class="input-field" id="filter_status_codes" value="404">
+                </div>
+
+                <div id="filter_size_options" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Size (bytes)</label>
+                    <input type="text" class="input-field" id="filter_size_value" placeholder="1024">
+                </div>
+
+                <div id="filter_words_options" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Word Count</label>
+                    <input type="text" class="input-field" id="filter_words_value" placeholder="50">
+                </div>
+
+                <div id="filter_lines_options" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Line Count</label>
+                    <input type="text" class="input-field" id="filter_lines_value" placeholder="10">
+                </div>
+
+                <div id="filter_regex_options" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Regex Pattern</label>
+                    <input type="text" class="input-field" id="filter_regex_value" placeholder="error|warning">
+                </div>
+            </div>
+
+            <div class="ffuf-option-group">
+                <div class="ffuf-option-title">
+                    <span>📊</span> CURRENT RULES
+                </div>
+                <div>
+                    <span class="matcher-badge">Match: 200,204,301,302</span>
+                    <span class="filter-badge">Filter: 404</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> PERFORMANCE
+            </div>
+
+            <div class="ffuf-option-group">
+                <div class="ffuf-option-title">
+                    <span>⚡</span> SPEED OPTIONS
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Threads</label>
+                        <input type="number" class="input-field" id="threads" value="40" min="1" max="200">
+                        <span class="checkbox-flag">-t</span>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Delay (ms)</label>
+                        <input type="number" class="input-field" id="delay" value="0" min="0" max="10000">
+                        <span class="checkbox-flag">-p</span>
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Timeout (sec)</label>
+                        <input type="number" class="input-field" id="timeout" value="10" min="1" max="60">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Max Time (sec)</label>
+                        <input type="number" class="input-field" id="maxtime" value="0" min="0" max="3600">
+                    </div>
+                </div>
+            </div>
+
+            <div class="ffuf-option-group">
+                <div class="ffuf-option-title">
+                    <span>🔄</span> RETRIES
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Retries</label>
+                        <input type="number" class="input-field" id="retries" value="2" min="0" max="10">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Retry Delay (ms)</label>
+                        <input type="number" class="input-field" id="retry_delay" value="0" min="0" max="10000">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HTTP Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>🌍</span> HTTP OPTIONS
+            </div>
+
+            <div class="ffuf-option-group">
+                <div class="ffuf-option-title">
+                    <span>🍪</span> HEADERS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Headers (one per line)</label>
+                    <textarea class="input-field" rows="4" id="headers" placeholder="Host: example.com
+User-Agent: Mozilla/5.0
+X-Forwarded-For: 127.0.0.1"></textarea>
+                </div>
+            </div>
+
+            <div class="ffuf-option-group">
+                <div class="ffuf-option-title">
+                    <span>🍪</span> COOKIES
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Cookie String</label>
+                    <input type="text" class="input-field" id="cookie" placeholder="PHPSESSID=abc123; security=low">
+                </div>
+            </div>
+
+            <div class="ffuf-option-group">
+                <div class="ffuf-option-title">
+                    <span>🔐</span> AUTHENTICATION
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Username:Password</label>
+                    <input type="text" class="input-field" id="auth" placeholder="admin:password">
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Authentication Type</label>
+                    <select class="file-type-select" id="auth_type">
+                        <option value="basic">Basic</option>
+                        <option value="digest">Digest</option>
+                        <option value="ntlm">NTLM</option>
+                        <option value="bearer">Bearer Token</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="ffuf-option-group">
+                <div class="ffuf-option-title">
+                    <span>🔀</span> PROXY
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Proxy URL</label>
+                    <input type="text" class="input-field" id="proxy" placeholder="http://127.0.0.1:8080">
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚙️</span> ADVANCED OPTIONS
+            </div>
+
+            <div class="ffuf-option-group">
+                <div class="ffuf-option-title">
+                    <span>🔧</span> FUZZING MODES
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="recursion">
+                        <label class="checkbox-label" for="recursion">Recursive Scanning</label>
+                        <span class="checkbox-flag">-recursion</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="recursion_depth">
+                        <label class="checkbox-label" for="recursion_depth">Recursion Depth</label>
+                    </div>
+                </div>
+
+                <div id="recursion_options" style="display: none; margin-top: 15px;">
+                    <div class="output-row">
+                        <div class="input-group">
+                            <label class="input-label">Depth</label>
+                            <input type="number" class="input-field" id="recursion_depth_value" value="3" min="1" max="10">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Strategy</label>
+                            <select class="file-type-select" id="recursion_strategy">
+                                <option value="default">Default</option>
+                                <option value="greedy">Greedy</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ffuf-option-group">
+                <div class="ffuf-option-title">
+                    <span>🔄</span> ENCODING
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="url_encode">
+                        <label class="checkbox-label" for="url_encode">URL Encode Payloads</label>
+                        <span class="checkbox-flag">-enc urlencode</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="auto_calibration">
+                        <label class="checkbox-label" for="auto_calibration">Auto-calibration</label>
+                        <span class="checkbox-flag">-ac</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ffuf-option-group">
+                <div class="ffuf-option-title">
+                    <span>📝</span> OUTPUT VERBOSITY
+                </div>
+                
+                <select class="file-type-select" id="verbosity">
+                    <option value="1">Normal</option>
+                    <option value="2">Verbose</option>
+                    <option value="3">Very Verbose</option>
+                    <option value="4">Debug</option>
+                </select>
+                <span class="checkbox-flag">-v</span>
+            </div>
+        </div>
+
+        <!-- Output Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📊</span> OUTPUT CONFIGURATION
+            </div>
+
+            <div class="ffuf-option-group">
+                <div class="ffuf-option-title">
+                    <span>📁</span> OUTPUT FORMATS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_json">
+                        <label class="checkbox-label" for="output_json">JSON Output</label>
+                        <span class="checkbox-flag">-o</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_csv">
+                        <label class="checkbox-label" for="output_csv">CSV Output</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_html">
+                        <label class="checkbox-label" for="output_html">HTML Report</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_ecsv">
+                        <label class="checkbox-label" for="output_ecsv">eCSV Output</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_md">
+                        <label class="checkbox-label" for="output_md">Markdown Output</label>
+                    </div>
+                </div>
+
+                <div id="output_filename_container" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Output Filename</label>
+                    <input type="text" class="input-field" id="output_filename" placeholder="ffuf_scan">
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <label class="input-label">Output Directory</label>
+                    <input type="text" class="input-field" id="output_dir" value="/home/kali/ffuf/">
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CUSTOM OPTIONS
+            </div>
+            <div class="input-group">
+                <label class="input-label">Additional flags (space separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="-s -H 'X-Custom: value'">
+            </div>
+        </div>
+
+        <!-- Save/Load Panel -->
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Scan configuration name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Configuration</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+        
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <!-- Command Preview -->
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">ffuf</div>
+            <div class="command-info" id="commandInfo">No target URL specified</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand">
+                <span>📋</span> COPY COMMAND
+            </button>
+            <button class="btn btn-secondary" id="clearAll">
+                <span>🗑️</span> CLEAR ALL
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ============ COMMAND BUILDER FOR FFUF ============
+            
+            // State
+            let state = {
+                url: 'http://example.com/FUZZ',
+                method: 'GET',
+                data: '',
+                wordlist: '/usr/share/wordlists/dirb/common.txt',
+                wordlist_type: 'single',
+                multi_wordlist: '',
+                multi_url: '',
+                wordlist1: '',
+                wordlist2: '',
+                wordlist3: '',
+                keyword1: 'FUZZ1',
+                keyword2: 'FUZZ2',
+                keyword3: 'FUZZ3',
+                match: {
+                    status: true,
+                    size: false,
+                    words: false,
+                    lines: false,
+                    regex: false
+                },
+                match_status_codes: '200,204,301,302,307,401,403',
+                match_size_value: '',
+                match_words_value: '',
+                match_lines_value: '',
+                match_regex_value: '',
+                filter: {
+                    status: false,
+                    size: false,
+                    words: false,
+                    lines: false,
+                    regex: false
+                },
+                filter_status_codes: '404',
+                filter_size_value: '',
+                filter_words_value: '',
+                filter_lines_value: '',
+                filter_regex_value: '',
+                threads: 40,
+                delay: 0,
+                timeout: 10,
+                maxtime: 0,
+                retries: 2,
+                retry_delay: 0,
+                headers: '',
+                cookie: '',
+                auth: '',
+                auth_type: 'basic',
+                proxy: '',
+                recursion: false,
+                recursion_depth: false,
+                recursion_depth_value: 3,
+                recursion_strategy: 'default',
+                url_encode: false,
+                auto_calibration: false,
+                verbosity: '1',
+                output: {
+                    json: false,
+                    csv: false,
+                    html: false,
+                    ecsv: false,
+                    md: false,
+                    filename: ''
+                },
+                output_dir: '/home/kali/ffuf/',
+                customFlags: ''
+            };
+
+            // DOM Elements
+            const url = document.getElementById('url');
+            const method = document.getElementById('method');
+            const data = document.getElementById('data');
+            const wordlist = document.getElementById('wordlist');
+            const wlSingle = document.getElementById('wl_single');
+            const wlMulti = document.getElementById('wl_multi');
+            const wlStdin = document.getElementById('wl_stdin');
+            const multiWordlist = document.getElementById('multi_wordlist');
+            
+            // Multi-wordlist mode
+            const multiUrl = document.getElementById('multi_url');
+            const wordlist1 = document.getElementById('wordlist1');
+            const wordlist2 = document.getElementById('wordlist2');
+            const wordlist3 = document.getElementById('wordlist3');
+            const keyword1 = document.getElementById('keyword1');
+            const keyword2 = document.getElementById('keyword2');
+            const keyword3 = document.getElementById('keyword3');
+            
+            // Matchers
+            const matchStatus = document.getElementById('match_status');
+            const matchSize = document.getElementById('match_size');
+            const matchWords = document.getElementById('match_words');
+            const matchLines = document.getElementById('match_lines');
+            const matchRegex = document.getElementById('match_regex');
+            const matchStatusOptions = document.getElementById('match_status_options');
+            const matchSizeOptions = document.getElementById('match_size_options');
+            const matchWordsOptions = document.getElementById('match_words_options');
+            const matchLinesOptions = document.getElementById('match_lines_options');
+            const matchRegexOptions = document.getElementById('match_regex_options');
+            const matchStatusCodes = document.getElementById('match_status_codes');
+            const matchSizeValue = document.getElementById('match_size_value');
+            const matchWordsValue = document.getElementById('match_words_value');
+            const matchLinesValue = document.getElementById('match_lines_value');
+            const matchRegexValue = document.getElementById('match_regex_value');
+            
+            // Filters
+            const filterStatus = document.getElementById('filter_status');
+            const filterSize = document.getElementById('filter_size');
+            const filterWords = document.getElementById('filter_words');
+            const filterLines = document.getElementById('filter_lines');
+            const filterRegex = document.getElementById('filter_regex');
+            const filterStatusOptions = document.getElementById('filter_status_options');
+            const filterSizeOptions = document.getElementById('filter_size_options');
+            const filterWordsOptions = document.getElementById('filter_words_options');
+            const filterLinesOptions = document.getElementById('filter_lines_options');
+            const filterRegexOptions = document.getElementById('filter_regex_options');
+            const filterStatusCodes = document.getElementById('filter_status_codes');
+            const filterSizeValue = document.getElementById('filter_size_value');
+            const filterWordsValue = document.getElementById('filter_words_value');
+            const filterLinesValue = document.getElementById('filter_lines_value');
+            const filterRegexValue = document.getElementById('filter_regex_value');
+            
+            // Performance
+            const threads = document.getElementById('threads');
+            const delay = document.getElementById('delay');
+            const timeout = document.getElementById('timeout');
+            const maxtime = document.getElementById('maxtime');
+            const retries = document.getElementById('retries');
+            const retryDelay = document.getElementById('retry_delay');
+            
+            // HTTP
+            const headers = document.getElementById('headers');
+            const cookie = document.getElementById('cookie');
+            const auth = document.getElementById('auth');
+            const authType = document.getElementById('auth_type');
+            const proxy = document.getElementById('proxy');
+            
+            // Advanced
+            const recursion = document.getElementById('recursion');
+            const recursionDepth = document.getElementById('recursion_depth');
+            const recursionOptions = document.getElementById('recursion_options');
+            const recursionDepthValue = document.getElementById('recursion_depth_value');
+            const recursionStrategy = document.getElementById('recursion_strategy');
+            const urlEncode = document.getElementById('url_encode');
+            const autoCalibration = document.getElementById('auto_calibration');
+            const verbosity = document.getElementById('verbosity');
+            
+            // Output
+            const outputJson = document.getElementById('output_json');
+            const outputCsv = document.getElementById('output_csv');
+            const outputHtml = document.getElementById('output_html');
+            const outputEcsv = document.getElementById('output_ecsv');
+            const outputMd = document.getElementById('output_md');
+            const outputFilename = document.getElementById('output_filename');
+            const outputFilenameContainer = document.getElementById('output_filename_container');
+            const outputDir = document.getElementById('output_dir');
+            
+            const customFlags = document.getElementById('customFlags');
+
+            // ============ EVENT LISTENERS ============
+
+            // Target
+            url.addEventListener('input', (e) => { state.url = e.target.value; updateCommand(); });
+            method.addEventListener('change', (e) => { state.method = e.target.value; updateCommand(); });
+            data.addEventListener('input', (e) => { state.data = e.target.value; updateCommand(); });
+
+            // Wordlist
+            wordlist.addEventListener('input', (e) => { state.wordlist = e.target.value; updateCommand(); });
+            
+            wlSingle.addEventListener('change', (e) => { 
+                if(e.target.checked) {
+                    state.wordlist_type = 'single';
+                    multiWordlist.style.display = 'none';
+                    updateCommand();
+                }
+            });
+            
+            wlMulti.addEventListener('change', (e) => { 
+                if(e.target.checked) {
+                    state.wordlist_type = 'multi';
+                    multiWordlist.style.display = 'block';
+                    updateCommand();
+                }
+            });
+            
+            wlStdin.addEventListener('change', (e) => { 
+                if(e.target.checked) {
+                    state.wordlist_type = 'stdin';
+                    multiWordlist.style.display = 'none';
+                    updateCommand();
+                }
+            });
+
+            multiWordlist.addEventListener('input', (e) => { state.multi_wordlist = e.target.value; updateCommand(); });
+
+            // Multi-wordlist mode
+            multiUrl.addEventListener('input', (e) => { state.multi_url = e.target.value; updateCommand(); });
+            wordlist1.addEventListener('input', (e) => { state.wordlist1 = e.target.value; updateCommand(); });
+            wordlist2.addEventListener('input', (e) => { state.wordlist2 = e.target.value; updateCommand(); });
+            wordlist3.addEventListener('input', (e) => { state.wordlist3 = e.target.value; updateCommand(); });
+            keyword1.addEventListener('input', (e) => { state.keyword1 = e.target.value; updateCommand(); });
+            keyword2.addEventListener('input', (e) => { state.keyword2 = e.target.value; updateCommand(); });
+            keyword3.addEventListener('input', (e) => { state.keyword3 = e.target.value; updateCommand(); });
+
+            // Matchers
+            function updateMatcherVisibility() {
+                matchStatusOptions.style.display = matchStatus.checked ? 'block' : 'none';
+                matchSizeOptions.style.display = matchSize.checked ? 'block' : 'none';
+                matchWordsOptions.style.display = matchWords.checked ? 'block' : 'none';
+                matchLinesOptions.style.display = matchLines.checked ? 'block' : 'none';
+                matchRegexOptions.style.display = matchRegex.checked ? 'block' : 'none';
+            }
+
+            matchStatus.addEventListener('change', (e) => { state.match.status = e.target.checked; updateMatcherVisibility(); updateCommand(); });
+            matchSize.addEventListener('change', (e) => { state.match.size = e.target.checked; updateMatcherVisibility(); updateCommand(); });
+            matchWords.addEventListener('change', (e) => { state.match.words = e.target.checked; updateMatcherVisibility(); updateCommand(); });
+            matchLines.addEventListener('change', (e) => { state.match.lines = e.target.checked; updateMatcherVisibility(); updateCommand(); });
+            matchRegex.addEventListener('change', (e) => { state.match.regex = e.target.checked; updateMatcherVisibility(); updateCommand(); });
+            
+            matchStatusCodes.addEventListener('input', (e) => { state.match_status_codes = e.target.value; updateCommand(); });
+            matchSizeValue.addEventListener('input', (e) => { state.match_size_value = e.target.value; updateCommand(); });
+            matchWordsValue.addEventListener('input', (e) => { state.match_words_value = e.target.value; updateCommand(); });
+            matchLinesValue.addEventListener('input', (e) => { state.match_lines_value = e.target.value; updateCommand(); });
+            matchRegexValue.addEventListener('input', (e) => { state.match_regex_value = e.target.value; updateCommand(); });
+
+            // Filters
+            function updateFilterVisibility() {
+                filterStatusOptions.style.display = filterStatus.checked ? 'block' : 'none';
+                filterSizeOptions.style.display = filterSize.checked ? 'block' : 'none';
+                filterWordsOptions.style.display = filterWords.checked ? 'block' : 'none';
+                filterLinesOptions.style.display = filterLines.checked ? 'block' : 'none';
+                filterRegexOptions.style.display = filterRegex.checked ? 'block' : 'none';
+            }
+
+            filterStatus.addEventListener('change', (e) => { state.filter.status = e.target.checked; updateFilterVisibility(); updateCommand(); });
+            filterSize.addEventListener('change', (e) => { state.filter.size = e.target.checked; updateFilterVisibility(); updateCommand(); });
+            filterWords.addEventListener('change', (e) => { state.filter.words = e.target.checked; updateFilterVisibility(); updateCommand(); });
+            filterLines.addEventListener('change', (e) => { state.filter.lines = e.target.checked; updateFilterVisibility(); updateCommand(); });
+            filterRegex.addEventListener('change', (e) => { state.filter.regex = e.target.checked; updateFilterVisibility(); updateCommand(); });
+            
+            filterStatusCodes.addEventListener('input', (e) => { state.filter_status_codes = e.target.value; updateCommand(); });
+            filterSizeValue.addEventListener('input', (e) => { state.filter_size_value = e.target.value; updateCommand(); });
+            filterWordsValue.addEventListener('input', (e) => { state.filter_words_value = e.target.value; updateCommand(); });
+            filterLinesValue.addEventListener('input', (e) => { state.filter_lines_value = e.target.value; updateCommand(); });
+            filterRegexValue.addEventListener('input', (e) => { state.filter_regex_value = e.target.value; updateCommand(); });
+
+            // Performance
+            threads.addEventListener('input', (e) => { state.threads = parseInt(e.target.value) || 40; updateCommand(); });
+            delay.addEventListener('input', (e) => { state.delay = parseInt(e.target.value) || 0; updateCommand(); });
+            timeout.addEventListener('input', (e) => { state.timeout = parseInt(e.target.value) || 10; updateCommand(); });
+            maxtime.addEventListener('input', (e) => { state.maxtime = parseInt(e.target.value) || 0; updateCommand(); });
+            retries.addEventListener('input', (e) => { state.retries = parseInt(e.target.value) || 2; updateCommand(); });
+            retryDelay.addEventListener('input', (e) => { state.retry_delay = parseInt(e.target.value) || 0; updateCommand(); });
+
+            // HTTP
+            headers.addEventListener('input', (e) => { state.headers = e.target.value; updateCommand(); });
+            cookie.addEventListener('input', (e) => { state.cookie = e.target.value; updateCommand(); });
+            auth.addEventListener('input', (e) => { state.auth = e.target.value; updateCommand(); });
+            authType.addEventListener('change', (e) => { state.auth_type = e.target.value; updateCommand(); });
+            proxy.addEventListener('input', (e) => { state.proxy = e.target.value; updateCommand(); });
+
+            // Advanced
+            recursion.addEventListener('change', (e) => { state.recursion = e.target.checked; updateCommand(); });
+            recursionDepth.addEventListener('change', (e) => { 
+                state.recursion_depth = e.target.checked;
+                recursionOptions.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            recursionDepthValue.addEventListener('input', (e) => { state.recursion_depth_value = parseInt(e.target.value) || 3; updateCommand(); });
+            recursionStrategy.addEventListener('change', (e) => { state.recursion_strategy = e.target.value; updateCommand(); });
+            urlEncode.addEventListener('change', (e) => { state.url_encode = e.target.checked; updateCommand(); });
+            autoCalibration.addEventListener('change', (e) => { state.auto_calibration = e.target.checked; updateCommand(); });
+            verbosity.addEventListener('change', (e) => { state.verbosity = e.target.value; updateCommand(); });
+
+            // Output
+            outputJson.addEventListener('change', (e) => { state.output.json = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputCsv.addEventListener('change', (e) => { state.output.csv = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputHtml.addEventListener('change', (e) => { state.output.html = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputEcsv.addEventListener('change', (e) => { state.output.ecsv = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputMd.addEventListener('change', (e) => { state.output.md = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputFilename.addEventListener('input', (e) => { state.output.filename = e.target.value; updateCommand(); });
+            outputDir.addEventListener('input', (e) => { state.output_dir = e.target.value; updateCommand(); });
+
+            function updateOutputVisibility() {
+                const anyOutput = state.output.json || state.output.csv || state.output.html || state.output.ecsv || state.output.md;
+                outputFilenameContainer.style.display = anyOutput ? 'block' : 'none';
+            }
+
+            // Custom flags
+            customFlags.addEventListener('input', (e) => { state.customFlags = e.target.value; updateCommand(); });
+
+            // ============ COMMAND GENERATION ============
+
+            function generateCommand() {
+                let command = 'ffuf';
+                const parts = [];
+
+                // Target URL
+                if (state.url && state.wordlist_type === 'single') {
+                    parts.push(`-u ${state.url}`);
+                }
+
+                // Method
+                if (state.method !== 'GET') {
+                    parts.push(`-X ${state.method}`);
+                }
+
+                // POST data
+                if (state.data) {
+                    parts.push(`-d "${state.data}"`);
+                }
+
+                // Wordlist
+                if (state.wordlist_type === 'single' && state.wordlist) {
+                    parts.push(`-w ${state.wordlist}`);
+                } else if (state.wordlist_type === 'stdin') {
+                    parts.push('-w -');
+                }
+
+                // Multi-wordlist mode
+                if (state.multi_url) {
+                    parts.push(`-u ${state.multi_url}`);
+                    if (state.wordlist1) parts.push(`-w ${state.wordlist1}:${state.keyword1}`);
+                    if (state.wordlist2) parts.push(`-w ${state.wordlist2}:${state.keyword2}`);
+                    if (state.wordlist3) parts.push(`-w ${state.wordlist3}:${state.keyword3}`);
+                }
+
+                // Matchers
+                if (state.match.status && state.match_status_codes) {
+                    parts.push(`-mc ${state.match_status_codes}`);
+                }
+                if (state.match.size && state.match_size_value) {
+                    parts.push(`-ms ${state.match_size_value}`);
+                }
+                if (state.match.words && state.match_words_value) {
+                    parts.push(`-mw ${state.match_words_value}`);
+                }
+                if (state.match.lines && state.match_lines_value) {
+                    parts.push(`-ml ${state.match_lines_value}`);
+                }
+                if (state.match.regex && state.match_regex_value) {
+                    parts.push(`-mr "${state.match_regex_value}"`);
+                }
+
+                // Filters
+                if (state.filter.status && state.filter_status_codes) {
+                    parts.push(`-fc ${state.filter_status_codes}`);
+                }
+                if (state.filter.size && state.filter_size_value) {
+                    parts.push(`-fs ${state.filter_size_value}`);
+                }
+                if (state.filter.words && state.filter_words_value) {
+                    parts.push(`-fw ${state.filter_words_value}`);
+                }
+                if (state.filter.lines && state.filter_lines_value) {
+                    parts.push(`-fl ${state.filter_lines_value}`);
+                }
+                if (state.filter.regex && state.filter_regex_value) {
+                    parts.push(`-fr "${state.filter_regex_value}"`);
+                }
+
+                // Performance
+                if (state.threads !== 40) parts.push(`-t ${state.threads}`);
+                if (state.delay > 0) parts.push(`-p ${state.delay}`);
+                if (state.timeout !== 10) parts.push(`-timeout ${state.timeout}`);
+                if (state.maxtime > 0) parts.push(`-maxtime ${state.maxtime}`);
+                if (state.retries > 2) parts.push(`-retries ${state.retries}`);
+                if (state.retry_delay > 0) parts.push(`-retry-delay ${state.retry_delay}`);
+
+                // Headers
+                if (state.headers) {
+                    const headerLines = state.headers.split('\n').filter(h => h.trim());
+                    headerLines.forEach(header => {
+                        parts.push(`-H "${header.trim()}"`);
+                    });
+                }
+
+                // Cookie
+                if (state.cookie) {
+                    parts.push(`-b "${state.cookie}"`);
+                }
+
+                // Authentication
+                if (state.auth) {
+                    if (state.auth_type === 'bearer') {
+                        parts.push(`-H "Authorization: Bearer ${state.auth}"`);
+                    } else {
+                        parts.push(`-auth "${state.auth}"`);
+                        if (state.auth_type !== 'basic') {
+                            parts.push(`-auth-type ${state.auth_type}`);
+                        }
+                    }
+                }
+
+                // Proxy
+                if (state.proxy) {
+                    parts.push(`-x ${state.proxy}`);
+                }
+
+                // Recursion
+                if (state.recursion) {
+                    parts.push('-recursion');
+                }
+                if (state.recursion_depth) {
+                    parts.push(`-recursion-depth ${state.recursion_depth_value}`);
+                    if (state.recursion_strategy === 'greedy') {
+                        parts.push('-recursion-strategy greedy');
+                    }
+                }
+
+                // Encoding
+                if (state.url_encode) {
+                    parts.push('-enc urlencode');
+                }
+                if (state.auto_calibration) {
+                    parts.push('-ac');
+                }
+
+                // Verbosity
+                if (state.verbosity === '2') parts.push('-v');
+                if (state.verbosity === '3') parts.push('-v -v');
+                if (state.verbosity === '4') parts.push('-v -v -v');
+
+                // Output
+                if (state.output.filename) {
+                    let outputFormat = '';
+                    if (state.output.json) outputFormat = 'json';
+                    else if (state.output.csv) outputFormat = 'csv';
+                    else if (state.output.html) outputFormat = 'html';
+                    else if (state.output.ecsv) outputFormat = 'ecsv';
+                    else if (state.output.md) outputFormat = 'md';
+                    
+                    if (outputFormat) {
+                        parts.push(`-o ${state.output_dir}${state.output.filename}.${outputFormat} -of ${outputFormat}`);
+                    }
+                }
+
+                // Custom flags
+                if (state.customFlags) {
+                    const customParts = state.customFlags.trim().split(/\s+/);
+                    customParts.forEach(part => parts.push(part));
+                }
+
+                return command + ' ' + parts.join(' ');
+            }
+
+            function generateExplanation() {
+                const explanations = [];
+                
+                if (state.url) explanations.push(`Target: ${state.url}`);
+                if (state.multi_url) explanations.push(`Multi-wordlist: ${state.multi_url}`);
+                
+                if (state.wordlist) {
+                    const wordlistName = state.wordlist.split('/').pop();
+                    explanations.push(`Wordlist: ${wordlistName}`);
+                }
+                
+                if (state.match_status_codes) {
+                    explanations.push(`Match: ${state.match_status_codes}`);
+                }
+                if (state.filter_status_codes) {
+                    explanations.push(`Filter: ${state.filter_status_codes}`);
+                }
+                
+                if (state.threads > 40) explanations.push(`Threads: ${state.threads}`);
+                if (state.recursion) explanations.push('Recursion enabled');
+                
+                if (state.auto_calibration) explanations.push('Auto-calibration');
+                
+                const outputFormats = [];
+                if (state.output.json) outputFormats.push('JSON');
+                if (state.output.csv) outputFormats.push('CSV');
+                if (state.output.html) outputFormats.push('HTML');
+                if (state.output.ecsv) outputFormats.push('eCSV');
+                if (state.output.md) outputFormats.push('Markdown');
+                
+                if (outputFormats.length > 0) {
+                    explanations.push(`Output: ${outputFormats.join(', ')}`);
+                }
+                
+                return explanations.length > 0 
+                    ? `FFUF scan: ${explanations.join(' • ')}`
+                    : 'No scan options selected';
+            }
+
+            function updateCommand() {
+                document.getElementById('commandPreview').textContent = generateCommand();
+                document.getElementById('commandInfo').textContent = generateExplanation();
+            }
+
+            // ============ SAVE/LOAD FUNCTIONS ============
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved.ffuf) saved.ffuf = [];
+                
+                saved.ffuf.push({
+                    name: name,
+                    state: { ...state },
+                    timestamp: new Date().toISOString()
+                });
+                
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved.ffuf || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved.ffuf && saved.ffuf[index]) {
+                    saved.ffuf.splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function loadStateIntoSavedCommands(savedState) {
+                // Restore state
+                state = JSON.parse(JSON.stringify(savedState));
+                
+                // Update UI
+                url.value = state.url || 'http://example.com/FUZZ';
+                method.value = state.method || 'GET';
+                data.value = state.data || '';
+                wordlist.value = state.wordlist || '/usr/share/wordlists/dirb/common.txt';
+                
+                if (state.wordlist_type === 'single') wlSingle.checked = true;
+                if (state.wordlist_type === 'multi') wlMulti.checked = true;
+                if (state.wordlist_type === 'stdin') wlStdin.checked = true;
+                
+                multiWordlist.value = state.multi_wordlist || '';
+                multiWordlist.style.display = state.wordlist_type === 'multi' ? 'block' : 'none';
+                
+                multiUrl.value = state.multi_url || '';
+                wordlist1.value = state.wordlist1 || '';
+                wordlist2.value = state.wordlist2 || '';
+                wordlist3.value = state.wordlist3 || '';
+                keyword1.value = state.keyword1 || 'FUZZ1';
+                keyword2.value = state.keyword2 || 'FUZZ2';
+                keyword3.value = state.keyword3 || 'FUZZ3';
+                
+                matchStatus.checked = state.match.status !== false;
+                matchSize.checked = state.match.size || false;
+                matchWords.checked = state.match.words || false;
+                matchLines.checked = state.match.lines || false;
+                matchRegex.checked = state.match.regex || false;
+                
+                matchStatusCodes.value = state.match_status_codes || '200,204,301,302,307,401,403';
+                matchSizeValue.value = state.match_size_value || '';
+                matchWordsValue.value = state.match_words_value || '';
+                matchLinesValue.value = state.match_lines_value || '';
+                matchRegexValue.value = state.match_regex_value || '';
+                updateMatcherVisibility();
+                
+                filterStatus.checked = state.filter.status || false;
+                filterSize.checked = state.filter.size || false;
+                filterWords.checked = state.filter.words || false;
+                filterLines.checked = state.filter.lines || false;
+                filterRegex.checked = state.filter.regex || false;
+                
+                filterStatusCodes.value = state.filter_status_codes || '404';
+                filterSizeValue.value = state.filter_size_value || '';
+                filterWordsValue.value = state.filter_words_value || '';
+                filterLinesValue.value = state.filter_lines_value || '';
+                filterRegexValue.value = state.filter_regex_value || '';
+                updateFilterVisibility();
+                
+                threads.value = state.threads || 40;
+                delay.value = state.delay || 0;
+                timeout.value = state.timeout || 10;
+                maxtime.value = state.maxtime || 0;
+                retries.value = state.retries || 2;
+                retryDelay.value = state.retry_delay || 0;
+                
+                headers.value = state.headers || '';
+                cookie.value = state.cookie || '';
+                auth.value = state.auth || '';
+                authType.value = state.auth_type || 'basic';
+                proxy.value = state.proxy || '';
+                
+                recursion.checked = state.recursion || false;
+                recursionDepth.checked = state.recursion_depth || false;
+                recursionOptions.style.display = state.recursion_depth ? 'block' : 'none';
+                recursionDepthValue.value = state.recursion_depth_value || 3;
+                recursionStrategy.value = state.recursion_strategy || 'default';
+                urlEncode.checked = state.url_encode || false;
+                autoCalibration.checked = state.auto_calibration || false;
+                verbosity.value = state.verbosity || '1';
+                
+                outputJson.checked = state.output.json || false;
+                outputCsv.checked = state.output.csv || false;
+                outputHtml.checked = state.output.html || false;
+                outputEcsv.checked = state.output.ecsv || false;
+                outputMd.checked = state.output.md || false;
+                outputFilename.value = state.output.filename || '';
+                updateOutputVisibility();
+                outputDir.value = state.output_dir || '/home/kali/ffuf/';
+                
+                customFlags.value = state.customFlags || '';
+                
+                updateCommand();
+            }
+
+            function updateSavedCommandsList() {
+                const saved = loadSavedCommands();
+                const container = document.getElementById('savedCommandsList');
+                
+                if (saved.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-saved')) {
+                            const index = item.dataset.index;
+                            const cmd = saved[index];
+                            loadStateIntoSavedCommands(cmd.state);
+                            Utils.showNotification(`Loaded: ${cmd.name}`, 'success');
+                        }
+                    });
+                });
+                
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = btn.dataset.index;
+                        deleteSavedCommand(index);
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            // ============ BUTTON HANDLERS ============
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value;
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this configuration', 'warning');
+                    return;
+                }
+                
+                saveCommand(name);
+                Utils.showNotification('✅ Configuration saved!', 'success');
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', () => {
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const command = generateCommand();
+                try {
+                    await navigator.clipboard.writeText(command);
+                    Utils.showNotification('✅ Command copied to clipboard!', 'success');
+                } catch (err) {
+                    Utils.showNotification('❌ Failed to copy command', 'error');
+                }
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                // Reset state
+                state = {
+                    url: 'http://example.com/FUZZ',
+                    method: 'GET',
+                    data: '',
+                    wordlist: '/usr/share/wordlists/dirb/common.txt',
+                    wordlist_type: 'single',
+                    multi_wordlist: '',
+                    multi_url: '',
+                    wordlist1: '', wordlist2: '', wordlist3: '',
+                    keyword1: 'FUZZ1', keyword2: 'FUZZ2', keyword3: 'FUZZ3',
+                    match: { status: true, size: false, words: false, lines: false, regex: false },
+                    match_status_codes: '200,204,301,302,307,401,403',
+                    match_size_value: '', match_words_value: '', match_lines_value: '', match_regex_value: '',
+                    filter: { status: false, size: false, words: false, lines: false, regex: false },
+                    filter_status_codes: '404',
+                    filter_size_value: '', filter_words_value: '', filter_lines_value: '', filter_regex_value: '',
+                    threads: 40, delay: 0, timeout: 10, maxtime: 0, retries: 2, retry_delay: 0,
+                    headers: '', cookie: '', auth: '', auth_type: 'basic', proxy: '',
+                    recursion: false, recursion_depth: false, recursion_depth_value: 3, recursion_strategy: 'default',
+                    url_encode: false, auto_calibration: false, verbosity: '1',
+                    output: { json: false, csv: false, html: false, ecsv: false, md: false, filename: '' },
+                    output_dir: '/home/kali/ffuf/',
+                    customFlags: ''
+                };
+                
+                // Reset UI
+                url.value = 'http://example.com/FUZZ';
+                method.value = 'GET';
+                data.value = '';
+                wordlist.value = '/usr/share/wordlists/dirb/common.txt';
+                wlSingle.checked = true;
+                wlMulti.checked = false;
+                wlStdin.checked = false;
+                multiWordlist.style.display = 'none';
+                multiWordlist.value = '';
+                
+                multiUrl.value = '';
+                wordlist1.value = '';
+                wordlist2.value = '';
+                wordlist3.value = '';
+                keyword1.value = 'FUZZ1';
+                keyword2.value = 'FUZZ2';
+                keyword3.value = 'FUZZ3';
+                
+                matchStatus.checked = true;
+                matchSize.checked = false;
+                matchWords.checked = false;
+                matchLines.checked = false;
+                matchRegex.checked = false;
+                matchStatusCodes.value = '200,204,301,302,307,401,403';
+                matchSizeValue.value = '';
+                matchWordsValue.value = '';
+                matchLinesValue.value = '';
+                matchRegexValue.value = '';
+                updateMatcherVisibility();
+                
+                filterStatus.checked = false;
+                filterSize.checked = false;
+                filterWords.checked = false;
+                filterLines.checked = false;
+                filterRegex.checked = false;
+                filterStatusCodes.value = '404';
+                filterSizeValue.value = '';
+                filterWordsValue.value = '';
+                filterLinesValue.value = '';
+                filterRegexValue.value = '';
+                updateFilterVisibility();
+                
+                threads.value = 40;
+                delay.value = 0;
+                timeout.value = 10;
+                maxtime.value = 0;
+                retries.value = 2;
+                retryDelay.value = 0;
+                
+                headers.value = '';
+                cookie.value = '';
+                auth.value = '';
+                authType.value = 'basic';
+                proxy.value = '';
+                
+                recursion.checked = false;
+                recursionDepth.checked = false;
+                recursionOptions.style.display = 'none';
+                recursionDepthValue.value = 3;
+                recursionStrategy.value = 'default';
+                urlEncode.checked = false;
+                autoCalibration.checked = false;
+                verbosity.value = '1';
+                
+                outputJson.checked = false;
+                outputCsv.checked = false;
+                outputHtml.checked = false;
+                outputEcsv.checked = false;
+                outputMd.checked = false;
+                outputFilenameContainer.style.display = 'none';
+                outputFilename.value = '';
+                outputDir.value = '/home/kali/ffuf/';
+                
+                customFlags.value = '';
+                
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            // Initial update
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

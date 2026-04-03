@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lynis - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles specific to Lynis */
+        .lynis-option-group {
+            background: rgba(15, 95, 168, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid #00CFFF;
+        }
+        .lynis-option-title {
+            color: #00CFFF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .test-category {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .test-item {
+            background: rgba(15, 95, 168, 0.1);
+            border: 1px solid #0F5FA8;
+            border-radius: 6px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .test-item:hover {
+            background: rgba(15, 95, 168, 0.3);
+            border-color: #1E88E5;
+        }
+        .test-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #00CFFF;
+        }
+        .test-item label {
+            flex: 1;
+            cursor: pointer;
+            color: #E6F0FA;
+            font-size: 0.9rem;
+        }
+        .test-item .test-id {
+            color: #2A6FAF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+        .plugin-item {
+            background: rgba(0, 207, 255, 0.05);
+            border: 1px solid #00CFFF;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .profile-editor {
+            background: #0A1F33;
+            border: 2px solid #0F5FA8;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: #E6F0FA;
+            min-height: 150px;
+            white-space: pre;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=vulnerability-analysis">Vulnerability Analysis</a>
+            <span class="separator">›</span>
+            <span class="current">Lynis</span>
+        </div>
+
+        <!-- Tool Header -->
+        <div class="tool-header">
+            <h1>Lynis</h1>
+            <p>Security Auditing Tool - System hardening and compliance testing for Unix/Linux</p>
+        </div>
+
+        <!-- Audit Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚙️</span> AUDIT CONFIGURATION
+            </div>
+
+            <div class="lynis-option-group">
+                <div class="lynis-option-title">
+                    <span>🔍</span> AUDIT TYPE
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="radio" name="audit_type" id="audit_system" value="system" checked>
+                        <label class="checkbox-label" for="audit_system">System Audit</label>
+                        <span class="checkbox-flag">audit system</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="audit_type" id="audit_dockerfile" value="dockerfile">
+                        <label class="checkbox-label" for="audit_dockerfile">Dockerfile Audit</label>
+                        <span class="checkbox-flag">audit dockerfile</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="audit_type" id="audit_docker" value="docker">
+                        <label class="checkbox-label" for="audit_docker">Docker Container Audit</label>
+                        <span class="checkbox-flag">audit docker</span>
+                    </div>
+                </div>
+
+                <div id="dockerfile_options" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Dockerfile Path</label>
+                    <input type="text" class="input-field" id="dockerfile" placeholder="/path/to/Dockerfile">
+                </div>
+            </div>
+
+            <div class="lynis-option-group">
+                <div class="lynis-option-title">
+                    <span>📋</span> PROFILE SELECTION
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Custom Profile</label>
+                    <input type="text" class="input-field" id="profile" placeholder="/etc/lynis/custom.prf">
+                </div>
+                
+                <div class="checkbox-item" style="margin-top: 15px;">
+                    <input type="checkbox" id="profile_default">
+                    <label class="checkbox-label" for="profile_default">Use Default Profile</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Selection -->
+        <div class="section">
+            <div class="section-title">
+                <span>🧪</span> TEST SELECTION
+            </div>
+
+            <div class="lynis-option-group">
+                <div class="lynis-option-title">
+                    <span>▶️</span> TESTS TO RUN
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Specific Tests (comma-separated)</label>
+                    <input type="text" class="input-field" id="tests" placeholder="TEST-1234,TEST-5678">
+                </div>
+                
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Tests to Skip (comma-separated)</label>
+                    <input type="text" class="input-field" id="skip_tests" placeholder="TEST-9999">
+                </div>
+            </div>
+
+            <div class="lynis-option-group">
+                <div class="lynis-option-title">
+                    <span>📊</span> TEST CATEGORIES
+                </div>
+                
+                <div class="test-category">
+                    <div class="test-item">
+                        <input type="checkbox" id="category_authentication">
+                        <label for="category_authentication">Authentication</label>
+                    </div>
+                    <div class="test-item">
+                        <input type="checkbox" id="category_databases">
+                        <label for="category_databases">Databases</label>
+                    </div>
+                    <div class="test-item">
+                        <input type="checkbox" id="category_filesystems">
+                        <label for="category_filesystems">Filesystems</label>
+                    </div>
+                    <div class="test-item">
+                        <input type="checkbox" id="category_firewalls">
+                        <label for="category_firewalls">Firewalls</label>
+                    </div>
+                    <div class="test-item">
+                        <input type="checkbox" id="category_kernel">
+                        <label for="category_kernel">Kernel</label>
+                    </div>
+                    <div class="test-item">
+                        <input type="checkbox" id="category_logging">
+                        <label for="category_logging">Logging</label>
+                    </div>
+                    <div class="test-item">
+                        <input type="checkbox" id="category_mail">
+                        <label for="category_mail">Mail</label>
+                    </div>
+                    <div class="test-item">
+                        <input type="checkbox" id="category_nameservices">
+                        <label for="category_nameservices">Name Services</label>
+                    </div>
+                    <div class="test-item">
+                        <input type="checkbox" id="category_networking">
+                        <label for="category_networking">Networking</label>
+                    </div>
+                    <div class="test-item">
+                        <input type="checkbox" id="category_php">
+                        <label for="category_php">PHP</label>
+                    </div>
+                    <div class="test-item">
+                        <input type="checkbox" id="category_ports">
+                        <label for="category_ports">Ports</label>
+                    </div>
+                    <div class="test-item">
+                        <input type="checkbox" id="category_printers">
+                        <label for="category_printers">Printers</label>
+                    </div>
+                    <div class="test-item">
+                        <input type="checkbox" id="category_squid">
+                        <label for="category_squid">Squid</label>
+                    </div>
+                    <div class="test-item">
+                        <input type="checkbox" id="category_ssh">
+                        <label for="category_ssh">SSH</label>
+                    </div>
+                    <div class="test-item">
+                        <input type="checkbox" id="category_storage">
+                        <label for="category_storage">Storage</label>
+                    </div>
+                    <div class="test-item">
+                        <input type="checkbox" id="category_time">
+                        <label for="category_time">Time</label>
+                    </div>
+                    <div class="test-item">
+                        <input type="checkbox" id="category_webservers">
+                        <label for="category_webservers">Web Servers</label>
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-secondary" id="categories_all">Select All</button>
+                    <button class="btn btn-secondary" id="categories_none" style="margin-left: 10px;">Clear All</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Plugins -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔌</span> PLUGINS
+            </div>
+
+            <div class="lynis-option-group">
+                <div class="lynis-option-title">
+                    <span>🧩</span> PLUGIN CONFIGURATION
+                </div>
+                
+                <div class="plugin-item">
+                    <input type="checkbox" id="plugin_community" checked>
+                    <label for="plugin_community" style="flex: 1;">Community Plugins</label>
+                    <span class="checkbox-flag">--plugins community</span>
+                </div>
+                
+                <div class="plugin-item">
+                    <input type="checkbox" id="plugin_contrib">
+                    <label for="plugin_contrib" style="flex: 1;">Contributed Plugins</label>
+                    <span class="checkbox-flag">--plugins contrib</span>
+                </div>
+                
+                <div class="plugin-item">
+                    <input type="checkbox" id="plugin_custom">
+                    <label for="plugin_custom" style="flex: 1;">Custom Plugins</label>
+                    <span class="checkbox-flag">--plugins custom</span>
+                </div>
+
+                <div id="custom_plugin_path" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Custom Plugin Directory</label>
+                    <input type="text" class="input-field" id="plugin_dir" placeholder="/path/to/plugins">
+                </div>
+            </div>
+
+            <div class="lynis-option-group">
+                <div class="lynis-option-title">
+                    <span>⚡</span> PLUGIN OPTIONS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Plugin Parameters</label>
+                    <input type="text" class="input-field" id="plugin_params" placeholder="plugin_name:param=value">
+                </div>
+            </div>
+        </div>
+
+        <!-- Penetration Testing -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔓</span> PENETRATION TESTING
+            </div>
+
+            <div class="lynis-option-group">
+                <div class="lynis-option-title">
+                    <span>⚔️</span> PENETRATION MODE
+                </div>
+                
+                <div class="checkbox-item">
+                    <input type="checkbox" id="pentest">
+                    <label class="checkbox-label" for="pentest">Enable Penetration Testing Mode</label>
+                    <span class="checkbox-flag">--pentest</span>
+                </div>
+                <small style="color: #2A6FAF; display: block; margin-top: 5px;">Runs additional tests suitable for pentesting</small>
+            </div>
+
+            <div class="lynis-option-group">
+                <div class="lynis-option-title">
+                    <span>🔨</span> ATTACK OPTIONS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="attack_bruteforce">
+                        <label class="checkbox-label" for="attack_bruteforce">Brute Force Testing</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="attack_password">
+                        <label class="checkbox-label" for="attack_password">Password Strength Tests</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Compliance and Hardening -->
+        <div class="section">
+            <div class="section-title">
+                <span>📋</span> COMPLIANCE & HARDENING
+            </div>
+
+            <div class="lynis-option-group">
+                <div class="lynis-option-title">
+                    <span>⚖️</span> COMPLIANCE STANDARDS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="compliance_cis">
+                        <label class="checkbox-label" for="compliance_cis">CIS Benchmarks</label>
+                        <span class="checkbox-flag">--compliance CIS</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="compliance_pci">
+                        <label class="checkbox-label" for="compliance_pci">PCI DSS</label>
+                        <span class="checkbox-flag">--compliance PCI</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="compliance_hipaa">
+                        <label class="checkbox-label" for="compliance_hipaa">HIPAA</label>
+                        <span class="checkbox-flag">--compliance HIPAA</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="compliance_gdpr">
+                        <label class="checkbox-label" for="compliance_gdpr">GDPR</label>
+                        <span class="checkbox-flag">--compliance GDPR</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lynis-option-group">
+                <div class="lynis-option-title">
+                    <span>🛡️</span> HARDENING INDEX
+                </div>
+                
+                <div class="checkbox-item">
+                    <input type="checkbox" id="hardening_index">
+                    <label class="checkbox-label" for="hardening_index">Show Hardening Index</label>
+                </div>
+                
+                <div class="checkbox-item">
+                    <input type="checkbox" id="upload_data">
+                    <label class="checkbox-label" for="upload_data">Upload Data to CIS-CAT</label>
+                    <span class="checkbox-flag">--upload</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📊</span> OUTPUT CONFIGURATION
+            </div>
+
+            <div class="lynis-option-group">
+                <div class="lynis-option-title">
+                    <span>📁</span> REPORT FORMATS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="report_txt" checked>
+                        <label class="checkbox-label" for="report_txt">Text Report</label>
+                        <span class="checkbox-flag">-c</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="report_html">
+                        <label class="checkbox-label" for="report_html">HTML Report</label>
+                        <span class="checkbox-flag">--html</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="report_json">
+                        <label class="checkbox-label" for="report_json">JSON Report</label>
+                        <span class="checkbox-flag">--json</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="report_xml">
+                        <label class="checkbox-label" for="report_xml">XML Report</label>
+                        <span class="checkbox-flag">--xml</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lynis-option-group">
+                <div class="lynis-option-title">
+                    <span>⚡</span> LOG LEVELS
+                </div>
+                
+                <select class="file-type-select" id="log_level">
+                    <option value="0">Quiet</option>
+                    <option value="1">Normal</option>
+                    <option value="2">Verbose</option>
+                    <option value="3">Debug</option>
+                </select>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Log File</label>
+                        <input type="text" class="input-field" id="log_file" value="/var/log/lynis.log">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Report File</label>
+                        <input type="text" class="input-field" id="report_file" value="/var/log/lynis-report.dat">
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Output Path</label>
+                        <input type="text" class="input-field" id="outputPath" value="/home/kali/lynis/">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Filename Prefix</label>
+                        <input type="text" class="input-field" id="file_prefix" value="lynis_audit">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CUSTOM OPTIONS
+            </div>
+            <div class="input-group">
+                <label class="input-label">Additional flags (space separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="--no-colors --quick">
+            </div>
+        </div>
+
+        <!-- Save/Load Panel -->
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Audit configuration name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Configuration</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+        
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <!-- Command Preview -->
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">lynis audit system</div>
+            <div class="command-info" id="commandInfo">System audit - default configuration</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand">
+                <span>📋</span> COPY COMMAND
+            </button>
+            <button class="btn btn-secondary" id="clearAll">
+                <span>🗑️</span> CLEAR ALL
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ============ COMMAND BUILDER FOR LYNIS ============
+            
+            // State
+            let state = {
+                audit_type: 'system',
+                dockerfile: '',
+                profile: '',
+                profile_default: false,
+                tests: '',
+                skip_tests: '',
+                categories: {
+                    authentication: false,
+                    databases: false,
+                    filesystems: false,
+                    firewalls: false,
+                    kernel: false,
+                    logging: false,
+                    mail: false,
+                    nameservices: false,
+                    networking: false,
+                    php: false,
+                    ports: false,
+                    printers: false,
+                    squid: false,
+                    ssh: false,
+                    storage: false,
+                    time: false,
+                    webservers: false
+                },
+                plugins: {
+                    community: true,
+                    contrib: false,
+                    custom: false,
+                    custom_dir: ''
+                },
+                plugin_params: '',
+                pentest: false,
+                attack_bruteforce: false,
+                attack_password: false,
+                compliance: {
+                    cis: false,
+                    pci: false,
+                    hipaa: false,
+                    gdpr: false
+                },
+                hardening_index: false,
+                upload_data: false,
+                output: {
+                    txt: true,
+                    html: false,
+                    json: false,
+                    xml: false
+                },
+                log_level: '1',
+                log_file: '/var/log/lynis.log',
+                report_file: '/var/log/lynis-report.dat',
+                outputPath: '/home/kali/lynis/',
+                file_prefix: 'lynis_audit',
+                customFlags: ''
+            };
+
+            // DOM Elements
+            const auditSystem = document.getElementById('audit_system');
+            const auditDockerfile = document.getElementById('audit_dockerfile');
+            const auditDocker = document.getElementById('audit_docker');
+            const dockerfileOptions = document.getElementById('dockerfile_options');
+            const dockerfile = document.getElementById('dockerfile');
+            
+            const profile = document.getElementById('profile');
+            const profileDefault = document.getElementById('profile_default');
+            
+            const tests = document.getElementById('tests');
+            const skipTests = document.getElementById('skip_tests');
+            
+            // Category checkboxes
+            const catAuth = document.getElementById('category_authentication');
+            const catDb = document.getElementById('category_databases');
+            const catFs = document.getElementById('category_filesystems');
+            const catFw = document.getElementById('category_firewalls');
+            const catKernel = document.getElementById('category_kernel');
+            const catLog = document.getElementById('category_logging');
+            const catMail = document.getElementById('category_mail');
+            const catNs = document.getElementById('category_nameservices');
+            const catNet = document.getElementById('category_networking');
+            const catPhp = document.getElementById('category_php');
+            const catPorts = document.getElementById('category_ports');
+            const catPrinters = document.getElementById('category_printers');
+            const catSquid = document.getElementById('category_squid');
+            const catSsh = document.getElementById('category_ssh');
+            const catStorage = document.getElementById('category_storage');
+            const catTime = document.getElementById('category_time');
+            const catWeb = document.getElementById('category_webservers');
+            
+            const categoriesAll = document.getElementById('categories_all');
+            const categoriesNone = document.getElementById('categories_none');
+            
+            // Plugins
+            const pluginCommunity = document.getElementById('plugin_community');
+            const pluginContrib = document.getElementById('plugin_contrib');
+            const pluginCustom = document.getElementById('plugin_custom');
+            const customPluginPath = document.getElementById('custom_plugin_path');
+            const pluginDir = document.getElementById('plugin_dir');
+            const pluginParams = document.getElementById('plugin_params');
+            
+            // Pentest
+            const pentest = document.getElementById('pentest');
+            const attackBruteforce = document.getElementById('attack_bruteforce');
+            const attackPassword = document.getElementById('attack_password');
+            
+            // Compliance
+            const complianceCis = document.getElementById('compliance_cis');
+            const compliancePci = document.getElementById('compliance_pci');
+            const complianceHipaa = document.getElementById('compliance_hipaa');
+            const complianceGdpr = document.getElementById('compliance_gdpr');
+            const hardeningIndex = document.getElementById('hardening_index');
+            const uploadData = document.getElementById('upload_data');
+            
+            // Output
+            const reportTxt = document.getElementById('report_txt');
+            const reportHtml = document.getElementById('report_html');
+            const reportJson = document.getElementById('report_json');
+            const reportXml = document.getElementById('report_xml');
+            const logLevel = document.getElementById('log_level');
+            const logFile = document.getElementById('log_file');
+            const reportFile = document.getElementById('report_file');
+            const outputPath = document.getElementById('outputPath');
+            const filePrefix = document.getElementById('file_prefix');
+            
+            const customFlags = document.getElementById('customFlags');
+
+            // ============ EVENT LISTENERS ============
+
+            // Audit type
+            auditSystem.addEventListener('change', (e) => {
+                if(e.target.checked) {
+                    state.audit_type = 'system';
+                    dockerfileOptions.style.display = 'none';
+                    updateCommand();
+                }
+            });
+            
+            auditDockerfile.addEventListener('change', (e) => {
+                if(e.target.checked) {
+                    state.audit_type = 'dockerfile';
+                    dockerfileOptions.style.display = 'block';
+                    updateCommand();
+                }
+            });
+            
+            auditDocker.addEventListener('change', (e) => {
+                if(e.target.checked) {
+                    state.audit_type = 'docker';
+                    dockerfileOptions.style.display = 'none';
+                    updateCommand();
+                }
+            });
+            
+            dockerfile.addEventListener('input', (e) => { state.dockerfile = e.target.value; updateCommand(); });
+
+            // Profile
+            profile.addEventListener('input', (e) => { state.profile = e.target.value; updateCommand(); });
+            profileDefault.addEventListener('change', (e) => { state.profile_default = e.target.checked; updateCommand(); });
+
+            // Tests
+            tests.addEventListener('input', (e) => { state.tests = e.target.value; updateCommand(); });
+            skipTests.addEventListener('input', (e) => { state.skip_tests = e.target.value; updateCommand(); });
+
+            // Categories
+            function updateCategoriesFromCheckboxes() {
+                state.categories.authentication = catAuth.checked;
+                state.categories.databases = catDb.checked;
+                state.categories.filesystems = catFs.checked;
+                state.categories.firewalls = catFw.checked;
+                state.categories.kernel = catKernel.checked;
+                state.categories.logging = catLog.checked;
+                state.categories.mail = catMail.checked;
+                state.categories.nameservices = catNs.checked;
+                state.categories.networking = catNet.checked;
+                state.categories.php = catPhp.checked;
+                state.categories.ports = catPorts.checked;
+                state.categories.printers = catPrinters.checked;
+                state.categories.squid = catSquid.checked;
+                state.categories.ssh = catSsh.checked;
+                state.categories.storage = catStorage.checked;
+                state.categories.time = catTime.checked;
+                state.categories.webservers = catWeb.checked;
+                updateCommand();
+            }
+
+            catAuth.addEventListener('change', updateCategoriesFromCheckboxes);
+            catDb.addEventListener('change', updateCategoriesFromCheckboxes);
+            catFs.addEventListener('change', updateCategoriesFromCheckboxes);
+            catFw.addEventListener('change', updateCategoriesFromCheckboxes);
+            catKernel.addEventListener('change', updateCategoriesFromCheckboxes);
+            catLog.addEventListener('change', updateCategoriesFromCheckboxes);
+            catMail.addEventListener('change', updateCategoriesFromCheckboxes);
+            catNs.addEventListener('change', updateCategoriesFromCheckboxes);
+            catNet.addEventListener('change', updateCategoriesFromCheckboxes);
+            catPhp.addEventListener('change', updateCategoriesFromCheckboxes);
+            catPorts.addEventListener('change', updateCategoriesFromCheckboxes);
+            catPrinters.addEventListener('change', updateCategoriesFromCheckboxes);
+            catSquid.addEventListener('change', updateCategoriesFromCheckboxes);
+            catSsh.addEventListener('change', updateCategoriesFromCheckboxes);
+            catStorage.addEventListener('change', updateCategoriesFromCheckboxes);
+            catTime.addEventListener('change', updateCategoriesFromCheckboxes);
+            catWeb.addEventListener('change', updateCategoriesFromCheckboxes);
+
+            categoriesAll.addEventListener('click', () => {
+                [catAuth, catDb, catFs, catFw, catKernel, catLog, catMail, catNs, 
+                 catNet, catPhp, catPorts, catPrinters, catSquid, catSsh, catStorage, 
+                 catTime, catWeb].forEach(cb => cb.checked = true);
+                updateCategoriesFromCheckboxes();
+            });
+
+            categoriesNone.addEventListener('click', () => {
+                [catAuth, catDb, catFs, catFw, catKernel, catLog, catMail, catNs, 
+                 catNet, catPhp, catPorts, catPrinters, catSquid, catSsh, catStorage, 
+                 catTime, catWeb].forEach(cb => cb.checked = false);
+                updateCategoriesFromCheckboxes();
+            });
+
+            // Plugins
+            pluginCommunity.addEventListener('change', (e) => { state.plugins.community = e.target.checked; updateCommand(); });
+            pluginContrib.addEventListener('change', (e) => { state.plugins.contrib = e.target.checked; updateCommand(); });
+            pluginCustom.addEventListener('change', (e) => { 
+                state.plugins.custom = e.target.checked;
+                customPluginPath.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            pluginDir.addEventListener('input', (e) => { state.plugins.custom_dir = e.target.value; updateCommand(); });
+            pluginParams.addEventListener('input', (e) => { state.plugin_params = e.target.value; updateCommand(); });
+
+            // Pentest
+            pentest.addEventListener('change', (e) => { state.pentest = e.target.checked; updateCommand(); });
+            attackBruteforce.addEventListener('change', (e) => { state.attack_bruteforce = e.target.checked; updateCommand(); });
+            attackPassword.addEventListener('change', (e) => { state.attack_password = e.target.checked; updateCommand(); });
+
+            // Compliance
+            complianceCis.addEventListener('change', (e) => { state.compliance.cis = e.target.checked; updateCommand(); });
+            compliancePci.addEventListener('change', (e) => { state.compliance.pci = e.target.checked; updateCommand(); });
+            complianceHipaa.addEventListener('change', (e) => { state.compliance.hipaa = e.target.checked; updateCommand(); });
+            complianceGdpr.addEventListener('change', (e) => { state.compliance.gdpr = e.target.checked; updateCommand(); });
+            hardeningIndex.addEventListener('change', (e) => { state.hardening_index = e.target.checked; updateCommand(); });
+            uploadData.addEventListener('change', (e) => { state.upload_data = e.target.checked; updateCommand(); });
+
+            // Output
+            reportTxt.addEventListener('change', (e) => { state.output.txt = e.target.checked; updateCommand(); });
+            reportHtml.addEventListener('change', (e) => { state.output.html = e.target.checked; updateCommand(); });
+            reportJson.addEventListener('change', (e) => { state.output.json = e.target.checked; updateCommand(); });
+            reportXml.addEventListener('change', (e) => { state.output.xml = e.target.checked; updateCommand(); });
+            
+            logLevel.addEventListener('change', (e) => { state.log_level = e.target.value; updateCommand(); });
+            logFile.addEventListener('input', (e) => { state.log_file = e.target.value; updateCommand(); });
+            reportFile.addEventListener('input', (e) => { state.report_file = e.target.value; updateCommand(); });
+            outputPath.addEventListener('input', (e) => { state.outputPath = e.target.value; updateCommand(); });
+            filePrefix.addEventListener('input', (e) => { state.file_prefix = e.target.value; updateCommand(); });
+
+            // Custom flags
+            customFlags.addEventListener('input', (e) => { state.customFlags = e.target.value; updateCommand(); });
+
+            // ============ COMMAND GENERATION ============
+
+            function generateCommand() {
+                let command = 'lynis';
+                const parts = [];
+
+                // Audit type
+                switch(state.audit_type) {
+                    case 'system':
+                        parts.push('audit system');
+                        break;
+                    case 'dockerfile':
+                        parts.push('audit dockerfile');
+                        if (state.dockerfile) {
+                            parts.push(`--dockerfile ${state.dockerfile}`);
+                        }
+                        break;
+                    case 'docker':
+                        parts.push('audit docker');
+                        break;
+                }
+
+                // Profile
+                if (state.profile && !state.profile_default) {
+                    parts.push(`--profile ${state.profile}`);
+                }
+
+                // Tests
+                if (state.tests) {
+                    parts.push(`--tests ${state.tests}`);
+                }
+                if (state.skip_tests) {
+                    parts.push(`--skip-tests ${state.skip_tests}`);
+                }
+
+                // Categories
+                const activeCategories = [];
+                if (state.categories.authentication) activeCategories.push('authentication');
+                if (state.categories.databases) activeCategories.push('databases');
+                if (state.categories.filesystems) activeCategories.push('filesystems');
+                if (state.categories.firewalls) activeCategories.push('firewalls');
+                if (state.categories.kernel) activeCategories.push('kernel');
+                if (state.categories.logging) activeCategories.push('logging');
+                if (state.categories.mail) activeCategories.push('mail');
+                if (state.categories.nameservices) activeCategories.push('nameservices');
+                if (state.categories.networking) activeCategories.push('networking');
+                if (state.categories.php) activeCategories.push('php');
+                if (state.categories.ports) activeCategories.push('ports');
+                if (state.categories.printers) activeCategories.push('printers');
+                if (state.categories.squid) activeCategories.push('squid');
+                if (state.categories.ssh) activeCategories.push('ssh');
+                if (state.categories.storage) activeCategories.push('storage');
+                if (state.categories.time) activeCategories.push('time');
+                if (state.categories.webservers) activeCategories.push('webservers');
+
+                if (activeCategories.length > 0) {
+                    parts.push(`--tests-category ${activeCategories.join(',')}`);
+                }
+
+                // Plugins
+                const activePlugins = [];
+                if (state.plugins.community) activePlugins.push('community');
+                if (state.plugins.contrib) activePlugins.push('contrib');
+                if (state.plugins.custom) activePlugins.push('custom');
+                
+                if (activePlugins.length > 0) {
+                    parts.push(`--plugins ${activePlugins.join(' ')}`);
+                }
+                
+                if (state.plugins.custom && state.plugins.custom_dir) {
+                    parts.push(`--plugin-dir ${state.plugins.custom_dir}`);
+                }
+                
+                if (state.plugin_params) {
+                    parts.push(`--plugin-params "${state.plugin_params}"`);
+                }
+
+                // Pentest mode
+                if (state.pentest) {
+                    parts.push('--pentest');
+                }
+                
+                if (state.attack_bruteforce) {
+                    parts.push('--attack-bruteforce');
+                }
+                if (state.attack_password) {
+                    parts.push('--attack-password');
+                }
+
+                // Compliance
+                const compliance = [];
+                if (state.compliance.cis) compliance.push('CIS');
+                if (state.compliance.pci) compliance.push('PCI');
+                if (state.compliance.hipaa) compliance.push('HIPAA');
+                if (state.compliance.gdpr) compliance.push('GDPR');
+                
+                if (compliance.length > 0) {
+                    parts.push(`--compliance ${compliance.join(',')}`);
+                }
+
+                if (state.hardening_index) {
+                    parts.push('--hardening-index');
+                }
+                if (state.upload_data) {
+                    parts.push('--upload');
+                }
+
+                // Output formats
+                if (state.output.html) parts.push('--html');
+                if (state.output.json) parts.push('--json');
+                if (state.output.xml) parts.push('--xml');
+
+                // Log level
+                if (state.log_level === '0') parts.push('--quiet');
+                if (state.log_level === '2') parts.push('--verbose');
+                if (state.log_level === '3') parts.push('--debug');
+
+                // Log files
+                if (state.log_file) {
+                    parts.push(`--logfile ${state.log_file}`);
+                }
+                if (state.report_file) {
+                    parts.push(`--report-file ${state.report_file}`);
+                }
+
+                // Custom flags
+                if (state.customFlags) {
+                    const customParts = state.customFlags.trim().split(/\s+/);
+                    customParts.forEach(part => parts.push(part));
+                }
+
+                return command + ' ' + parts.join(' ');
+            }
+
+            function generateExplanation() {
+                const explanations = [];
+                
+                const auditTypes = {
+                    'system': 'System Audit',
+                    'dockerfile': 'Dockerfile Audit',
+                    'docker': 'Docker Container Audit'
+                };
+                explanations.push(auditTypes[state.audit_type]);
+                
+                const activeCategories = Object.values(state.categories).filter(Boolean).length;
+                if (activeCategories > 0) explanations.push(`${activeCategories} test categories`);
+                
+                if (state.pentest) explanations.push('Penetration Test Mode');
+                
+                const compliance = Object.values(state.compliance).filter(Boolean).length;
+                if (compliance > 0) explanations.push(`${compliance} compliance standards`);
+                
+                const outputFormats = [];
+                if (state.output.txt) outputFormats.push('TXT');
+                if (state.output.html) outputFormats.push('HTML');
+                if (state.output.json) outputFormats.push('JSON');
+                if (state.output.xml) outputFormats.push('XML');
+                
+                if (outputFormats.length > 0) {
+                    explanations.push(`Reports: ${outputFormats.join(', ')}`);
+                }
+                
+                return explanations.length > 0 
+                    ? `Audit includes: ${explanations.join(' • ')}`
+                    : 'System audit - default configuration';
+            }
+
+            function updateCommand() {
+                document.getElementById('commandPreview').textContent = generateCommand();
+                document.getElementById('commandInfo').textContent = generateExplanation();
+            }
+
+            // ============ SAVE/LOAD FUNCTIONS ============
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved.lynis) saved.lynis = [];
+                
+                saved.lynis.push({
+                    name: name,
+                    state: { ...state },
+                    timestamp: new Date().toISOString()
+                });
+                
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved.lynis || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved.lynis && saved.lynis[index]) {
+                    saved.lynis.splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function loadStateIntoSavedCommands(savedState) {
+                // Restore state
+                state = JSON.parse(JSON.stringify(savedState));
+                
+                // Update UI
+                if (state.audit_type === 'system') auditSystem.checked = true;
+                if (state.audit_type === 'dockerfile') auditDockerfile.checked = true;
+                if (state.audit_type === 'docker') auditDocker.checked = true;
+                
+                dockerfileOptions.style.display = state.audit_type === 'dockerfile' ? 'block' : 'none';
+                dockerfile.value = state.dockerfile || '';
+                
+                profile.value = state.profile || '';
+                profileDefault.checked = state.profile_default || false;
+                
+                tests.value = state.tests || '';
+                skipTests.value = state.skip_tests || '';
+                
+                // Categories
+                catAuth.checked = state.categories.authentication || false;
+                catDb.checked = state.categories.databases || false;
+                catFs.checked = state.categories.filesystems || false;
+                catFw.checked = state.categories.firewalls || false;
+                catKernel.checked = state.categories.kernel || false;
+                catLog.checked = state.categories.logging || false;
+                catMail.checked = state.categories.mail || false;
+                catNs.checked = state.categories.nameservices || false;
+                catNet.checked = state.categories.networking || false;
+                catPhp.checked = state.categories.php || false;
+                catPorts.checked = state.categories.ports || false;
+                catPrinters.checked = state.categories.printers || false;
+                catSquid.checked = state.categories.squid || false;
+                catSsh.checked = state.categories.ssh || false;
+                catStorage.checked = state.categories.storage || false;
+                catTime.checked = state.categories.time || false;
+                catWeb.checked = state.categories.webservers || false;
+                
+                // Plugins
+                pluginCommunity.checked = state.plugins.community !== false;
+                pluginContrib.checked = state.plugins.contrib || false;
+                pluginCustom.checked = state.plugins.custom || false;
+                customPluginPath.style.display = state.plugins.custom ? 'block' : 'none';
+                pluginDir.value = state.plugins.custom_dir || '';
+                pluginParams.value = state.plugin_params || '';
+                
+                // Pentest
+                pentest.checked = state.pentest || false;
+                attackBruteforce.checked = state.attack_bruteforce || false;
+                attackPassword.checked = state.attack_password || false;
+                
+                // Compliance
+                complianceCis.checked = state.compliance.cis || false;
+                compliancePci.checked = state.compliance.pci || false;
+                complianceHipaa.checked = state.compliance.hipaa || false;
+                complianceGdpr.checked = state.compliance.gdpr || false;
+                hardeningIndex.checked = state.hardening_index || false;
+                uploadData.checked = state.upload_data || false;
+                
+                // Output
+                reportTxt.checked = state.output.txt !== false;
+                reportHtml.checked = state.output.html || false;
+                reportJson.checked = state.output.json || false;
+                reportXml.checked = state.output.xml || false;
+                
+                logLevel.value = state.log_level || '1';
+                logFile.value = state.log_file || '/var/log/lynis.log';
+                reportFile.value = state.report_file || '/var/log/lynis-report.dat';
+                outputPath.value = state.outputPath || '/home/kali/lynis/';
+                filePrefix.value = state.file_prefix || 'lynis_audit';
+                
+                customFlags.value = state.customFlags || '';
+                
+                updateCommand();
+            }
+
+            function updateSavedCommandsList() {
+                const saved = loadSavedCommands();
+                const container = document.getElementById('savedCommandsList');
+                
+                if (saved.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-saved')) {
+                            const index = item.dataset.index;
+                            const cmd = saved[index];
+                            loadStateIntoSavedCommands(cmd.state);
+                            Utils.showNotification(`Loaded: ${cmd.name}`, 'success');
+                        }
+                    });
+                });
+                
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = btn.dataset.index;
+                        deleteSavedCommand(index);
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            // ============ BUTTON HANDLERS ============
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value;
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this configuration', 'warning');
+                    return;
+                }
+                
+                saveCommand(name);
+                Utils.showNotification('✅ Configuration saved!', 'success');
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', () => {
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const command = generateCommand();
+                try {
+                    await navigator.clipboard.writeText(command);
+                    Utils.showNotification('✅ Command copied to clipboard!', 'success');
+                } catch (err) {
+                    Utils.showNotification('❌ Failed to copy command', 'error');
+                }
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                // Reset state
+                state = {
+                    audit_type: 'system',
+                    dockerfile: '',
+                    profile: '',
+                    profile_default: false,
+                    tests: '',
+                    skip_tests: '',
+                    categories: {
+                        authentication: false, databases: false, filesystems: false, firewalls: false,
+                        kernel: false, logging: false, mail: false, nameservices: false,
+                        networking: false, php: false, ports: false, printers: false,
+                        squid: false, ssh: false, storage: false, time: false, webservers: false
+                    },
+                    plugins: { community: true, contrib: false, custom: false, custom_dir: '' },
+                    plugin_params: '',
+                    pentest: false,
+                    attack_bruteforce: false,
+                    attack_password: false,
+                    compliance: { cis: false, pci: false, hipaa: false, gdpr: false },
+                    hardening_index: false,
+                    upload_data: false,
+                    output: { txt: true, html: false, json: false, xml: false },
+                    log_level: '1',
+                    log_file: '/var/log/lynis.log',
+                    report_file: '/var/log/lynis-report.dat',
+                    outputPath: '/home/kali/lynis/',
+                    file_prefix: 'lynis_audit',
+                    customFlags: ''
+                };
+                
+                // Reset UI
+                auditSystem.checked = true;
+                auditDockerfile.checked = false;
+                auditDocker.checked = false;
+                dockerfileOptions.style.display = 'none';
+                dockerfile.value = '';
+                
+                profile.value = '';
+                profileDefault.checked = false;
+                
+                tests.value = '';
+                skipTests.value = '';
+                
+                categoriesNone.click();
+                
+                pluginCommunity.checked = true;
+                pluginContrib.checked = false;
+                pluginCustom.checked = false;
+                customPluginPath.style.display = 'none';
+                pluginDir.value = '';
+                pluginParams.value = '';
+                
+                pentest.checked = false;
+                attackBruteforce.checked = false;
+                attackPassword.checked = false;
+                
+                complianceCis.checked = false;
+                compliancePci.checked = false;
+                complianceHipaa.checked = false;
+                complianceGdpr.checked = false;
+                hardeningIndex.checked = false;
+                uploadData.checked = false;
+                
+                reportTxt.checked = true;
+                reportHtml.checked = false;
+                reportJson.checked = false;
+                reportXml.checked = false;
+                
+                logLevel.value = '1';
+                logFile.value = '/var/log/lynis.log';
+                reportFile.value = '/var/log/lynis-report.dat';
+                outputPath.value = '/home/kali/lynis/';
+                filePrefix.value = 'lynis_audit';
+                
+                customFlags.value = '';
+                
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            // Initial update
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OWASP ZAP - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles specific to OWASP ZAP */
+        .zap-option-group {
+            background: rgba(15, 95, 168, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid #00CFFF;
+        }
+        .zap-option-title {
+            color: #00CFFF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tab-buttons {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: transparent;
+            border: 2px solid #0F5FA8;
+            color: #E6F0FA;
+            padding: 10px 20px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.3s ease;
+            margin-bottom: -2px;
+            font-size: 0.9rem;
+        }
+        .tab-btn:hover {
+            background: #0F5FA8;
+        }
+        .tab-btn.active {
+            background: #0F5FA8;
+            border-bottom-color: transparent;
+            color: #00CFFF;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 2px solid #0F5FA8;
+            border-radius: 0 8px 8px 8px;
+            background: rgba(15, 95, 168, 0.05);
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .context-item {
+            background: rgba(15, 95, 168, 0.1);
+            border: 1px solid #0F5FA8;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .context-item span {
+            color: #00CFFF;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .script-item {
+            background: rgba(0, 207, 255, 0.05);
+            border: 1px solid #00CFFF;
+            border-radius: 4px;
+            padding: 8px;
+            margin: 5px 0;
+        }
+        .scan-policy {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .alert-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        .alert-high { background: #8B0000; color: white; }
+        .alert-medium { background: #FF4500; color: white; }
+        .alert-low { background: #FFA500; color: black; }
+        .alert-info { background: #2E8B57; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=web-application">Web Application Analysis</a>
+            <span class="separator">›</span>
+            <span class="current">OWASP ZAP</span>
+        </div>
+
+        <!-- Tool Header -->
+        <div class="tool-header">
+            <h1>OWASP ZAP</h1>
+            <p>Zed Attack Proxy - Open source web application security scanner</p>
+        </div>
+
+        <!-- Launch Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🚀</span> LAUNCH CONFIGURATION
+            </div>
+
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>⚡</span> LAUNCH OPTIONS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="radio" name="launch_mode" id="launch_gui" value="gui" checked>
+                        <label class="checkbox-label" for="launch_gui">Launch GUI</label>
+                        <span class="checkbox-flag">(default)</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="launch_mode" id="launch_daemon" value="daemon">
+                        <label class="checkbox-label" for="launch_daemon">Daemon Mode</label>
+                        <span class="checkbox-flag">-daemon</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="launch_mode" id="launch_cmd" value="cmd">
+                        <label class="checkbox-label" for="launch_cmd">Command Line</label>
+                        <span class="checkbox-flag">-cmd</span>
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Host</label>
+                        <input type="text" class="input-field" id="zap_host" value="127.0.0.1">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Port</label>
+                        <input type="number" class="input-field" id="zap_port" value="8080" min="1" max="65535">
+                    </div>
+                </div>
+
+                <div class="checkbox-item" style="margin-top: 15px;">
+                    <input type="checkbox" id="zap_api">
+                    <label class="checkbox-label" for="zap_api">Enable API</label>
+                    <span class="checkbox-flag">-api</span>
+                </div>
+            </div>
+
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>💾</span> SESSION
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Session File</label>
+                    <input type="text" class="input-field" id="session_file" placeholder="/home/kali/zap/session.session">
+                </div>
+
+                <div class="checkbox-grid" style="margin-top: 15px;">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="session_new">
+                        <label class="checkbox-label" for="session_new">New Session</label>
+                        <span class="checkbox-flag">-newsession</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="session_load">
+                        <label class="checkbox-label" for="session_load">Load Session</label>
+                        <span class="checkbox-flag">-session</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="tab-buttons">
+            <button class="tab-btn active" data-tab="target">🎯 Target</button>
+            <button class="tab-btn" data-tab="context">📋 Context</button>
+            <button class="tab-btn" data-tab="spider">🕷️ Spider</button>
+            <button class="tab-btn" data-tab="scanner">🔍 Active Scan</button>
+            <button class="tab-btn" data-tab="ajax">⚡ AJAX Spider</button>
+            <button class="tab-btn" data-tab="fuzzer">🔨 Fuzzer</button>
+            <button class="tab-btn" data-tab="scripts">📜 Scripts</button>
+            <button class="tab-btn" data-tab="auth">🔐 Authentication</button>
+            <button class="tab-btn" data-tab="reports">📊 Reports</button>
+        </div>
+
+        <!-- Target Tab -->
+        <div class="tab-content active" id="tab-target">
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>🎯</span> TARGET URL
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">URL to Attack</label>
+                    <input type="url" class="input-field" id="target_url" placeholder="https://example.com">
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-primary" id="attack_btn">Start Attack</button>
+                    <button class="btn btn-secondary" style="margin-left: 10px;" id="import_urls">Import URLs</button>
+                </div>
+            </div>
+
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>📋</span> IN SCOPE
+                </div>
+                
+                <div class="scope-input" style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <input type="text" class="input-field" id="scope_url" placeholder="https://example.com/*">
+                    <button class="btn btn-secondary" id="add_scope">Add</button>
+                </div>
+
+                <div id="scope_list">
+                    <div class="context-item">
+                        <span>https://example.com/*</span>
+                        <span>🗑️</span>
+                    </div>
+                    <div class="context-item">
+                        <span>https://*.example.org/*</span>
+                        <span>🗑️</span>
+                    </div>
+                </div>
+
+                <div class="checkbox-item" style="margin-top: 15px;">
+                    <input type="checkbox" id="scope_only">
+                    <label class="checkbox-label" for="scope_only">Scan Only In Scope</label>
+                </div>
+            </div>
+
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>🚫</span> EXCLUDE FROM SCOPE
+                </div>
+                
+                <div class="scope-input" style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <input type="text" class="input-field" id="exclude_url" placeholder="https://example.com/logout">
+                    <button class="btn btn-secondary" id="add_exclude">Add</button>
+                </div>
+
+                <div id="exclude_list">
+                    <div class="context-item">
+                        <span>https://example.com/logout</span>
+                        <span>🗑️</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Context Tab -->
+        <div class="tab-content" id="tab-context">
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>📋</span> CONTEXTS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Context Name</label>
+                    <input type="text" class="input-field" id="context_name" placeholder="Default Context">
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-secondary">Add Context</button>
+                    <button class="btn btn-secondary" style="margin-left: 10px;">Remove Context</button>
+                </div>
+
+                <div class="context-item" style="margin-top: 15px;">
+                    <span>Default Context</span>
+                    <span>✏️ 🗑️</span>
+                </div>
+            </div>
+
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>🌐</span> CONTEXT URLs
+                </div>
+                
+                <textarea class="input-field" rows="4" placeholder="https://example.com&#10;https://api.example.com"></textarea>
+            </div>
+
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>🔐</span> CONTEXT AUTHENTICATION
+                </div>
+                
+                <select class="file-type-select" id="context_auth">
+                    <option value="none">No Authentication</option>
+                    <option value="form">Form-Based</option>
+                    <option value="http">HTTP Authentication</option>
+                    <option value="cookie">Cookie-Based</option>
+                    <option value="oauth">OAuth 2.0</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Spider Tab -->
+        <div class="tab-content" id="tab-spider">
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>🕷️</span> SPIDER CONFIGURATION
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Starting URL</label>
+                    <input type="url" class="input-field" id="spider_url" placeholder="https://example.com">
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Max Depth</label>
+                        <input type="number" class="input-field" id="spider_depth" value="5" min="1" max="20">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Threads</label>
+                        <input type="number" class="input-field" id="spider_threads" value="5" min="1" max="20">
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Max Children</label>
+                        <input type="number" class="input-field" id="spider_children" value="100" min="1" max="1000">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Duration (mins)</label>
+                        <input type="number" class="input-field" id="spider_duration" value="0" min="0" max="1440">
+                    </div>
+                </div>
+
+                <div class="checkbox-grid" style="margin-top: 15px;">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="spider_form" checked>
+                        <label class="checkbox-label" for="spider_form">Submit Forms</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="spider_parse_comments" checked>
+                        <label class="checkbox-label" for="spider_parse_comments">Parse Comments</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="spider_parse_robots" checked>
+                        <label class="checkbox-label" for="spider_parse_robots">Parse robots.txt</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="spider_parse_sitemap" checked>
+                        <label class="checkbox-label" for="spider_parse_sitemap">Parse sitemap.xml</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="spider_handle_oData">
+                        <label class="checkbox-label" for="spider_handle_oData">Handle OData</label>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <button class="btn btn-primary">Start Spider</button>
+                <button class="btn btn-secondary" style="margin-left: 10px;">Stop Spider</button>
+            </div>
+        </div>
+
+        <!-- Active Scan Tab -->
+        <div class="tab-content" id="tab-scanner">
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>🔍</span> ACTIVE SCAN CONFIGURATION
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Target URL</label>
+                    <input type="url" class="input-field" id="scan_url" placeholder="https://example.com">
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Policy</label>
+                        <select class="file-type-select" id="scan_policy">
+                            <option value="default">Default Policy</option>
+                            <option value="sql">SQL Injection</option>
+                            <option value="xss">Cross-Site Scripting</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Threads</label>
+                        <input type="number" class="input-field" id="scan_threads" value="5" min="1" max="20">
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Delay (ms)</label>
+                        <input type="number" class="input-field" id="scan_delay" value="0" min="0" max="10000">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Max Results</label>
+                        <input type="number" class="input-field" id="scan_max_results" value="1000" min="10" max="10000">
+                    </div>
+                </div>
+            </div>
+
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>⚠️</span> SCAN POLICY
+                </div>
+
+                <div class="scan-policy">
+                    <div>
+                        <span class="alert-badge alert-high">High</span>
+                        <select class="file-type-select" style="width: 120px;">
+                            <option>Default</option>
+                            <option>Off</option>
+                            <option>Low</option>
+                            <option>Medium</option>
+                            <option>High</option>
+                        </select>
+                    </div>
+                    <div>
+                        <span class="alert-badge alert-medium">Medium</span>
+                        <select class="file-type-select" style="width: 120px;">
+                            <option>Default</option>
+                            <option>Off</option>
+                            <option>Low</option>
+                            <option>Medium</option>
+                            <option>High</option>
+                        </select>
+                    </div>
+                    <div>
+                        <span class="alert-badge alert-low">Low</span>
+                        <select class="file-type-select" style="width: 120px;">
+                            <option>Default</option>
+                            <option>Off</option>
+                            <option>Low</option>
+                            <option>Medium</option>
+                            <option>High</option>
+                        </select>
+                    </div>
+                    <div>
+                        <span class="alert-badge alert-info">Info</span>
+                        <select class="file-type-select" style="width: 120px;">
+                            <option>Default</option>
+                            <option>Off</option>
+                            <option>Low</option>
+                            <option>Medium</option>
+                            <option>High</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>🔧</span> INJECTION TYPES
+                </div>
+
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="inject_sql" checked>
+                        <label class="checkbox-label" for="inject_sql">SQL Injection</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="inject_xss" checked>
+                        <label class="checkbox-label" for="inject_xss">Cross-Site Scripting</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="inject_command" checked>
+                        <label class="checkbox-label" for="inject_command">Command Injection</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="inject_ldap" checked>
+                        <label class="checkbox-label" for="inject_ldap">LDAP Injection</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="inject_path" checked>
+                        <label class="checkbox-label" for="inject_path">Path Traversal</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="inject_xxe" checked>
+                        <label class="checkbox-label" for="inject_xxe">XXE</label>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <button class="btn btn-primary">Start Active Scan</button>
+                <button class="btn btn-secondary" style="margin-left: 10px;">Stop Scan</button>
+            </div>
+        </div>
+
+        <!-- AJAX Spider Tab -->
+        <div class="tab-content" id="tab-ajax">
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>⚡</span> AJAX SPIDER
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Starting URL</label>
+                    <input type="url" class="input-field" id="ajax_url" placeholder="https://example.com">
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Browser</label>
+                        <select class="file-type-select" id="ajax_browser">
+                            <option value="firefox">Firefox</option>
+                            <option value="chrome">Chrome</option>
+                            <option value="htmlunit">HtmlUnit</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Crawl Depth</label>
+                        <input type="number" class="input-field" id="ajax_depth" value="5" min="1" max="20">
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Duration (mins)</label>
+                        <input type="number" class="input-field" id="ajax_duration" value="5" min="1" max="60">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Wait Time (ms)</label>
+                        <input type="number" class="input-field" id="ajax_wait" value="500" min="100" max="5000">
+                    </div>
+                </div>
+
+                <div class="checkbox-item" style="margin-top: 15px;">
+                    <input type="checkbox" id="ajax_headless">
+                    <label class="checkbox-label" for="ajax_headless">Headless Mode</label>
+                </div>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <button class="btn btn-primary">Start AJAX Spider</button>
+                <button class="btn btn-secondary" style="margin-left: 10px;">Stop</button>
+            </div>
+        </div>
+
+        <!-- Fuzzer Tab -->
+        <div class="tab-content" id="tab-fuzzer">
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>🔨</span> FUZZER CONFIGURATION
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Request</label>
+                    <textarea class="input-field" rows="5" id="fuzzer_request">GET /page?id=§1§ HTTP/1.1
+Host: example.com</textarea>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Fuzz Location</label>
+                        <select class="file-type-select" id="fuzz_location">
+                            <option value="param">Parameter</option>
+                            <option value="header">Header</option>
+                            <option value="body">Body</option>
+                            <option value="path">Path</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Threads</label>
+                        <input type="number" class="input-field" id="fuzz_threads" value="5" min="1" max="20">
+                    </div>
+                </div>
+            </div>
+
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>📦</span> PAYLOADS
+                </div>
+                
+                <select class="file-type-select" id="fuzz_payload_type">
+                    <option value="file">File</option>
+                    <option value="numbers">Numbers</option>
+                    <option value="strings">Strings</option>
+                    <option value="regex">Regex Generator</option>
+                </select>
+
+                <div style="margin-top: 15px;">
+                    <textarea class="input-field" rows="4" placeholder="admin&#10;user&#10;guest&#10;test"></textarea>
+                </div>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <button class="btn btn-primary">Start Fuzzer</button>
+            </div>
+        </div>
+
+        <!-- Scripts Tab -->
+        <div class="tab-content" id="tab-scripts">
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>📜</span> SCRIPTS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="script_active">
+                        <label class="checkbox-label" for="script_active">Active Rules</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="script_passive">
+                        <label class="checkbox-label" for="script_passive">Passive Rules</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="script_proxy">
+                        <label class="checkbox-label" for="script_proxy">Proxy</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="script_http">
+                        <label class="checkbox-label" for="script_http">HTTP Sender</label>
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-secondary">Load Script</button>
+                    <button class="btn btn-secondary" style="margin-left: 10px;">New Script</button>
+                </div>
+
+                <div class="script-item">
+                    <strong>example.js</strong> - Active Rule
+                </div>
+                <div class="script-item">
+                    <strong>headers.js</strong> - HTTP Sender
+                </div>
+            </div>
+        </div>
+
+        <!-- Authentication Tab -->
+        <div class="tab-content" id="tab-auth">
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>🔐</span> AUTHENTICATION METHOD
+                </div>
+                
+                <select class="file-type-select" id="auth_method">
+                    <option value="none">None</option>
+                    <option value="form">Form-Based Authentication</option>
+                    <option value="http">HTTP/NTLM Authentication</option>
+                    <option value="cookie">Cookie-Based Authentication</option>
+                    <option value="bearer">Bearer Token</option>
+                    <option value="oauth">OAuth 2.0</option>
+                </select>
+            </div>
+
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>📝</span> FORM-BASED AUTH
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Login URL</label>
+                    <input type="url" class="input-field" id="auth_login_url" placeholder="https://example.com/login">
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Username Field</label>
+                        <input type="text" class="input-field" id="auth_user_field" value="username">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Password Field</label>
+                        <input type="text" class="input-field" id="auth_pass_field" value="password">
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Username</label>
+                        <input type="text" class="input-field" id="auth_username">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Password</label>
+                        <input type="password" class="input-field" id="auth_password">
+                    </div>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Additional POST Data</label>
+                    <input type="text" class="input-field" id="auth_extra" placeholder="csrf_token=value">
+                </div>
+            </div>
+
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>🍪</span> SESSION MANAGEMENT
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="auth_session">
+                        <label class="checkbox-label" for="auth_session">Use Session Management</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="auth_logout">
+                        <label class="checkbox-label" for="auth_logout">Detect Logout</label>
+                    </div>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Logout Pattern</label>
+                    <input type="text" class="input-field" id="auth_logout_pattern" placeholder="logout|signout">
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div class="tab-content" id="tab-reports">
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>📊</span> REPORT GENERATION
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="report_html" checked>
+                        <label class="checkbox-label" for="report_html">HTML Report</label>
+                        <span class="checkbox-flag">-r</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="report_xml">
+                        <label class="checkbox-label" for="report_xml">XML Report</label>
+                        <span class="checkbox-flag">-x</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="report_json">
+                        <label class="checkbox-label" for="report_json">JSON Report</label>
+                        <span class="checkbox-flag">-j</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="report_markdown">
+                        <label class="checkbox-label" for="report_markdown">Markdown Report</label>
+                    </div>
+                </div>
+
+                <div id="report_filename_container" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Report Filename</label>
+                    <input type="text" class="input-field" id="report_filename" placeholder="zap_report">
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <label class="input-label">Template</label>
+                    <select class="file-type-select" id="report_template">
+                        <option value="traditional">Traditional</option>
+                        <option value="modern">Modern</option>
+                        <option value="detailed">Detailed</option>
+                        <option value="risk">Risk Summary</option>
+                    </select>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <label class="input-label">Output Directory</label>
+                    <input type="text" class="input-field" id="output_dir" value="/home/kali/zap/">
+                </div>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <button class="btn btn-primary">Generate Report</button>
+            </div>
+        </div>
+
+        <!-- API Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔌</span> API CONFIGURATION
+            </div>
+
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>🔑</span> API KEY
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">API Key</label>
+                    <input type="text" class="input-field" id="api_key" value="changeme">
+                </div>
+
+                <div class="checkbox-item" style="margin-top: 15px;">
+                    <input type="checkbox" id="api_loopback">
+                    <label class="checkbox-label" for="api_loopback">Allow API on loopback only</label>
+                </div>
+            </div>
+
+            <div class="zap-option-group">
+                <div class="zap-option-title">
+                    <span>📱</span> API ENDPOINTS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="api_jsonp">
+                        <label class="checkbox-label" for="api_jsonp">Enable JSONP</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="api_ui">
+                        <label class="checkbox-label" for="api_ui">Enable API UI</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CUSTOM OPTIONS
+            </div>
+            <div class="input-group">
+                <label class="input-label">JVM Arguments</label>
+                <input type="text" class="input-field" id="jvm_args" placeholder="-Xmx2G -XX:+UseG1GC">
+            </div>
+            <div class="input-group" style="margin-top: 15px;">
+                <label class="input-label">Additional CLI Options</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="-config config.xml -silent">
+            </div>
+        </div>
+
+        <!-- Save/Load Panel -->
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Configuration name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Configuration</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+        
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <!-- Command Preview -->
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">zap</div>
+            <div class="command-info" id="commandInfo">Launching OWASP ZAP GUI</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand">
+                <span>📋</span> COPY COMMAND
+            </button>
+            <button class="btn btn-secondary" id="clearAll">
+                <span>🗑️</span> CLEAR ALL
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ============ COMMAND BUILDER FOR OWASP ZAP ============
+            
+            // State
+            let state = {
+                launch_mode: 'gui',
+                host: '127.0.0.1',
+                port: 8080,
+                api_enabled: false,
+                session_file: '',
+                session_new: false,
+                session_load: false,
+                target_url: '',
+                api_key: 'changeme',
+                api_loopback: false,
+                api_jsonp: false,
+                api_ui: false,
+                jvm_args: '',
+                customFlags: ''
+            };
+
+            // DOM Elements
+            const launchGui = document.getElementById('launch_gui');
+            const launchDaemon = document.getElementById('launch_daemon');
+            const launchCmd = document.getElementById('launch_cmd');
+            const zapHost = document.getElementById('zap_host');
+            const zapPort = document.getElementById('zap_port');
+            const zapApi = document.getElementById('zap_api');
+            const sessionFile = document.getElementById('session_file');
+            const sessionNew = document.getElementById('session_new');
+            const sessionLoad = document.getElementById('session_load');
+            const targetUrl = document.getElementById('target_url');
+            const apiKey = document.getElementById('api_key');
+            const apiLoopback = document.getElementById('api_loopback');
+            const apiJsonp = document.getElementById('api_jsonp');
+            const apiUi = document.getElementById('api_ui');
+            const jvmArgs = document.getElementById('jvm_args');
+            const customFlags = document.getElementById('customFlags');
+
+            // Tab switching
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabId = btn.dataset.tab;
+                    
+                    // Update active tab button
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    // Update active tab content
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    document.getElementById(`tab-${tabId}`).classList.add('active');
+                });
+            });
+
+            // Launch mode
+            launchGui.addEventListener('change', (e) => { if(e.target.checked) state.launch_mode = 'gui'; updateCommand(); });
+            launchDaemon.addEventListener('change', (e) => { if(e.target.checked) state.launch_mode = 'daemon'; updateCommand(); });
+            launchCmd.addEventListener('change', (e) => { if(e.target.checked) state.launch_mode = 'cmd'; updateCommand(); });
+
+            // Connection
+            zapHost.addEventListener('input', (e) => { state.host = e.target.value; updateCommand(); });
+            zapPort.addEventListener('input', (e) => { state.port = parseInt(e.target.value) || 8080; updateCommand(); });
+            zapApi.addEventListener('change', (e) => { state.api_enabled = e.target.checked; updateCommand(); });
+
+            // Session
+            sessionFile.addEventListener('input', (e) => { state.session_file = e.target.value; updateCommand(); });
+            sessionNew.addEventListener('change', (e) => { state.session_new = e.target.checked; updateCommand(); });
+            sessionLoad.addEventListener('change', (e) => { state.session_load = e.target.checked; updateCommand(); });
+
+            // Target
+            targetUrl.addEventListener('input', (e) => { state.target_url = e.target.value; updateCommand(); });
+
+            // API
+            apiKey.addEventListener('input', (e) => { state.api_key = e.target.value; updateCommand(); });
+            apiLoopback.addEventListener('change', (e) => { state.api_loopback = e.target.checked; updateCommand(); });
+            apiJsonp.addEventListener('change', (e) => { state.api_jsonp = e.target.checked; updateCommand(); });
+            apiUi.addEventListener('change', (e) => { state.api_ui = e.target.checked; updateCommand(); });
+
+            // JVM args
+            jvmArgs.addEventListener('input', (e) => { state.jvm_args = e.target.value; updateCommand(); });
+            customFlags.addEventListener('input', (e) => { state.customFlags = e.target.value; updateCommand(); });
+
+            // Attack button
+            document.getElementById('attack_btn')?.addEventListener('click', () => {
+                if (state.target_url) {
+                    Utils.showNotification(`Starting attack on ${state.target_url}`, 'info');
+                } else {
+                    Utils.showNotification('Please enter a target URL', 'warning');
+                }
+            });
+
+            // ============ COMMAND GENERATION ============
+
+            function generateCommand() {
+                let command = 'zap';
+                const parts = [];
+
+                // JVM arguments
+                if (state.jvm_args) {
+                    command = `java ${state.jvm_args} -jar /usr/share/zap/zap.jar`;
+                }
+
+                // Launch mode
+                if (state.launch_mode === 'daemon') {
+                    parts.push('-daemon');
+                } else if (state.launch_mode === 'cmd') {
+                    parts.push('-cmd');
+                }
+
+                // Host and port
+                if (state.host !== '127.0.0.1' || state.port !== 8080) {
+                    parts.push(`-host ${state.host} -port ${state.port}`);
+                }
+
+                // API
+                if (state.api_enabled) {
+                    parts.push('-api');
+                }
+
+                // Session
+                if (state.session_new && state.session_file) {
+                    parts.push(`-newsession ${state.session_file}`);
+                } else if (state.session_load && state.session_file) {
+                    parts.push(`-session ${state.session_file}`);
+                }
+
+                // API Key
+                if (state.api_key !== 'changeme') {
+                    parts.push(`-config api.key=${state.api_key}`);
+                }
+
+                // API options
+                if (state.api_loopback) {
+                    parts.push('-config api.addrs.addr.name=localhost -config api.addrs.addr.regex=true');
+                }
+                if (state.api_jsonp) {
+                    parts.push('-config api.incerrordetails=true');
+                }
+
+                // Target URL if in cmd mode
+                if (state.launch_mode === 'cmd' && state.target_url) {
+                    parts.push(`-quickurl ${state.target_url}`);
+                }
+
+                // Custom flags
+                if (state.customFlags) {
+                    const customParts = state.customFlags.trim().split(/\s+/);
+                    customParts.forEach(part => parts.push(part));
+                }
+
+                return command + ' ' + parts.join(' ');
+            }
+
+            function generateExplanation() {
+                const explanations = [];
+                
+                const launchModes = {
+                    'gui': 'GUI Mode',
+                    'daemon': 'Daemon Mode',
+                    'cmd': 'Command Line Mode'
+                };
+                explanations.push(launchModes[state.launch_mode]);
+                
+                explanations.push(`Proxy: ${state.host}:${state.port}`);
+                
+                if (state.api_enabled) {
+                    explanations.push('API Enabled');
+                }
+                
+                if (state.session_file) {
+                    explanations.push('Using session');
+                }
+                
+                if (state.target_url && state.launch_mode === 'cmd') {
+                    explanations.push(`Target: ${state.target_url}`);
+                }
+                
+                if (state.jvm_args) {
+                    explanations.push('Custom JVM args');
+                }
+                
+                return `Launching: ${explanations.join(' • ')}`;
+            }
+
+            function updateCommand() {
+                document.getElementById('commandPreview').textContent = generateCommand();
+                document.getElementById('commandInfo').textContent = generateExplanation();
+            }
+
+            // ============ SAVE/LOAD FUNCTIONS ============
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved.zap) saved.zap = [];
+                
+                saved.zap.push({
+                    name: name,
+                    state: { ...state },
+                    timestamp: new Date().toISOString()
+                });
+                
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved.zap || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved.zap && saved.zap[index]) {
+                    saved.zap.splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function loadStateIntoSavedCommands(savedState) {
+                // Restore state
+                state = JSON.parse(JSON.stringify(savedState));
+                
+                // Update UI
+                if (state.launch_mode === 'gui') launchGui.checked = true;
+                if (state.launch_mode === 'daemon') launchDaemon.checked = true;
+                if (state.launch_mode === 'cmd') launchCmd.checked = true;
+                
+                zapHost.value = state.host || '127.0.0.1';
+                zapPort.value = state.port || 8080;
+                zapApi.checked = state.api_enabled || false;
+                sessionFile.value = state.session_file || '';
+                sessionNew.checked = state.session_new || false;
+                sessionLoad.checked = state.session_load || false;
+                targetUrl.value = state.target_url || '';
+                apiKey.value = state.api_key || 'changeme';
+                apiLoopback.checked = state.api_loopback || false;
+                apiJsonp.checked = state.api_jsonp || false;
+                apiUi.checked = state.api_ui || false;
+                jvmArgs.value = state.jvm_args || '';
+                customFlags.value = state.customFlags || '';
+                
+                updateCommand();
+            }
+
+            function updateSavedCommandsList() {
+                const saved = loadSavedCommands();
+                const container = document.getElementById('savedCommandsList');
+                
+                if (saved.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-saved')) {
+                            const index = item.dataset.index;
+                            const cmd = saved[index];
+                            loadStateIntoSavedCommands(cmd.state);
+                            Utils.showNotification(`Loaded: ${cmd.name}`, 'success');
+                        }
+                    });
+                });
+                
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = btn.dataset.index;
+                        deleteSavedCommand(index);
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            // ============ BUTTON HANDLERS ============
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value;
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this configuration', 'warning');
+                    return;
+                }
+                
+                saveCommand(name);
+                Utils.showNotification('✅ Configuration saved!', 'success');
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', () => {
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const command = generateCommand();
+                try {
+                    await navigator.clipboard.writeText(command);
+                    Utils.showNotification('✅ Command copied to clipboard!', 'success');
+                } catch (err) {
+                    Utils.showNotification('❌ Failed to copy command', 'error');
+                }
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                // Reset state
+                state = {
+                    launch_mode: 'gui',
+                    host: '127.0.0.1',
+                    port: 8080,
+                    api_enabled: false,
+                    session_file: '',
+                    session_new: false,
+                    session_load: false,
+                    target_url: '',
+                    api_key: 'changeme',
+                    api_loopback: false,
+                    api_jsonp: false,
+                    api_ui: false,
+                    jvm_args: '',
+                    customFlags: ''
+                };
+                
+                // Reset UI
+                launchGui.checked = true;
+                launchDaemon.checked = false;
+                launchCmd.checked = false;
+                zapHost.value = '127.0.0.1';
+                zapPort.value = 8080;
+                zapApi.checked = false;
+                sessionFile.value = '';
+                sessionNew.checked = false;
+                sessionLoad.checked = false;
+                targetUrl.value = '';
+                apiKey.value = 'changeme';
+                apiLoopback.checked = false;
+                apiJsonp.checked = false;
+                apiUi.checked = false;
+                jvmArgs.value = '';
+                customFlags.value = '';
+                
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            // Initial update
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

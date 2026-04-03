@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBQSQL - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles specific to BBQSQL */
+        .bbqsql-option-group {
+            background: rgba(15, 95, 168, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid #00CFFF;
+        }
+        .bbqsql-option-title {
+            color: #00CFFF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .injection-point {
+            background: #0A1F33;
+            border: 2px solid #0F5FA8;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            color: #E6F0FA;
+            margin-top: 10px;
+        }
+        .injection-highlight {
+            background: rgba(0, 207, 255, 0.2);
+            color: #00CFFF;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .technique-badge {
+            display: inline-block;
+            background: rgba(15, 95, 168, 0.3);
+            border: 1px solid #1E88E5;
+            border-radius: 4px;
+            padding: 6px 12px;
+            margin: 4px;
+            font-size: 0.9rem;
+            color: #E6F0FA;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .technique-badge:hover {
+            background: rgba(15, 95, 168, 0.5);
+            border-color: #00CFFF;
+        }
+        .technique-badge.selected {
+            background: rgba(0, 207, 255, 0.3);
+            border-color: #00CFFF;
+        }
+        .blind-method {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .method-box {
+            flex: 1;
+            background: rgba(15, 95, 168, 0.1);
+            border: 2px solid #0F5FA8;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .method-box:hover {
+            background: rgba(15, 95, 168, 0.3);
+            border-color: #00CFFF;
+        }
+        .method-box.selected {
+            background: rgba(0, 207, 255, 0.2);
+            border-color: #00CFFF;
+        }
+        .method-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .payload-preview {
+            background: #0A1F33;
+            border: 1px solid #00CFFF;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #00CFFF;
+            max-height: 150px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=database-assessment">Database Assessment</a>
+            <span class="separator">›</span>
+            <span class="current">BBQSQL</span>
+        </div>
+
+        <!-- Tool Header -->
+        <div class="tool-header">
+            <h1>BBQSQL</h1>
+            <p>Blind SQL Injection Framework - Automated exploitation of blind SQL injection vulnerabilities</p>
+        </div>
+
+        <!-- Target Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🎯</span> TARGET CONFIGURATION
+            </div>
+
+            <div class="bbqsql-option-group">
+                <div class="bbqsql-option-title">
+                    <span>🌐</span> TARGET URL
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Target URL</label>
+                    <input type="url" class="input-field" id="url" placeholder="http://example.com/page.php?id=1" value="http://example.com/page.php?id=1">
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Request Method</label>
+                    <select class="file-type-select" id="method">
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="PUT">PUT</option>
+                        <option value="DELETE">DELETE</option>
+                    </select>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">POST Data</label>
+                    <textarea class="input-field" rows="3" id="data" placeholder="id=1&name=test"></textarea>
+                </div>
+            </div>
+
+            <div class="bbqsql-option-group">
+                <div class="bbqsql-option-title">
+                    <span>🔍</span> INJECTION POINT
+                </div>
+                
+                <div class="injection-point">
+                    <div style="margin-bottom: 10px;">Current URL: <span id="url_preview">http://example.com/page.php?id=1</span></div>
+                    <div>Injection Point: <span class="injection-highlight">[INJECT]</span></div>
+                    <div style="margin-top: 10px; color: #2A6FAF;">The [INJECT] marker will be replaced with payloads</div>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Custom Injection Point</label>
+                    <input type="text" class="input-field" id="inject_point" placeholder="Use [INJECT] in URL or data">
+                </div>
+            </div>
+        </div>
+
+        <!-- Blind SQL Injection Methods -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔮</span> BLIND INJECTION METHODS
+            </div>
+
+            <div class="bbqsql-option-group">
+                <div class="bbqsql-option-title">
+                    <span>⚡</span> INJECTION TYPE
+                </div>
+                
+                <div class="blind-method">
+                    <div class="method-box selected" id="method-boolean">
+                        <div class="method-icon">✅❌</div>
+                        <div><strong>Boolean-Based</strong></div>
+                        <div style="font-size: 0.8rem; color: #2A6FAF;">True/False responses</div>
+                    </div>
+                    <div class="method-box" id="method-time">
+                        <div class="method-icon">⏱️</div>
+                        <div><strong>Time-Based</strong></div>
+                        <div style="font-size: 0.8rem; color: #2A6FAF;">Delay responses</div>
+                    </div>
+                    <div class="method-box" id="method-error">
+                        <div class="method-icon">⚠️</div>
+                        <div><strong>Error-Based</strong></div>
+                        <div style="font-size: 0.8rem; color: #2A6FAF;">Database errors</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bbqsql-option-group">
+                <div class="bbqsql-option-title">
+                    <span>🔍</span> DETECTION STRINGS
+                </div>
+                
+                <div id="boolean-options">
+                    <div class="output-row">
+                        <div class="input-group">
+                            <label class="input-label">True String</label>
+                            <input type="text" class="input-field" id="true_string" value="Welcome">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">False String</label>
+                            <input type="text" class="input-field" id="false_string" value="Error">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="time-options" style="display: none;">
+                    <div class="output-row">
+                        <div class="input-group">
+                            <label class="input-label">Time Delay (seconds)</label>
+                            <input type="number" class="input-field" id="time_delay" value="5" min="1" max="30">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Time Threshold</label>
+                            <input type="number" class="input-field" id="time_threshold" value="3" min="1" max="60">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="error-options" style="display: none;">
+                    <div class="input-group">
+                        <label class="input-label">Error Pattern</label>
+                        <input type="text" class="input-field" id="error_pattern" value="SQL syntax|mysql_fetch">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Database Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🗄️</span> DATABASE CONFIGURATION
+            </div>
+
+            <div class="bbqsql-option-group">
+                <div class="bbqsql-option-title">
+                    <span>🎯</span> DATABASE TYPE
+                </div>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+                    <div class="technique-badge selected" id="db-mysql">MySQL</div>
+                    <div class="technique-badge" id="db-postgresql">PostgreSQL</div>
+                    <div class="technique-badge" id="db-oracle">Oracle</div>
+                    <div class="technique-badge" id="db-mssql">MSSQL</div>
+                    <div class="technique-badge" id="db-sqlite">SQLite</div>
+                    <div class="technique-badge" id="db-mariadb">MariaDB</div>
+                </div>
+            </div>
+
+            <div class="bbqsql-option-group">
+                <div class="bbqsql-option-title">
+                    <span>🔢</span> DATABASE OPTIONS
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Database Name</label>
+                        <input type="text" class="input-field" id="db_name" placeholder="mysql">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Table Name</label>
+                        <input type="text" class="input-field" id="table_name" placeholder="users">
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Column Name</label>
+                        <input type="text" class="input-field" id="column_name" placeholder="password">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Where Clause</label>
+                        <input type="text" class="input-field" id="where" placeholder="id=1">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Extraction Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📤</span> DATA EXTRACTION
+            </div>
+
+            <div class="bbqsql-option-group">
+                <div class="bbqsql-option-title">
+                    <span>🔢</span> EXTRACTION TYPE
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="radio" name="extract_type" id="extract_string" value="string" checked>
+                        <label class="checkbox-label" for="extract_string">String Extraction</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="extract_type" id="extract_int" value="int">
+                        <label class="checkbox-label" for="extract_int">Integer Extraction</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="extract_type" id="extract_hex" value="hex">
+                        <label class="checkbox-label" for="extract_hex">Hex Extraction</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bbqsql-option-group">
+                <div class="bbqsql-option-title">
+                    <span>📏</span> LENGTH DETECTION
+                </div>
+                
+                <div class="checkbox-item">
+                    <input type="checkbox" id="detect_length" checked>
+                    <label class="checkbox-label" for="detect_length">Auto-detect Length</label>
+                </div>
+
+                <div id="length_options" style="margin-top: 15px;">
+                    <div class="output-row">
+                        <div class="input-group">
+                            <label class="input-label">Min Length</label>
+                            <input type="number" class="input-field" id="min_length" value="1" min="1" max="1000">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Max Length</label>
+                            <input type="number" class="input-field" id="max_length" value="32" min="1" max="1000">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bbqsql-option-group">
+                <div class="bbqsql-option-title">
+                    <span>🔤</span> CHARSET
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Character Set</label>
+                    <input type="text" class="input-field" id="charset" value="abcdefghijklmnopqrstuvwxyz0123456789">
+                </div>
+
+                <div class="checkbox-grid" style="margin-top: 15px;">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="charset_upper">
+                        <label class="checkbox-label" for="charset_upper">Include Uppercase</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="charset_lower" checked>
+                        <label class="checkbox-label" for="charset_lower">Include Lowercase</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="charset_numbers" checked>
+                        <label class="checkbox-label" for="charset_numbers">Include Numbers</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="charset_special">
+                        <label class="checkbox-label" for="charset_special">Include Special Chars</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HTTP Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>🌍</span> HTTP OPTIONS
+            </div>
+
+            <div class="bbqsql-option-group">
+                <div class="bbqsql-option-title">
+                    <span>🍪</span> HEADERS & COOKIES
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Custom Headers</label>
+                    <textarea class="input-field" rows="4" id="headers" placeholder="User-Agent: Mozilla/5.0
+X-Forwarded-For: 127.0.0.1
+Referer: http://example.com"></textarea>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Cookie String</label>
+                    <input type="text" class="input-field" id="cookie" placeholder="PHPSESSID=abc123; security=low">
+                </div>
+            </div>
+
+            <div class="bbqsql-option-group">
+                <div class="bbqsql-option-title">
+                    <span>🔐</span> AUTHENTICATION
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Username:Password</label>
+                    <input type="text" class="input-field" id="auth" placeholder="admin:password">
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Authentication Type</label>
+                    <select class="file-type-select" id="auth_type">
+                        <option value="basic">Basic</option>
+                        <option value="digest">Digest</option>
+                        <option value="ntlm">NTLM</option>
+                        <option value="bearer">Bearer Token</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="bbqsql-option-group">
+                <div class="bbqsql-option-title">
+                    <span>🔀</span> PROXY
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Proxy URL</label>
+                    <input type="text" class="input-field" id="proxy" placeholder="http://127.0.0.1:8080">
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> PERFORMANCE
+            </div>
+
+            <div class="bbqsql-option-group">
+                <div class="bbqsql-option-title">
+                    <span>⚡</span> THREADING
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Threads</label>
+                        <input type="number" class="input-field" id="threads" value="5" min="1" max="20">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Delay (ms)</label>
+                        <input type="number" class="input-field" id="delay" value="0" min="0" max="10000">
+                    </div>
+                </div>
+            </div>
+
+            <div class="bbqsql-option-group">
+                <div class="bbqsql-option-title">
+                    <span>⏱️</span> TIMEOUTS
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Connection Timeout</label>
+                        <input type="number" class="input-field" id="conn_timeout" value="10" min="1" max="60">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Read Timeout</label>
+                        <input type="number" class="input-field" id="read_timeout" value="30" min="1" max="120">
+                    </div>
+                </div>
+            </div>
+
+            <div class="bbqsql-option-group">
+                <div class="bbqsql-option-title">
+                    <span>🔄</span> RETRIES
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Retries</label>
+                        <input type="number" class="input-field" id="retries" value="3" min="0" max="10">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payload Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>📦</span> PAYLOAD OPTIONS
+            </div>
+
+            <div class="bbqsql-option-group">
+                <div class="bbqsql-option-title">
+                    <span>🔨</span> CUSTOM PAYLOADS
+                </div>
+                
+                <div class="checkbox-item">
+                    <input type="checkbox" id="custom_payloads">
+                    <label class="checkbox-label" for="custom_payloads">Use Custom Payloads</label>
+                </div>
+
+                <div id="payload_options" style="display: none; margin-top: 15px;">
+                    <textarea class="input-field" rows="6" id="payloads" placeholder="' AND 1=1 --
+' AND 1=2 --
+' OR '1'='1
+' OR 1=1--
+' WAITFOR DELAY '0:0:5'--
+' AND SLEEP(5)--"></textarea>
+                </div>
+
+                <div class="payload-preview" style="margin-top: 15px;">
+                    <strong>Example payloads:</strong><br>
+                    ' AND 1=1 --<br>
+                    ' AND 1=2 --<br>
+                    ' OR '1'='1<br>
+                    ' OR 1=1--<br>
+                    ' WAITFOR DELAY '0:0:5'--<br>
+                    ' AND SLEEP(5)--
+                </div>
+            </div>
+
+            <div class="bbqsql-option-group">
+                <div class="bbqsql-option-title">
+                    <span>🔧</span> PAYLOAD PROCESSING
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="url_encode">
+                        <label class="checkbox-label" for="url_encode">URL Encode Payloads</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="hex_encode">
+                        <label class="checkbox-label" for="hex_encode">Hex Encode</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="comment_obfuscate">
+                        <label class="checkbox-label" for="comment_obfuscate">Comment Obfuscation</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📊</span> OUTPUT CONFIGURATION
+            </div>
+
+            <div class="bbqsql-option-group">
+                <div class="bbqsql-option-title">
+                    <span>📁</span> OUTPUT FORMATS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_txt">
+                        <label class="checkbox-label" for="output_txt">Text Output</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_csv">
+                        <label class="checkbox-label" for="output_csv">CSV Output</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_json">
+                        <label class="checkbox-label" for="output_json">JSON Output</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_html">
+                        <label class="checkbox-label" for="output_html">HTML Report</label>
+                    </div>
+                </div>
+
+                <div id="output_filename_container" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Output Filename</label>
+                    <input type="text" class="input-field" id="output_filename" placeholder="bbqsql_results">
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <label class="input-label">Output Directory</label>
+                    <input type="text" class="input-field" id="output_dir" value="/home/kali/bbqsql/">
+                </div>
+            </div>
+
+            <div class="bbqsql-option-group">
+                <div class="bbqsql-option-title">
+                    <span>⚡</span> VERBOSITY
+                </div>
+                
+                <select class="file-type-select" id="verbosity">
+                    <option value="0">Quiet</option>
+                    <option value="1">Normal</option>
+                    <option value="2">Verbose</option>
+                    <option value="3">Debug</option>
+                </select>
+            </div>
+
+            <div class="bbqsql-option-group">
+                <div class="bbqsql-option-title">
+                    <span>⏹️</span> STOP CONDITIONS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="stop_on_success" checked>
+                        <label class="checkbox-label" for="stop_on_success">Stop on Success</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="stop_on_error">
+                        <label class="checkbox-label" for="stop_on_error">Stop on Error</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CUSTOM OPTIONS
+            </div>
+            <div class="input-group">
+                <label class="input-label">Additional flags (space separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="--ignore-http-errors --no-color">
+            </div>
+        </div>
+
+        <!-- Save/Load Panel -->
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Configuration name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Configuration</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+        
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <!-- Command Preview -->
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">bbqsql</div>
+            <div class="command-info" id="commandInfo">No target URL specified</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand">
+                <span>📋</span> COPY COMMAND
+            </button>
+            <button class="btn btn-secondary" id="clearAll">
+                <span>🗑️</span> CLEAR ALL
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ============ COMMAND BUILDER FOR BBQSQL ============
+            
+            // State
+            let state = {
+                url: 'http://example.com/page.php?id=1',
+                method: 'GET',
+                data: '',
+                inject_point: '',
+                method_type: 'boolean',
+                true_string: 'Welcome',
+                false_string: 'Error',
+                time_delay: 5,
+                time_threshold: 3,
+                error_pattern: 'SQL syntax|mysql_fetch',
+                db_type: 'mysql',
+                db_name: '',
+                table_name: '',
+                column_name: '',
+                where: '',
+                extract_type: 'string',
+                detect_length: true,
+                min_length: 1,
+                max_length: 32,
+                charset: 'abcdefghijklmnopqrstuvwxyz0123456789',
+                charset_upper: false,
+                charset_lower: true,
+                charset_numbers: true,
+                charset_special: false,
+                headers: '',
+                cookie: '',
+                auth: '',
+                auth_type: 'basic',
+                proxy: '',
+                threads: 5,
+                delay: 0,
+                conn_timeout: 10,
+                read_timeout: 30,
+                retries: 3,
+                custom_payloads: false,
+                payloads: '',
+                url_encode: false,
+                hex_encode: false,
+                comment_obfuscate: false,
+                output: {
+                    txt: false,
+                    csv: false,
+                    json: false,
+                    html: false,
+                    filename: ''
+                },
+                output_dir: '/home/kali/bbqsql/',
+                verbosity: '1',
+                stop_on_success: true,
+                stop_on_error: false,
+                customFlags: ''
+            };
+
+            // DOM Elements
+            const url = document.getElementById('url');
+            const urlPreview = document.getElementById('url_preview');
+            const method = document.getElementById('method');
+            const data = document.getElementById('data');
+            const injectPoint = document.getElementById('inject_point');
+            
+            // Method boxes
+            const methodBoolean = document.getElementById('method-boolean');
+            const methodTime = document.getElementById('method-time');
+            const methodError = document.getElementById('method-error');
+            
+            // Method options
+            const booleanOptions = document.getElementById('boolean-options');
+            const timeOptions = document.getElementById('time-options');
+            const errorOptions = document.getElementById('error-options');
+            const trueString = document.getElementById('true_string');
+            const falseString = document.getElementById('false_string');
+            const timeDelay = document.getElementById('time_delay');
+            const timeThreshold = document.getElementById('time_threshold');
+            const errorPattern = document.getElementById('error_pattern');
+            
+            // Database
+            const dbMySQL = document.getElementById('db-mysql');
+            const dbPostgreSQL = document.getElementById('db-postgresql');
+            const dbOracle = document.getElementById('db-oracle');
+            const dbMSSQL = document.getElementById('db-mssql');
+            const dbSQLite = document.getElementById('db-sqlite');
+            const dbMariaDB = document.getElementById('db-mariadb');
+            const dbName = document.getElementById('db_name');
+            const tableName = document.getElementById('table_name');
+            const columnName = document.getElementById('column_name');
+            const where = document.getElementById('where');
+            
+            // Extraction
+            const extractString = document.getElementById('extract_string');
+            const extractInt = document.getElementById('extract_int');
+            const extractHex = document.getElementById('extract_hex');
+            const detectLength = document.getElementById('detect_length');
+            const lengthOptions = document.getElementById('length_options');
+            const minLength = document.getElementById('min_length');
+            const maxLength = document.getElementById('max_length');
+            const charset = document.getElementById('charset');
+            const charsetUpper = document.getElementById('charset_upper');
+            const charsetLower = document.getElementById('charset_lower');
+            const charsetNumbers = document.getElementById('charset_numbers');
+            const charsetSpecial = document.getElementById('charset_special');
+            
+            // HTTP
+            const headers = document.getElementById('headers');
+            const cookie = document.getElementById('cookie');
+            const auth = document.getElementById('auth');
+            const authType = document.getElementById('auth_type');
+            const proxy = document.getElementById('proxy');
+            
+            // Performance
+            const threads = document.getElementById('threads');
+            const delay = document.getElementById('delay');
+            const connTimeout = document.getElementById('conn_timeout');
+            const readTimeout = document.getElementById('read_timeout');
+            const retries = document.getElementById('retries');
+            
+            // Payloads
+            const customPayloads = document.getElementById('custom_payloads');
+            const payloadOptions = document.getElementById('payload_options');
+            const payloads = document.getElementById('payloads');
+            const urlEncode = document.getElementById('url_encode');
+            const hexEncode = document.getElementById('hex_encode');
+            const commentObfuscate = document.getElementById('comment_obfuscate');
+            
+            // Output
+            const outputTxt = document.getElementById('output_txt');
+            const outputCsv = document.getElementById('output_csv');
+            const outputJson = document.getElementById('output_json');
+            const outputHtml = document.getElementById('output_html');
+            const outputFilename = document.getElementById('output_filename');
+            const outputFilenameContainer = document.getElementById('output_filename_container');
+            const outputDir = document.getElementById('output_dir');
+            const verbosity = document.getElementById('verbosity');
+            const stopOnSuccess = document.getElementById('stop_on_success');
+            const stopOnError = document.getElementById('stop_on_error');
+            
+            const customFlags = document.getElementById('customFlags');
+
+            // ============ EVENT LISTENERS ============
+
+            // Update URL preview
+            function updateUrlPreview() {
+                urlPreview.textContent = url.value || 'http://example.com/page.php?id=1';
+            }
+            url.addEventListener('input', updateUrlPreview);
+            updateUrlPreview();
+
+            // Method selection
+            function selectMethod(method) {
+                [methodBoolean, methodTime, methodError].forEach(m => m.classList.remove('selected'));
+                
+                if (method === 'boolean') {
+                    methodBoolean.classList.add('selected');
+                    booleanOptions.style.display = 'block';
+                    timeOptions.style.display = 'none';
+                    errorOptions.style.display = 'none';
+                    state.method_type = 'boolean';
+                }
+                if (method === 'time') {
+                    methodTime.classList.add('selected');
+                    booleanOptions.style.display = 'none';
+                    timeOptions.style.display = 'block';
+                    errorOptions.style.display = 'none';
+                    state.method_type = 'time';
+                }
+                if (method === 'error') {
+                    methodError.classList.add('selected');
+                    booleanOptions.style.display = 'none';
+                    timeOptions.style.display = 'none';
+                    errorOptions.style.display = 'block';
+                    state.method_type = 'error';
+                }
+                updateCommand();
+            }
+
+            methodBoolean.addEventListener('click', () => selectMethod('boolean'));
+            methodTime.addEventListener('click', () => selectMethod('time'));
+            methodError.addEventListener('click', () => selectMethod('error'));
+
+            // Method options
+            trueString.addEventListener('input', (e) => { state.true_string = e.target.value; updateCommand(); });
+            falseString.addEventListener('input', (e) => { state.false_string = e.target.value; updateCommand(); });
+            timeDelay.addEventListener('input', (e) => { state.time_delay = parseInt(e.target.value) || 5; updateCommand(); });
+            timeThreshold.addEventListener('input', (e) => { state.time_threshold = parseInt(e.target.value) || 3; updateCommand(); });
+            errorPattern.addEventListener('input', (e) => { state.error_pattern = e.target.value; updateCommand(); });
+
+            // Database selection
+            function selectDB(db) {
+                const dbs = [dbMySQL, dbPostgreSQL, dbOracle, dbMSSQL, dbSQLite, dbMariaDB];
+                dbs.forEach(d => d.classList.remove('selected'));
+                
+                if (db === 'mysql') dbMySQL.classList.add('selected');
+                if (db === 'postgresql') dbPostgreSQL.classList.add('selected');
+                if (db === 'oracle') dbOracle.classList.add('selected');
+                if (db === 'mssql') dbMSSQL.classList.add('selected');
+                if (db === 'sqlite') dbSQLite.classList.add('selected');
+                if (db === 'mariadb') dbMariaDB.classList.add('selected');
+                
+                state.db_type = db;
+                updateCommand();
+            }
+
+            dbMySQL.addEventListener('click', () => selectDB('mysql'));
+            dbPostgreSQL.addEventListener('click', () => selectDB('postgresql'));
+            dbOracle.addEventListener('click', () => selectDB('oracle'));
+            dbMSSQL.addEventListener('click', () => selectDB('mssql'));
+            dbSQLite.addEventListener('click', () => selectDB('sqlite'));
+            dbMariaDB.addEventListener('click', () => selectDB('mariadb'));
+
+            // Database options
+            dbName.addEventListener('input', (e) => { state.db_name = e.target.value; updateCommand(); });
+            tableName.addEventListener('input', (e) => { state.table_name = e.target.value; updateCommand(); });
+            columnName.addEventListener('input', (e) => { state.column_name = e.target.value; updateCommand(); });
+            where.addEventListener('input', (e) => { state.where = e.target.value; updateCommand(); });
+
+            // Extraction
+            extractString.addEventListener('change', (e) => { if(e.target.checked) state.extract_type = 'string'; updateCommand(); });
+            extractInt.addEventListener('change', (e) => { if(e.target.checked) state.extract_type = 'int'; updateCommand(); });
+            extractHex.addEventListener('change', (e) => { if(e.target.checked) state.extract_type = 'hex'; updateCommand(); });
+            
+            detectLength.addEventListener('change', (e) => { 
+                state.detect_length = e.target.checked;
+                lengthOptions.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            
+            minLength.addEventListener('input', (e) => { state.min_length = parseInt(e.target.value) || 1; updateCommand(); });
+            maxLength.addEventListener('input', (e) => { state.max_length = parseInt(e.target.value) || 32; updateCommand(); });
+            
+            function updateCharset() {
+                let charset = '';
+                if (state.charset_lower) charset += 'abcdefghijklmnopqrstuvwxyz';
+                if (state.charset_upper) charset += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                if (state.charset_numbers) charset += '0123456789';
+                if (state.charset_special) charset += '!@#$%^&*()_+-=[]{}|;:,.<>?';
+                state.charset = charset;
+                document.getElementById('charset').value = charset;
+                updateCommand();
+            }
+
+            charset.addEventListener('input', (e) => { state.charset = e.target.value; updateCommand(); });
+            charsetUpper.addEventListener('change', (e) => { state.charset_upper = e.target.checked; updateCharset(); });
+            charsetLower.addEventListener('change', (e) => { state.charset_lower = e.target.checked; updateCharset(); });
+            charsetNumbers.addEventListener('change', (e) => { state.charset_numbers = e.target.checked; updateCharset(); });
+            charsetSpecial.addEventListener('change', (e) => { state.charset_special = e.target.checked; updateCharset(); });
+
+            // HTTP
+            headers.addEventListener('input', (e) => { state.headers = e.target.value; updateCommand(); });
+            cookie.addEventListener('input', (e) => { state.cookie = e.target.value; updateCommand(); });
+            auth.addEventListener('input', (e) => { state.auth = e.target.value; updateCommand(); });
+            authType.addEventListener('change', (e) => { state.auth_type = e.target.value; updateCommand(); });
+            proxy.addEventListener('input', (e) => { state.proxy = e.target.value; updateCommand(); });
+
+            // Performance
+            threads.addEventListener('input', (e) => { state.threads = parseInt(e.target.value) || 5; updateCommand(); });
+            delay.addEventListener('input', (e) => { state.delay = parseInt(e.target.value) || 0; updateCommand(); });
+            connTimeout.addEventListener('input', (e) => { state.conn_timeout = parseInt(e.target.value) || 10; updateCommand(); });
+            readTimeout.addEventListener('input', (e) => { state.read_timeout = parseInt(e.target.value) || 30; updateCommand(); });
+            retries.addEventListener('input', (e) => { state.retries = parseInt(e.target.value) || 3; updateCommand(); });
+
+            // Payloads
+            customPayloads.addEventListener('change', (e) => { 
+                state.custom_payloads = e.target.checked;
+                payloadOptions.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            payloads.addEventListener('input', (e) => { state.payloads = e.target.value; updateCommand(); });
+            urlEncode.addEventListener('change', (e) => { state.url_encode = e.target.checked; updateCommand(); });
+            hexEncode.addEventListener('change', (e) => { state.hex_encode = e.target.checked; updateCommand(); });
+            commentObfuscate.addEventListener('change', (e) => { state.comment_obfuscate = e.target.checked; updateCommand(); });
+
+            // Output
+            outputTxt.addEventListener('change', (e) => { state.output.txt = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputCsv.addEventListener('change', (e) => { state.output.csv = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputJson.addEventListener('change', (e) => { state.output.json = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputHtml.addEventListener('change', (e) => { state.output.html = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputFilename.addEventListener('input', (e) => { state.output.filename = e.target.value; updateCommand(); });
+            outputDir.addEventListener('input', (e) => { state.output_dir = e.target.value; updateCommand(); });
+            verbosity.addEventListener('change', (e) => { state.verbosity = e.target.value; updateCommand(); });
+            stopOnSuccess.addEventListener('change', (e) => { state.stop_on_success = e.target.checked; updateCommand(); });
+            stopOnError.addEventListener('change', (e) => { state.stop_on_error = e.target.checked; updateCommand(); });
+
+            function updateOutputVisibility() {
+                const anyOutput = state.output.txt || state.output.csv || state.output.json || state.output.html;
+                outputFilenameContainer.style.display = anyOutput ? 'block' : 'none';
+            }
+
+            // Custom flags
+            customFlags.addEventListener('input', (e) => { state.customFlags = e.target.value; updateCommand(); });
+
+            // URL/Method/Data
+            url.addEventListener('input', (e) => { state.url = e.target.value; updateCommand(); });
+            method.addEventListener('change', (e) => { state.method = e.target.value; updateCommand(); });
+            data.addEventListener('input', (e) => { state.data = e.target.value; updateCommand(); });
+            injectPoint.addEventListener('input', (e) => { state.inject_point = e.target.value; updateCommand(); });
+
+            // ============ COMMAND GENERATION ============
+
+            function generateCommand() {
+                let command = 'bbqsql';
+                const parts = [];
+
+                // Target URL
+                if (state.url) {
+                    parts.push(`--url="${state.url}"`);
+                }
+
+                // Method
+                if (state.method !== 'GET') {
+                    parts.push(`--method=${state.method}`);
+                }
+
+                // POST data
+                if (state.data) {
+                    parts.push(`--data="${state.data}"`);
+                }
+
+                // Injection point
+                if (state.inject_point) {
+                    parts.push(`--inject="${state.inject_point}"`);
+                }
+
+                // Method type
+                if (state.method_type === 'boolean') {
+                    parts.push('--boolean');
+                    parts.push(`--true-string="${state.true_string}"`);
+                    parts.push(`--false-string="${state.false_string}"`);
+                } else if (state.method_type === 'time') {
+                    parts.push('--time');
+                    parts.push(`--delay=${state.time_delay}`);
+                    parts.push(`--threshold=${state.time_threshold}`);
+                } else if (state.method_type === 'error') {
+                    parts.push('--error');
+                    parts.push(`--error-pattern="${state.error_pattern}"`);
+                }
+
+                // Database
+                parts.push(`--dbms=${state.db_type}`);
+
+                // Target data
+                if (state.db_name) parts.push(`--db-name="${state.db_name}"`);
+                if (state.table_name) parts.push(`--table="${state.table_name}"`);
+                if (state.column_name) parts.push(`--column="${state.column_name}"`);
+                if (state.where) parts.push(`--where="${state.where}"`);
+
+                // Extraction
+                if (state.extract_type === 'string') parts.push('--string');
+                if (state.extract_type === 'int') parts.push('--int');
+                if (state.extract_type === 'hex') parts.push('--hex');
+
+                // Length detection
+                if (state.detect_length) {
+                    parts.push('--detect-length');
+                } else {
+                    parts.push(`--min-length=${state.min_length}`);
+                    parts.push(`--max-length=${state.max_length}`);
+                }
+
+                // Charset
+                if (state.charset) {
+                    parts.push(`--charset="${state.charset}"`);
+                }
+
+                // Headers
+                if (state.headers) {
+                    const headerLines = state.headers.split('\n').filter(h => h.trim());
+                    headerLines.forEach(header => {
+                        parts.push(`--header="${header.trim()}"`);
+                    });
+                }
+
+                // Cookie
+                if (state.cookie) {
+                    parts.push(`--cookie="${state.cookie}"`);
+                }
+
+                // Authentication
+                if (state.auth) {
+                    parts.push(`--auth="${state.auth}"`);
+                    if (state.auth_type !== 'basic') {
+                        parts.push(`--auth-type=${state.auth_type}`);
+                    }
+                }
+
+                // Proxy
+                if (state.proxy) {
+                    parts.push(`--proxy=${state.proxy}`);
+                }
+
+                // Performance
+                if (state.threads !== 5) parts.push(`--threads=${state.threads}`);
+                if (state.delay > 0) parts.push(`--delay=${state.delay}`);
+                if (state.conn_timeout !== 10) parts.push(`--conn-timeout=${state.conn_timeout}`);
+                if (state.read_timeout !== 30) parts.push(`--read-timeout=${state.read_timeout}`);
+                if (state.retries !== 3) parts.push(`--retries=${state.retries}`);
+
+                // Custom payloads
+                if (state.custom_payloads && state.payloads) {
+                    parts.push('--custom-payloads');
+                }
+
+                // Payload processing
+                if (state.url_encode) parts.push('--url-encode');
+                if (state.hex_encode) parts.push('--hex-encode');
+                if (state.comment_obfuscate) parts.push('--comment-obfuscate');
+
+                // Output
+                if (state.output.filename) {
+                    let outputFormat = '';
+                    if (state.output.txt) outputFormat = 'txt';
+                    else if (state.output.csv) outputFormat = 'csv';
+                    else if (state.output.json) outputFormat = 'json';
+                    else if (state.output.html) outputFormat = 'html';
+                    
+                    if (outputFormat) {
+                        parts.push(`--output=${state.output_dir}${state.output.filename}.${outputFormat}`);
+                        parts.push(`--format=${outputFormat}`);
+                    }
+                }
+
+                // Verbosity
+                if (state.verbosity === '0') parts.push('--quiet');
+                if (state.verbosity === '2') parts.push('--verbose');
+                if (state.verbosity === '3') parts.push('--debug');
+
+                // Stop conditions
+                if (state.stop_on_success) parts.push('--stop-on-success');
+                if (state.stop_on_error) parts.push('--stop-on-error');
+
+                // Custom flags
+                if (state.customFlags) {
+                    const customParts = state.customFlags.trim().split(/\s+/);
+                    customParts.forEach(part => parts.push(part));
+                }
+
+                return command + ' ' + parts.join(' ');
+            }
+
+            function generateExplanation() {
+                const explanations = [];
+                
+                if (state.url) explanations.push(`Target: ${state.url}`);
+                
+                const methodNames = {
+                    'boolean': 'Boolean-based',
+                    'time': 'Time-based',
+                    'error': 'Error-based'
+                };
+                explanations.push(`Method: ${methodNames[state.method_type]}`);
+                
+                explanations.push(`DB: ${state.db_type.toUpperCase()}`);
+                
+                if (state.db_name && state.table_name && state.column_name) {
+                    explanations.push(`Extracting: ${state.db_name}.${state.table_name}.${state.column_name}`);
+                }
+                
+                if (state.threads > 5) explanations.push(`Threads: ${state.threads}`);
+                
+                const outputFormats = [];
+                if (state.output.txt) outputFormats.push('TXT');
+                if (state.output.csv) outputFormats.push('CSV');
+                if (state.output.json) outputFormats.push('JSON');
+                if (state.output.html) outputFormats.push('HTML');
+                
+                if (outputFormats.length > 0) {
+                    explanations.push(`Output: ${outputFormats.join(', ')}`);
+                }
+                
+                return explanations.length > 0 
+                    ? `Blind SQL injection: ${explanations.join(' • ')}`
+                    : 'No injection parameters configured';
+            }
+
+            function updateCommand() {
+                document.getElementById('commandPreview').textContent = generateCommand();
+                document.getElementById('commandInfo').textContent = generateExplanation();
+            }
+
+            // ============ SAVE/LOAD FUNCTIONS ============
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved.bbqsql) saved.bbqsql = [];
+                
+                saved.bbqsql.push({
+                    name: name,
+                    state: { ...state },
+                    timestamp: new Date().toISOString()
+                });
+                
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved.bbqsql || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved.bbqsql && saved.bbqsql[index]) {
+                    saved.bbqsql.splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function loadStateIntoSavedCommands(savedState) {
+                // Restore state
+                state = JSON.parse(JSON.stringify(savedState));
+                
+                // Update UI
+                url.value = state.url || 'http://example.com/page.php?id=1';
+                method.value = state.method || 'GET';
+                data.value = state.data || '';
+                injectPoint.value = state.inject_point || '';
+                updateUrlPreview();
+                
+                selectMethod(state.method_type || 'boolean');
+                trueString.value = state.true_string || 'Welcome';
+                falseString.value = state.false_string || 'Error';
+                timeDelay.value = state.time_delay || 5;
+                timeThreshold.value = state.time_threshold || 3;
+                errorPattern.value = state.error_pattern || 'SQL syntax|mysql_fetch';
+                
+                selectDB(state.db_type || 'mysql');
+                dbName.value = state.db_name || '';
+                tableName.value = state.table_name || '';
+                columnName.value = state.column_name || '';
+                where.value = state.where || '';
+                
+                if (state.extract_type === 'string') extractString.checked = true;
+                if (state.extract_type === 'int') extractInt.checked = true;
+                if (state.extract_type === 'hex') extractHex.checked = true;
+                
+                detectLength.checked = state.detect_length !== false;
+                lengthOptions.style.display = state.detect_length ? 'block' : 'none';
+                minLength.value = state.min_length || 1;
+                maxLength.value = state.max_length || 32;
+                
+                charsetUpper.checked = state.charset_upper || false;
+                charsetLower.checked = state.charset_lower !== false;
+                charsetNumbers.checked = state.charset_numbers !== false;
+                charsetSpecial.checked = state.charset_special || false;
+                updateCharset();
+                
+                headers.value = state.headers || '';
+                cookie.value = state.cookie || '';
+                auth.value = state.auth || '';
+                authType.value = state.auth_type || 'basic';
+                proxy.value = state.proxy || '';
+                
+                threads.value = state.threads || 5;
+                delay.value = state.delay || 0;
+                connTimeout.value = state.conn_timeout || 10;
+                readTimeout.value = state.read_timeout || 30;
+                retries.value = state.retries || 3;
+                
+                customPayloads.checked = state.custom_payloads || false;
+                payloadOptions.style.display = state.custom_payloads ? 'block' : 'none';
+                payloads.value = state.payloads || '';
+                urlEncode.checked = state.url_encode || false;
+                hexEncode.checked = state.hex_encode || false;
+                commentObfuscate.checked = state.comment_obfuscate || false;
+                
+                outputTxt.checked = state.output.txt || false;
+                outputCsv.checked = state.output.csv || false;
+                outputJson.checked = state.output.json || false;
+                outputHtml.checked = state.output.html || false;
+                outputFilename.value = state.output.filename || '';
+                updateOutputVisibility();
+                outputDir.value = state.output_dir || '/home/kali/bbqsql/';
+                verbosity.value = state.verbosity || '1';
+                stopOnSuccess.checked = state.stop_on_success !== false;
+                stopOnError.checked = state.stop_on_error || false;
+                
+                customFlags.value = state.customFlags || '';
+                
+                updateCommand();
+            }
+
+            function updateSavedCommandsList() {
+                const saved = loadSavedCommands();
+                const container = document.getElementById('savedCommandsList');
+                
+                if (saved.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; gap-10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-saved')) {
+                            const index = item.dataset.index;
+                            const cmd = saved[index];
+                            loadStateIntoSavedCommands(cmd.state);
+                            Utils.showNotification(`Loaded: ${cmd.name}`, 'success');
+                        }
+                    });
+                });
+                
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = btn.dataset.index;
+                        deleteSavedCommand(index);
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            // ============ BUTTON HANDLERS ============
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value;
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this configuration', 'warning');
+                    return;
+                }
+                
+                saveCommand(name);
+                Utils.showNotification('✅ Configuration saved!', 'success');
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', () => {
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const command = generateCommand();
+                try {
+                    await navigator.clipboard.writeText(command);
+                    Utils.showNotification('✅ Command copied to clipboard!', 'success');
+                } catch (err) {
+                    Utils.showNotification('❌ Failed to copy command', 'error');
+                }
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                // Reset state
+                state = {
+                    url: 'http://example.com/page.php?id=1',
+                    method: 'GET',
+                    data: '',
+                    inject_point: '',
+                    method_type: 'boolean',
+                    true_string: 'Welcome',
+                    false_string: 'Error',
+                    time_delay: 5,
+                    time_threshold: 3,
+                    error_pattern: 'SQL syntax|mysql_fetch',
+                    db_type: 'mysql',
+                    db_name: '',
+                    table_name: '',
+                    column_name: '',
+                    where: '',
+                    extract_type: 'string',
+                    detect_length: true,
+                    min_length: 1,
+                    max_length: 32,
+                    charset: 'abcdefghijklmnopqrstuvwxyz0123456789',
+                    charset_upper: false,
+                    charset_lower: true,
+                    charset_numbers: true,
+                    charset_special: false,
+                    headers: '',
+                    cookie: '',
+                    auth: '',
+                    auth_type: 'basic',
+                    proxy: '',
+                    threads: 5,
+                    delay: 0,
+                    conn_timeout: 10,
+                    read_timeout: 30,
+                    retries: 3,
+                    custom_payloads: false,
+                    payloads: '',
+                    url_encode: false,
+                    hex_encode: false,
+                    comment_obfuscate: false,
+                    output: { txt: false, csv: false, json: false, html: false, filename: '' },
+                    output_dir: '/home/kali/bbqsql/',
+                    verbosity: '1',
+                    stop_on_success: true,
+                    stop_on_error: false,
+                    customFlags: ''
+                };
+                
+                // Reset UI
+                url.value = 'http://example.com/page.php?id=1';
+                method.value = 'GET';
+                data.value = '';
+                injectPoint.value = '';
+                updateUrlPreview();
+                
+                selectMethod('boolean');
+                trueString.value = 'Welcome';
+                falseString.value = 'Error';
+                timeDelay.value = 5;
+                timeThreshold.value = 3;
+                errorPattern.value = 'SQL syntax|mysql_fetch';
+                
+                selectDB('mysql');
+                dbName.value = '';
+                tableName.value = '';
+                columnName.value = '';
+                where.value = '';
+                
+                extractString.checked = true;
+                extractInt.checked = false;
+                extractHex.checked = false;
+                
+                detectLength.checked = true;
+                lengthOptions.style.display = 'block';
+                minLength.value = 1;
+                maxLength.value = 32;
+                
+                charsetLower.checked = true;
+                charsetNumbers.checked = true;
+                charsetUpper.checked = false;
+                charsetSpecial.checked = false;
+                updateCharset();
+                
+                headers.value = '';
+                cookie.value = '';
+                auth.value = '';
+                authType.value = 'basic';
+                proxy.value = '';
+                
+                threads.value = 5;
+                delay.value = 0;
+                connTimeout.value = 10;
+                readTimeout.value = 30;
+                retries.value = 3;
+                
+                customPayloads.checked = false;
+                payloadOptions.style.display = 'none';
+                payloads.value = '';
+                urlEncode.checked = false;
+                hexEncode.checked = false;
+                commentObfuscate.checked = false;
+                
+                outputTxt.checked = false;
+                outputCsv.checked = false;
+                outputJson.checked = false;
+                outputHtml.checked = false;
+                outputFilenameContainer.style.display = 'none';
+                outputFilename.value = '';
+                outputDir.value = '/home/kali/bbqsql/';
+                verbosity.value = '1';
+                stopOnSuccess.checked = true;
+                stopOnError.checked = false;
+                
+                customFlags.value = '';
+                
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            // Initial update
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

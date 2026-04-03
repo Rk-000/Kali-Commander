@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLmap - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles specific to SQLmap */
+        .sqlmap-option-group {
+            background: rgba(15, 95, 168, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid #00CFFF;
+        }
+        .sqlmap-option-title {
+            color: #00CFFF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tech-badge {
+            display: inline-block;
+            background: rgba(15, 95, 168, 0.3);
+            border: 1px solid #1E88E5;
+            border-radius: 4px;
+            padding: 4px 8px;
+            margin: 2px;
+            font-size: 0.8rem;
+            color: #E6F0FA;
+        }
+        .risk-level {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .risk-low { background-color: #2E8B57; }
+        .risk-medium { background-color: #FFA500; }
+        .risk-high { background-color: #FF4500; }
+        .payload-preview {
+            background: #0A1F33;
+            border: 1px solid #00CFFF;
+            border-radius: 6px;
+            padding: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #00CFFF;
+            margin-top: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=vulnerability-analysis">Vulnerability Analysis</a>
+            <span class="separator">›</span>
+            <span class="current">SQLmap</span>
+        </div>
+
+        <!-- Tool Header -->
+        <div class="tool-header">
+            <h1>SQLMAP</h1>
+            <p>Automatic SQL Injection Tool - Detection and exploitation of SQL injection flaws</p>
+        </div>
+
+        <!-- Target Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🎯</span> TARGET CONFIGURATION
+            </div>
+
+            <div class="sqlmap-option-group">
+                <div class="sqlmap-option-title">
+                    <span>🌐</span> TARGET URL
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Target URL</label>
+                    <input type="url" class="input-field" id="url" placeholder="http://example.com/page.php?id=1" value="">
+                    <small style="color: #2A6FAF;">Include parameters to test (e.g., ?id=1)</small>
+                </div>
+
+                <div class="checkbox-grid" style="margin-top: 15px;">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="url_regex">
+                        <label class="checkbox-label" for="url_regex">Use URL Regex</label>
+                        <span class="checkbox-flag">--scope</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sqlmap-option-group">
+                <div class="sqlmap-option-title">
+                    <span>📋</span> REQUEST DATA
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">POST Data</label>
+                    <input type="text" class="input-field" id="data" placeholder="id=1&name=admin">
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Cookie</label>
+                    <input type="text" class="input-field" id="cookie" placeholder="PHPSESSID=abc123; security=low">
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">User-Agent</label>
+                    <input type="text" class="input-field" id="user_agent" placeholder="Mozilla/5.0 (compatible; SQLmap)">
+                </div>
+
+                <div class="checkbox-grid" style="margin-top: 15px;">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="random_agent">
+                        <label class="checkbox-label" for="random_agent">Random User-Agent</label>
+                        <span class="checkbox-flag">--random-agent</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="mobile_agent">
+                        <label class="checkbox-label" for="mobile_agent">Mobile User-Agent</label>
+                        <span class="checkbox-flag">--mobile</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sqlmap-option-group">
+                <div class="sqlmap-option-title">
+                    <span>🔌</span> HTTP HEADERS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Custom Headers (JSON format)</label>
+                    <input type="text" class="input-field" id="headers" placeholder='{"X-Forwarded-For": "127.0.0.1"}'>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Host Header</label>
+                    <input type="text" class="input-field" id="host" placeholder="example.com">
+                </div>
+
+                <div class="checkbox-item" style="margin-top: 15px;">
+                    <input type="checkbox" id="referer">
+                    <label class="checkbox-label" for="referer">Add Referer Header</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Injection Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>💉</span> INJECTION CONFIGURATION
+            </div>
+
+            <div class="sqlmap-option-group">
+                <div class="sqlmap-option-title">
+                    <span>🔧</span> INJECTION PARAMETERS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Test Parameters</label>
+                    <input type="text" class="input-field" id="params" placeholder="id,name,user" value="id">
+                    <small>Comma-separated parameters to test</small>
+                </div>
+
+                <div class="checkbox-item" style="margin-top: 15px;">
+                    <input type="checkbox" id="all_params">
+                    <label class="checkbox-label" for="all_params">Test All Parameters</label>
+                    <span class="checkbox-flag">--all-params</span>
+                </div>
+            </div>
+
+            <div class="sqlmap-option-group">
+                <div class="sqlmap-option-title">
+                    <span>⚙️</span> TECHNIQUES
+                </div>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
+                    <div class="tech-badge">
+                        <input type="checkbox" id="tech_b" checked> B - Boolean-based blind
+                    </div>
+                    <div class="tech-badge">
+                        <input type="checkbox" id="tech_q" checked> Q - Inline queries
+                    </div>
+                    <div class="tech-badge">
+                        <input type="checkbox" id="tech_t" checked> T - Time-based blind
+                    </div>
+                    <div class="tech-badge">
+                        <input type="checkbox" id="tech_u" checked> U - Union query
+                    </div>
+                    <div class="tech-badge">
+                        <input type="checkbox" id="tech_e" checked> E - Error-based
+                    </div>
+                    <div class="tech-badge">
+                        <input type="checkbox" id="tech_s" checked> S - Stacked queries
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Custom Technique (comma-separated)</label>
+                    <input type="text" class="input-field" id="tech_custom" placeholder="B,T,U">
+                </div>
+            </div>
+
+            <div class="sqlmap-option-group">
+                <div class="sqlmap-option-title">
+                    <span>⚠️</span> RISK & LEVEL
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Risk Level</label>
+                        <select class="file-type-select" id="risk">
+                            <option value="1">1 - Low (default)</option>
+                            <option value="2">2 - Medium</option>
+                            <option value="3">3 - High</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Testing Level</label>
+                        <select class="file-type-select" id="level">
+                            <option value="1">1 - Basic (default)</option>
+                            <option value="2">2 - Moderate</option>
+                            <option value="3">3 - Extensive</option>
+                            <option value="4">4 - Exhaustive</option>
+                            <option value="5">5 - Insane</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px; display: flex; gap: 20px;">
+                    <div><span class="risk-level risk-low"></span> Low risk: Safe tests</div>
+                    <div><span class="risk-level risk-medium"></span> Medium risk: Aggressive tests</div>
+                    <div><span class="risk-level risk-high"></span> High risk: Dangerous tests</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Database Enumeration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🗄️</span> DATABASE ENUMERATION
+            </div>
+
+            <div class="sqlmap-option-group">
+                <div class="sqlmap-option-title">
+                    <span>🔍</span> ENUMERATION OPTIONS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="enum_dbs">
+                        <label class="checkbox-label" for="enum_dbs">Enumerate Databases</label>
+                        <span class="checkbox-flag">--dbs</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="enum_tables">
+                        <label class="checkbox-label" for="enum_tables">Enumerate Tables</label>
+                        <span class="checkbox-flag">--tables</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="enum_columns">
+                        <label class="checkbox-label" for="enum_columns">Enumerate Columns</label>
+                        <span class="checkbox-flag">--columns</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="enum_schema">
+                        <label class="checkbox-label" for="enum_schema">Enumerate Schema</label>
+                        <span class="checkbox-flag">--schema</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="enum_count">
+                        <label class="checkbox-label" for="enum_count">Count Entries</label>
+                        <span class="checkbox-flag">--count</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="enum_dump">
+                        <label class="checkbox-label" for="enum_dump">Dump Data</label>
+                        <span class="checkbox-flag">--dump</span>
+                    </div>
+                </div>
+
+                <div id="enum_details" style="display: none; margin-top: 15px;">
+                    <div class="output-row">
+                        <div class="input-group">
+                            <label class="input-label">Database Name</label>
+                            <input type="text" class="input-field" id="db_name" placeholder="database_name">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Table Name</label>
+                            <input type="text" class="input-field" id="table_name" placeholder="table_name">
+                        </div>
+                    </div>
+                    <div class="output-row" style="margin-top: 15px;">
+                        <div class="input-group">
+                            <label class="input-label">Column(s)</label>
+                            <input type="text" class="input-field" id="columns" placeholder="col1,col2,col3">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Where Condition</label>
+                            <input type="text" class="input-field" id="where" placeholder="id=1">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sqlmap-option-group">
+                <div class="sqlmap-option-title">
+                    <span>⚡</span> DUMP OPTIONS
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Start Row</label>
+                        <input type="number" class="input-field" id="start_row" value="1" min="1">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Stop Row</label>
+                        <input type="number" class="input-field" id="stop_row" placeholder="all">
+                    </div>
+                </div>
+
+                <div class="checkbox-item" style="margin-top: 15px;">
+                    <input type="checkbox" id="dump_all">
+                    <label class="checkbox-label" for="dump_all">Dump All Entries</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- OS Access -->
+        <div class="section">
+            <div class="section-title">
+                <span>🖥️</span> OS ACCESS
+            </div>
+
+            <div class="sqlmap-option-group">
+                <div class="sqlmap-option-title">
+                    <span>💻</span> COMMAND EXECUTION
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="os_cmd">
+                        <label class="checkbox-label" for="os_cmd">OS Command Execution</label>
+                        <span class="checkbox-flag">--os-cmd</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="os_shell">
+                        <label class="checkbox-label" for="os_shell">OS Shell</label>
+                        <span class="checkbox-flag">--os-shell</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="os_pwn">
+                        <label class="checkbox-label" for="os_pwn">OS Pwn (Metasploit)</label>
+                        <span class="checkbox-flag">--os-pwn</span>
+                    </div>
+                </div>
+
+                <div id="cmd_options" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Command to Execute</label>
+                    <input type="text" class="input-field" id="command" placeholder="whoami">
+                </div>
+            </div>
+
+            <div class="sqlmap-option-group">
+                <div class="sqlmap-option-title">
+                    <span>📁</span> FILE ACCESS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="file_read">
+                        <label class="checkbox-label" for="file_read">Read File</label>
+                        <span class="checkbox-flag">--file-read</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="file_write">
+                        <label class="checkbox-label" for="file_write">Write File</label>
+                        <span class="checkbox-flag">--file-write</span>
+                    </div>
+                </div>
+
+                <div id="file_options" style="display: none; margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Remote File Path</label>
+                        <input type="text" class="input-field" id="remote_file" placeholder="/etc/passwd">
+                    </div>
+                    <div class="input-group" style="margin-top: 15px;">
+                        <label class="input-label">Local File Path</label>
+                        <input type="text" class="input-field" id="local_file" placeholder="/home/kali/shell.php">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Optimization -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> OPTIMIZATION
+            </div>
+
+            <div class="sqlmap-option-group">
+                <div class="sqlmap-option-title">
+                    <span>🚀</span> PERFORMANCE
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="optimize">
+                        <label class="checkbox-label" for="optimize">Optimize (Merge threads, etc)</label>
+                        <span class="checkbox-flag">-o</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="predict_output">
+                        <label class="checkbox-label" for="predict_output">Predict Output</label>
+                        <span class="checkbox-flag">--predict-output</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="keep_alive">
+                        <label class="checkbox-label" for="keep_alive">Keep Alive Connections</label>
+                        <span class="checkbox-flag">--keep-alive</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="null_connection">
+                        <label class="checkbox-label" for="null_connection">Null Connection</label>
+                        <span class="checkbox-flag">--null-connection</span>
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Threads</label>
+                        <input type="number" class="input-field" id="threads" value="1" min="1" max="10">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Retries</label>
+                        <input type="number" class="input-field" id="retries" value="3" min="0" max="10">
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Timeout (seconds)</label>
+                        <input type="number" class="input-field" id="timeout" value="30" min="1" max="300">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Delay (seconds)</label>
+                        <input type="number" class="input-field" id="delay" value="0" min="0" max="60" step="0.5">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Evasion -->
+        <div class="section">
+            <div class="section-title">
+                <span>👻</span> EVASION
+            </div>
+
+            <div class="sqlmap-option-group">
+                <div class="sqlmap-option-title">
+                    <span>🛡️</span> WAF BYPASS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="random_ua">
+                        <label class="checkbox-label" for="random_ua">Random User-Agent</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="tor">
+                        <label class="checkbox-label" for="tor">Use Tor</label>
+                        <span class="checkbox-flag">--tor</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="check_tor">
+                        <label class="checkbox-label" for="check_tor">Check Tor</label>
+                        <span class="checkbox-flag">--check-tor</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="randomize">
+                        <label class="checkbox-label" for="randomize">Randomize Parameters</label>
+                        <span class="checkbox-flag">--randomize</span>
+                    </div>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Tamper Script(s)</label>
+                    <input type="text" class="input-field" id="tamper" placeholder="space2comment,between,randomcase">
+                    <small>Comma-separated tamper scripts</small>
+                </div>
+
+                <div class="payload-preview" id="payload_preview">
+                    Common tamper scripts: space2comment, between, randomcase, charunicodeencode, base64encode
+                </div>
+            </div>
+
+            <div class="sqlmap-option-group">
+                <div class="sqlmap-option-title">
+                    <span>🔀</span> PROXY
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Proxy URL</label>
+                    <input type="text" class="input-field" id="proxy" placeholder="http://127.0.0.1:8080">
+                </div>
+
+                <div class="checkbox-item" style="margin-top: 15px;">
+                    <input type="checkbox" id="proxy_auth">
+                    <label class="checkbox-label" for="proxy_auth">Proxy Authentication</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📊</span> OUTPUT CONFIGURATION
+            </div>
+
+            <div class="sqlmap-option-group">
+                <div class="sqlmap-option-title">
+                    <span>📁</span> OUTPUT OPTIONS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="verbose">
+                        <label class="checkbox-label" for="verbose">Verbose Output</label>
+                        <span class="checkbox-flag">-v</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="quiet">
+                        <label class="checkbox-label" for="quiet">Quiet Mode</label>
+                        <span class="checkbox-flag">-q</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="batch">
+                        <label class="checkbox-label" for="batch">Batch Mode (non-interactive)</label>
+                        <span class="checkbox-flag">--batch</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="flush_session">
+                        <label class="checkbox-label" for="flush_session">Flush Session</label>
+                        <span class="checkbox-flag">--flush-session</span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <div class="output-row">
+                        <div class="input-group">
+                            <label class="input-label">Output Directory</label>
+                            <input type="text" class="input-field" id="output_dir" value="/home/kali/sqlmap/">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Session File</label>
+                            <input type="text" class="input-field" id="session" placeholder="session.sqlite">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sqlmap-option-group">
+                <div class="sqlmap-option-title">
+                    <span>📄</span> REPORT
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_csv">
+                        <label class="checkbox-label" for="output_csv">CSV Output</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_html">
+                        <label class="checkbox-label" for="output_html">HTML Output</label>
+                    </div>
+                </div>
+
+                <div id="output_filename_container" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Output Filename</label>
+                    <input type="text" class="input-field" id="output_filename" placeholder="sqlmap_results">
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CUSTOM OPTIONS
+            </div>
+            <div class="input-group">
+                <label class="input-label">Additional flags (space separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="--skip-waf --hex">
+            </div>
+        </div>
+
+        <!-- Save/Load Panel -->
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Scan configuration name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Configuration</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+        
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <!-- Command Preview -->
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">sqlmap</div>
+            <div class="command-info" id="commandInfo">No target URL specified</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand">
+                <span>📋</span> COPY COMMAND
+            </button>
+            <button class="btn btn-secondary" id="clearAll">
+                <span>🗑️</span> CLEAR ALL
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ============ COMMAND BUILDER FOR SQLMAP ============
+            
+            // State
+            let state = {
+                url: '',
+                url_regex: false,
+                data: '',
+                cookie: '',
+                user_agent: '',
+                random_agent: false,
+                mobile_agent: false,
+                headers: '',
+                host: '',
+                referer: false,
+                params: 'id',
+                all_params: false,
+                techniques: {
+                    b: true, q: true, t: true, u: true, e: true, s: true
+                },
+                tech_custom: '',
+                risk: '1',
+                level: '1',
+                enum: {
+                    dbs: false,
+                    tables: false,
+                    columns: false,
+                    schema: false,
+                    count: false,
+                    dump: false
+                },
+                db_name: '',
+                table_name: '',
+                columns: '',
+                where: '',
+                start_row: 1,
+                stop_row: '',
+                dump_all: false,
+                os: {
+                    cmd: false,
+                    shell: false,
+                    pwn: false,
+                    command: ''
+                },
+                file: {
+                    read: false,
+                    write: false,
+                    remote: '',
+                    local: ''
+                },
+                optimization: {
+                    optimize: false,
+                    predict_output: false,
+                    keep_alive: false,
+                    null_connection: false,
+                    threads: 1,
+                    retries: 3,
+                    timeout: 30,
+                    delay: 0
+                },
+                evasion: {
+                    random_ua: false,
+                    tor: false,
+                    check_tor: false,
+                    randomize: false,
+                    tamper: '',
+                    proxy: '',
+                    proxy_auth: false
+                },
+                output: {
+                    verbose: false,
+                    quiet: false,
+                    batch: false,
+                    flush_session: false,
+                    output_dir: '/home/kali/sqlmap/',
+                    session: '',
+                    csv: false,
+                    html: false,
+                    filename: ''
+                },
+                customFlags: ''
+            };
+
+            // DOM Elements
+            const url = document.getElementById('url');
+            const urlRegex = document.getElementById('url_regex');
+            const data = document.getElementById('data');
+            const cookie = document.getElementById('cookie');
+            const userAgent = document.getElementById('user_agent');
+            const randomAgent = document.getElementById('random_agent');
+            const mobileAgent = document.getElementById('mobile_agent');
+            const headers = document.getElementById('headers');
+            const host = document.getElementById('host');
+            const referer = document.getElementById('referer');
+            const params = document.getElementById('params');
+            const allParams = document.getElementById('all_params');
+            
+            // Techniques
+            const techB = document.getElementById('tech_b');
+            const techQ = document.getElementById('tech_q');
+            const techT = document.getElementById('tech_t');
+            const techU = document.getElementById('tech_u');
+            const techE = document.getElementById('tech_e');
+            const techS = document.getElementById('tech_s');
+            const techCustom = document.getElementById('tech_custom');
+            
+            const risk = document.getElementById('risk');
+            const level = document.getElementById('level');
+            
+            // Enum
+            const enumDbs = document.getElementById('enum_dbs');
+            const enumTables = document.getElementById('enum_tables');
+            const enumColumns = document.getElementById('enum_columns');
+            const enumSchema = document.getElementById('enum_schema');
+            const enumCount = document.getElementById('enum_count');
+            const enumDump = document.getElementById('enum_dump');
+            const enumDetails = document.getElementById('enum_details');
+            const dbName = document.getElementById('db_name');
+            const tableName = document.getElementById('table_name');
+            const columns = document.getElementById('columns');
+            const where = document.getElementById('where');
+            const startRow = document.getElementById('start_row');
+            const stopRow = document.getElementById('stop_row');
+            const dumpAll = document.getElementById('dump_all');
+            
+            // OS
+            const osCmd = document.getElementById('os_cmd');
+            const osShell = document.getElementById('os_shell');
+            const osPwn = document.getElementById('os_pwn');
+            const cmdOptions = document.getElementById('cmd_options');
+            const command = document.getElementById('command');
+            
+            // File
+            const fileRead = document.getElementById('file_read');
+            const fileWrite = document.getElementById('file_write');
+            const fileOptions = document.getElementById('file_options');
+            const remoteFile = document.getElementById('remote_file');
+            const localFile = document.getElementById('local_file');
+            
+            // Optimization
+            const optimize = document.getElementById('optimize');
+            const predictOutput = document.getElementById('predict_output');
+            const keepAlive = document.getElementById('keep_alive');
+            const nullConnection = document.getElementById('null_connection');
+            const threads = document.getElementById('threads');
+            const retries = document.getElementById('retries');
+            const timeout = document.getElementById('timeout');
+            const delay = document.getElementById('delay');
+            
+            // Evasion
+            const randomUa = document.getElementById('random_ua');
+            const tor = document.getElementById('tor');
+            const checkTor = document.getElementById('check_tor');
+            const randomize = document.getElementById('randomize');
+            const tamper = document.getElementById('tamper');
+            const proxy = document.getElementById('proxy');
+            const proxyAuth = document.getElementById('proxy_auth');
+            
+            // Output
+            const verbose = document.getElementById('verbose');
+            const quiet = document.getElementById('quiet');
+            const batch = document.getElementById('batch');
+            const flushSession = document.getElementById('flush_session');
+            const outputDir = document.getElementById('output_dir');
+            const session = document.getElementById('session');
+            const outputCsv = document.getElementById('output_csv');
+            const outputHtml = document.getElementById('output_html');
+            const outputFilename = document.getElementById('output_filename');
+            const outputFilenameContainer = document.getElementById('output_filename_container');
+            
+            const customFlags = document.getElementById('customFlags');
+
+            // ============ EVENT LISTENERS ============
+
+            // Target
+            url.addEventListener('input', (e) => { state.url = e.target.value; updateCommand(); });
+            urlRegex.addEventListener('change', (e) => { state.url_regex = e.target.checked; updateCommand(); });
+            data.addEventListener('input', (e) => { state.data = e.target.value; updateCommand(); });
+            cookie.addEventListener('input', (e) => { state.cookie = e.target.value; updateCommand(); });
+            userAgent.addEventListener('input', (e) => { state.user_agent = e.target.value; updateCommand(); });
+            randomAgent.addEventListener('change', (e) => { state.random_agent = e.target.checked; updateCommand(); });
+            mobileAgent.addEventListener('change', (e) => { state.mobile_agent = e.target.checked; updateCommand(); });
+            headers.addEventListener('input', (e) => { state.headers = e.target.value; updateCommand(); });
+            host.addEventListener('input', (e) => { state.host = e.target.value; updateCommand(); });
+            referer.addEventListener('change', (e) => { state.referer = e.target.checked; updateCommand(); });
+            params.addEventListener('input', (e) => { state.params = e.target.value; updateCommand(); });
+            allParams.addEventListener('change', (e) => { state.all_params = e.target.checked; updateCommand(); });
+
+            // Techniques
+            techB.addEventListener('change', (e) => { state.techniques.b = e.target.checked; updateTechniques(); updateCommand(); });
+            techQ.addEventListener('change', (e) => { state.techniques.q = e.target.checked; updateTechniques(); updateCommand(); });
+            techT.addEventListener('change', (e) => { state.techniques.t = e.target.checked; updateTechniques(); updateCommand(); });
+            techU.addEventListener('change', (e) => { state.techniques.u = e.target.checked; updateTechniques(); updateCommand(); });
+            techE.addEventListener('change', (e) => { state.techniques.e = e.target.checked; updateTechniques(); updateCommand(); });
+            techS.addEventListener('change', (e) => { state.techniques.s = e.target.checked; updateTechniques(); updateCommand(); });
+            
+            techCustom.addEventListener('input', (e) => { 
+                state.tech_custom = e.target.value; 
+                if (e.target.value) {
+                    techB.disabled = true;
+                    techQ.disabled = true;
+                    techT.disabled = true;
+                    techU.disabled = true;
+                    techE.disabled = true;
+                    techS.disabled = true;
+                } else {
+                    techB.disabled = false;
+                    techQ.disabled = false;
+                    techT.disabled = false;
+                    techU.disabled = false;
+                    techE.disabled = false;
+                    techS.disabled = false;
+                }
+                updateCommand(); 
+            });
+
+            function updateTechniques() {
+                // Update custom tech field
+                const activeTech = [];
+                if (state.techniques.b) activeTech.push('B');
+                if (state.techniques.q) activeTech.push('Q');
+                if (state.techniques.t) activeTech.push('T');
+                if (state.techniques.u) activeTech.push('U');
+                if (state.techniques.e) activeTech.push('E');
+                if (state.techniques.s) activeTech.push('S');
+                
+                if (activeTech.length === 6) {
+                    // All techniques selected, don't set --technique flag
+                } else if (activeTech.length > 0) {
+                    state.tech_custom = activeTech.join(',');
+                    techCustom.value = activeTech.join(',');
+                }
+            }
+
+            risk.addEventListener('change', (e) => { state.risk = e.target.value; updateCommand(); });
+            level.addEventListener('change', (e) => { state.level = e.target.value; updateCommand(); });
+
+            // Enum
+            function updateEnumVisibility() {
+                const anyEnum = state.enum.dbs || state.enum.tables || state.enum.columns || 
+                                state.enum.schema || state.enum.count || state.enum.dump;
+                enumDetails.style.display = anyEnum ? 'block' : 'none';
+            }
+
+            enumDbs.addEventListener('change', (e) => { state.enum.dbs = e.target.checked; updateEnumVisibility(); updateCommand(); });
+            enumTables.addEventListener('change', (e) => { state.enum.tables = e.target.checked; updateEnumVisibility(); updateCommand(); });
+            enumColumns.addEventListener('change', (e) => { state.enum.columns = e.target.checked; updateEnumVisibility(); updateCommand(); });
+            enumSchema.addEventListener('change', (e) => { state.enum.schema = e.target.checked; updateEnumVisibility(); updateCommand(); });
+            enumCount.addEventListener('change', (e) => { state.enum.count = e.target.checked; updateEnumVisibility(); updateCommand(); });
+            enumDump.addEventListener('change', (e) => { state.enum.dump = e.target.checked; updateEnumVisibility(); updateCommand(); });
+            
+            dbName.addEventListener('input', (e) => { state.db_name = e.target.value; updateCommand(); });
+            tableName.addEventListener('input', (e) => { state.table_name = e.target.value; updateCommand(); });
+            columns.addEventListener('input', (e) => { state.columns = e.target.value; updateCommand(); });
+            where.addEventListener('input', (e) => { state.where = e.target.value; updateCommand(); });
+            startRow.addEventListener('input', (e) => { state.start_row = parseInt(e.target.value) || 1; updateCommand(); });
+            stopRow.addEventListener('input', (e) => { state.stop_row = e.target.value; updateCommand(); });
+            dumpAll.addEventListener('change', (e) => { state.dump_all = e.target.checked; updateCommand(); });
+
+            // OS
+            osCmd.addEventListener('change', (e) => { 
+                state.os.cmd = e.target.checked; 
+                cmdOptions.style.display = e.target.checked ? 'block' : 'none';
+                if (e.target.checked) {
+                    state.os.shell = false; osShell.checked = false;
+                    state.os.pwn = false; osPwn.checked = false;
+                }
+                updateCommand();
+            });
+            osShell.addEventListener('change', (e) => { 
+                state.os.shell = e.target.checked; 
+                if (e.target.checked) {
+                    state.os.cmd = false; osCmd.checked = false;
+                    state.os.pwn = false; osPwn.checked = false;
+                    cmdOptions.style.display = 'none';
+                }
+                updateCommand();
+            });
+            osPwn.addEventListener('change', (e) => { 
+                state.os.pwn = e.target.checked; 
+                if (e.target.checked) {
+                    state.os.cmd = false; osCmd.checked = false;
+                    state.os.shell = false; osShell.checked = false;
+                    cmdOptions.style.display = 'none';
+                }
+                updateCommand();
+            });
+            command.addEventListener('input', (e) => { state.os.command = e.target.value; updateCommand(); });
+
+            // File
+            fileRead.addEventListener('change', (e) => { 
+                state.file.read = e.target.checked; 
+                fileOptions.style.display = (state.file.read || state.file.write) ? 'block' : 'none';
+                if (e.target.checked) state.file.write = false;
+                updateCommand();
+            });
+            fileWrite.addEventListener('change', (e) => { 
+                state.file.write = e.target.checked; 
+                fileOptions.style.display = (state.file.read || state.file.write) ? 'block' : 'none';
+                if (e.target.checked) state.file.read = false;
+                updateCommand();
+            });
+            remoteFile.addEventListener('input', (e) => { state.file.remote = e.target.value; updateCommand(); });
+            localFile.addEventListener('input', (e) => { state.file.local = e.target.value; updateCommand(); });
+
+            // Optimization
+            optimize.addEventListener('change', (e) => { state.optimization.optimize = e.target.checked; updateCommand(); });
+            predictOutput.addEventListener('change', (e) => { state.optimization.predict_output = e.target.checked; updateCommand(); });
+            keepAlive.addEventListener('change', (e) => { state.optimization.keep_alive = e.target.checked; updateCommand(); });
+            nullConnection.addEventListener('change', (e) => { state.optimization.null_connection = e.target.checked; updateCommand(); });
+            threads.addEventListener('input', (e) => { state.optimization.threads = parseInt(e.target.value) || 1; updateCommand(); });
+            retries.addEventListener('input', (e) => { state.optimization.retries = parseInt(e.target.value) || 3; updateCommand(); });
+            timeout.addEventListener('input', (e) => { state.optimization.timeout = parseInt(e.target.value) || 30; updateCommand(); });
+            delay.addEventListener('input', (e) => { state.optimization.delay = parseFloat(e.target.value) || 0; updateCommand(); });
+
+            // Evasion
+            randomUa.addEventListener('change', (e) => { state.evasion.random_ua = e.target.checked; updateCommand(); });
+            tor.addEventListener('change', (e) => { state.evasion.tor = e.target.checked; updateCommand(); });
+            checkTor.addEventListener('change', (e) => { state.evasion.check_tor = e.target.checked; updateCommand(); });
+            randomize.addEventListener('change', (e) => { state.evasion.randomize = e.target.checked; updateCommand(); });
+            tamper.addEventListener('input', (e) => { state.evasion.tamper = e.target.value; updateCommand(); });
+            proxy.addEventListener('input', (e) => { state.evasion.proxy = e.target.value; updateCommand(); });
+            proxyAuth.addEventListener('change', (e) => { state.evasion.proxy_auth = e.target.checked; updateCommand(); });
+
+            // Output
+            verbose.addEventListener('change', (e) => { 
+                state.output.verbose = e.target.checked; 
+                if (e.target.checked) state.output.quiet = false;
+                updateCommand();
+            });
+            quiet.addEventListener('change', (e) => { 
+                state.output.quiet = e.target.checked; 
+                if (e.target.checked) state.output.verbose = false;
+                updateCommand();
+            });
+            batch.addEventListener('change', (e) => { state.output.batch = e.target.checked; updateCommand(); });
+            flushSession.addEventListener('change', (e) => { state.output.flush_session = e.target.checked; updateCommand(); });
+            outputDir.addEventListener('input', (e) => { state.output.output_dir = e.target.value; updateCommand(); });
+            session.addEventListener('input', (e) => { state.output.session = e.target.value; updateCommand(); });
+            outputCsv.addEventListener('change', (e) => { state.output.csv = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputHtml.addEventListener('change', (e) => { state.output.html = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputFilename.addEventListener('input', (e) => { state.output.filename = e.target.value; updateCommand(); });
+
+            function updateOutputVisibility() {
+                const anyOutput = state.output.csv || state.output.html;
+                outputFilenameContainer.style.display = anyOutput ? 'block' : 'none';
+            }
+
+            // Custom flags
+            customFlags.addEventListener('input', (e) => { state.customFlags = e.target.value; updateCommand(); });
+
+            // ============ COMMAND GENERATION ============
+
+            function generateCommand() {
+                if (!state.url) {
+                    return 'sqlmap --help (specify a target URL with -u)';
+                }
+
+                let command = 'sqlmap';
+                const parts = [];
+
+                // Target URL
+                parts.push(`-u "${state.url}"`);
+
+                // Request data
+                if (state.data) parts.push(`--data="${state.data}"`);
+                if (state.cookie) parts.push(`--cookie="${state.cookie}"`);
+                if (state.user_agent) parts.push(`--user-agent="${state.user_agent}"`);
+                if (state.random_agent) parts.push('--random-agent');
+                if (state.mobile_agent) parts.push('--mobile');
+                if (state.headers) parts.push(`--headers="${state.headers}"`);
+                if (state.host) parts.push(`--host="${state.host}"`);
+                if (state.referer) parts.push('--referer');
+                if (state.url_regex) parts.push('--scope');
+
+                // Parameters
+                if (state.all_params) {
+                    parts.push('--all-params');
+                } else if (state.params && state.params !== 'id') {
+                    parts.push(`-p ${state.params}`);
+                }
+
+                // Techniques
+                if (state.tech_custom) {
+                    parts.push(`--technique=${state.tech_custom.toUpperCase()}`);
+                }
+
+                // Risk & Level
+                if (state.risk !== '1') parts.push(`--risk=${state.risk}`);
+                if (state.level !== '1') parts.push(`--level=${state.level}`);
+
+                // Enumeration
+                if (state.enum.dbs) parts.push('--dbs');
+                if (state.enum.tables) {
+                    if (state.db_name) {
+                        parts.push(`-D ${state.db_name} --tables`);
+                    } else {
+                        parts.push('--tables');
+                    }
+                }
+                if (state.enum.columns) {
+                    let colCmd = '--columns';
+                    if (state.db_name) colCmd += ` -D ${state.db_name}`;
+                    if (state.table_name) colCmd += ` -T ${state.table_name}`;
+                    parts.push(colCmd);
+                }
+                if (state.enum.schema) parts.push('--schema');
+                if (state.enum.count) {
+                    let countCmd = '--count';
+                    if (state.db_name) countCmd += ` -D ${state.db_name}`;
+                    if (state.table_name) countCmd += ` -T ${state.table_name}`;
+                    parts.push(countCmd);
+                }
+                if (state.enum.dump) {
+                    let dumpCmd = '--dump';
+                    if (state.db_name) dumpCmd += ` -D ${state.db_name}`;
+                    if (state.table_name) dumpCmd += ` -T ${state.table_name}`;
+                    if (state.columns) dumpCmd += ` -C ${state.columns}`;
+                    if (state.where) dumpCmd += ` --where="${state.where}"`;
+                    if (state.start_row > 1) dumpCmd += ` --start=${state.start_row}`;
+                    if (state.stop_row) dumpCmd += ` --stop=${state.stop_row}`;
+                    if (state.dump_all) dumpCmd += ' --dump-all';
+                    parts.push(dumpCmd);
+                }
+
+                // OS Access
+                if (state.os.cmd && state.os.command) {
+                    parts.push(`--os-cmd="${state.os.command}"`);
+                }
+                if (state.os.shell) parts.push('--os-shell');
+                if (state.os.pwn) parts.push('--os-pwn');
+
+                // File access
+                if (state.file.read && state.file.remote) {
+                    parts.push(`--file-read="${state.file.remote}"`);
+                }
+                if (state.file.write && state.file.local && state.file.remote) {
+                    parts.push(`--file-write="${state.file.local}" --file-dest="${state.file.remote}"`);
+                }
+
+                // Optimization
+                if (state.optimization.optimize) parts.push('-o');
+                if (state.optimization.predict_output) parts.push('--predict-output');
+                if (state.optimization.keep_alive) parts.push('--keep-alive');
+                if (state.optimization.null_connection) parts.push('--null-connection');
+                if (state.optimization.threads > 1) parts.push(`--threads=${state.optimization.threads}`);
+                if (state.optimization.retries !== 3) parts.push(`--retries=${state.optimization.retries}`);
+                if (state.optimization.timeout !== 30) parts.push(`--timeout=${state.optimization.timeout}`);
+                if (state.optimization.delay > 0) parts.push(`--delay=${state.optimization.delay}`);
+
+                // Evasion
+                if (state.evasion.tor) parts.push('--tor');
+                if (state.evasion.check_tor) parts.push('--check-tor');
+                if (state.evasion.randomize) parts.push('--randomize');
+                if (state.evasion.tamper) parts.push(`--tamper="${state.evasion.tamper}"`);
+                if (state.evasion.proxy) parts.push(`--proxy="${state.evasion.proxy}"`);
+
+                // Output
+                if (state.output.verbose) parts.push('-v 3');
+                if (state.output.quiet) parts.push('-q');
+                if (state.output.batch) parts.push('--batch');
+                if (state.output.flush_session) parts.push('--flush-session');
+                if (state.output.session) parts.push(`--session="${state.output.session}"`);
+                if (state.output.output_dir !== '/home/kali/sqlmap/') {
+                    parts.push(`--output-dir="${state.output.output_dir}"`);
+                }
+
+                // Report formats (sqlmap doesn't have direct CSV/HTML output, but we can note it)
+                if (state.output.filename && (state.output.csv || state.output.html)) {
+                    // sqlmap saves results in output directory automatically
+                }
+
+                // Custom flags
+                if (state.customFlags) {
+                    const customParts = state.customFlags.trim().split(/\s+/);
+                    customParts.forEach(part => parts.push(part));
+                }
+
+                return command + ' ' + parts.join(' ');
+            }
+
+            function generateExplanation() {
+                const explanations = [];
+                
+                if (state.url) explanations.push(`Target: ${state.url}`);
+                
+                const techCount = Object.values(state.techniques).filter(Boolean).length;
+                if (techCount < 6 && techCount > 0) explanations.push(`${techCount} techniques`);
+                
+                if (state.risk !== '1') explanations.push(`Risk: ${state.risk}`);
+                if (state.level !== '1') explanations.push(`Level: ${state.level}`);
+                
+                const enumCount = Object.values(state.enum).filter(Boolean).length;
+                if (enumCount > 0) explanations.push(`Enumerating ${enumCount} items`);
+                
+                if (state.os.cmd || state.os.shell || state.os.pwn) explanations.push('OS access');
+                if (state.file.read || state.file.write) explanations.push('File access');
+                
+                if (state.optimization.threads > 1) explanations.push(`Threads: ${state.optimization.threads}`);
+                if (state.evasion.tamper) explanations.push('Tamper scripts');
+                
+                return explanations.length > 0 
+                    ? `SQLmap command: ${explanations.join(' • ')}`
+                    : 'No injection options selected';
+            }
+
+            function updateCommand() {
+                document.getElementById('commandPreview').textContent = generateCommand();
+                document.getElementById('commandInfo').textContent = generateExplanation();
+            }
+
+            // ============ SAVE/LOAD FUNCTIONS ============
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved.sqlmap) saved.sqlmap = [];
+                
+                saved.sqlmap.push({
+                    name: name,
+                    state: { ...state },
+                    timestamp: new Date().toISOString()
+                });
+                
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved.sqlmap || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved.sqlmap && saved.sqlmap[index]) {
+                    saved.sqlmap.splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function loadStateIntoSavedCommands(savedState) {
+                // Restore state
+                state = JSON.parse(JSON.stringify(savedState));
+                
+                // Update UI
+                url.value = state.url || '';
+                urlRegex.checked = state.url_regex || false;
+                data.value = state.data || '';
+                cookie.value = state.cookie || '';
+                userAgent.value = state.user_agent || '';
+                randomAgent.checked = state.random_agent || false;
+                mobileAgent.checked = state.mobile_agent || false;
+                headers.value = state.headers || '';
+                host.value = state.host || '';
+                referer.checked = state.referer || false;
+                params.value = state.params || 'id';
+                allParams.checked = state.all_params || false;
+                
+                // Techniques
+                techB.checked = state.techniques.b !== false;
+                techQ.checked = state.techniques.q !== false;
+                techT.checked = state.techniques.t !== false;
+                techU.checked = state.techniques.u !== false;
+                techE.checked = state.techniques.e !== false;
+                techS.checked = state.techniques.s !== false;
+                techCustom.value = state.tech_custom || '';
+                
+                risk.value = state.risk || '1';
+                level.value = state.level || '1';
+                
+                // Enum
+                enumDbs.checked = state.enum.dbs || false;
+                enumTables.checked = state.enum.tables || false;
+                enumColumns.checked = state.enum.columns || false;
+                enumSchema.checked = state.enum.schema || false;
+                enumCount.checked = state.enum.count || false;
+                enumDump.checked = state.enum.dump || false;
+                updateEnumVisibility();
+                dbName.value = state.db_name || '';
+                tableName.value = state.table_name || '';
+                columns.value = state.columns || '';
+                where.value = state.where || '';
+                startRow.value = state.start_row || 1;
+                stopRow.value = state.stop_row || '';
+                dumpAll.checked = state.dump_all || false;
+                
+                // OS
+                osCmd.checked = state.os.cmd || false;
+                osShell.checked = state.os.shell || false;
+                osPwn.checked = state.os.pwn || false;
+                cmdOptions.style.display = state.os.cmd ? 'block' : 'none';
+                command.value = state.os.command || '';
+                
+                // File
+                fileRead.checked = state.file.read || false;
+                fileWrite.checked = state.file.write || false;
+                fileOptions.style.display = (state.file.read || state.file.write) ? 'block' : 'none';
+                remoteFile.value = state.file.remote || '';
+                localFile.value = state.file.local || '';
+                
+                // Optimization
+                optimize.checked = state.optimization.optimize || false;
+                predictOutput.checked = state.optimization.predict_output || false;
+                keepAlive.checked = state.optimization.keep_alive || false;
+                nullConnection.checked = state.optimization.null_connection || false;
+                threads.value = state.optimization.threads || 1;
+                retries.value = state.optimization.retries || 3;
+                timeout.value = state.optimization.timeout || 30;
+                delay.value = state.optimization.delay || 0;
+                
+                // Evasion
+                randomUa.checked = state.evasion.random_ua || false;
+                tor.checked = state.evasion.tor || false;
+                checkTor.checked = state.evasion.check_tor || false;
+                randomize.checked = state.evasion.randomize || false;
+                tamper.value = state.evasion.tamper || '';
+                proxy.value = state.evasion.proxy || '';
+                proxyAuth.checked = state.evasion.proxy_auth || false;
+                
+                // Output
+                verbose.checked = state.output.verbose || false;
+                quiet.checked = state.output.quiet || false;
+                batch.checked = state.output.batch || false;
+                flushSession.checked = state.output.flush_session || false;
+                outputDir.value = state.output.output_dir || '/home/kali/sqlmap/';
+                session.value = state.output.session || '';
+                outputCsv.checked = state.output.csv || false;
+                outputHtml.checked = state.output.html || false;
+                outputFilename.value = state.output.filename || '';
+                updateOutputVisibility();
+                
+                customFlags.value = state.customFlags || '';
+                
+                updateCommand();
+            }
+
+            function updateSavedCommandsList() {
+                const saved = loadSavedCommands();
+                const container = document.getElementById('savedCommandsList');
+                
+                if (saved.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-saved')) {
+                            const index = item.dataset.index;
+                            const cmd = saved[index];
+                            loadStateIntoSavedCommands(cmd.state);
+                            Utils.showNotification(`Loaded: ${cmd.name}`, 'success');
+                        }
+                    });
+                });
+                
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = btn.dataset.index;
+                        deleteSavedCommand(index);
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            // ============ BUTTON HANDLERS ============
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value;
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this configuration', 'warning');
+                    return;
+                }
+                
+                saveCommand(name);
+                Utils.showNotification('✅ Configuration saved!', 'success');
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', () => {
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const command = generateCommand();
+                try {
+                    await navigator.clipboard.writeText(command);
+                    Utils.showNotification('✅ Command copied to clipboard!', 'success');
+                } catch (err) {
+                    Utils.showNotification('❌ Failed to copy command', 'error');
+                }
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                // Reset state
+                state = {
+                    url: '', url_regex: false, data: '', cookie: '', user_agent: '',
+                    random_agent: false, mobile_agent: false, headers: '', host: '', referer: false,
+                    params: 'id', all_params: false,
+                    techniques: { b: true, q: true, t: true, u: true, e: true, s: true },
+                    tech_custom: '', risk: '1', level: '1',
+                    enum: { dbs: false, tables: false, columns: false, schema: false, count: false, dump: false },
+                    db_name: '', table_name: '', columns: '', where: '',
+                    start_row: 1, stop_row: '', dump_all: false,
+                    os: { cmd: false, shell: false, pwn: false, command: '' },
+                    file: { read: false, write: false, remote: '', local: '' },
+                    optimization: {
+                        optimize: false, predict_output: false, keep_alive: false, null_connection: false,
+                        threads: 1, retries: 3, timeout: 30, delay: 0
+                    },
+                    evasion: {
+                        random_ua: false, tor: false, check_tor: false, randomize: false,
+                        tamper: '', proxy: '', proxy_auth: false
+                    },
+                    output: {
+                        verbose: false, quiet: false, batch: false, flush_session: false,
+                        output_dir: '/home/kali/sqlmap/', session: '',
+                        csv: false, html: false, filename: ''
+                    },
+                    customFlags: ''
+                };
+                
+                // Reset UI
+                url.value = '';
+                urlRegex.checked = false;
+                data.value = '';
+                cookie.value = '';
+                userAgent.value = '';
+                randomAgent.checked = false;
+                mobileAgent.checked = false;
+                headers.value = '';
+                host.value = '';
+                referer.checked = false;
+                params.value = 'id';
+                allParams.checked = false;
+                
+                techB.checked = true;
+                techQ.checked = true;
+                techT.checked = true;
+                techU.checked = true;
+                techE.checked = true;
+                techS.checked = true;
+                techCustom.value = '';
+                
+                risk.value = '1';
+                level.value = '1';
+                
+                enumDbs.checked = false;
+                enumTables.checked = false;
+                enumColumns.checked = false;
+                enumSchema.checked = false;
+                enumCount.checked = false;
+                enumDump.checked = false;
+                enumDetails.style.display = 'none';
+                dbName.value = '';
+                tableName.value = '';
+                columns.value = '';
+                where.value = '';
+                startRow.value = 1;
+                stopRow.value = '';
+                dumpAll.checked = false;
+                
+                osCmd.checked = false;
+                osShell.checked = false;
+                osPwn.checked = false;
+                cmdOptions.style.display = 'none';
+                command.value = '';
+                
+                fileRead.checked = false;
+                fileWrite.checked = false;
+                fileOptions.style.display = 'none';
+                remoteFile.value = '';
+                localFile.value = '';
+                
+                optimize.checked = false;
+                predictOutput.checked = false;
+                keepAlive.checked = false;
+                nullConnection.checked = false;
+                threads.value = 1;
+                retries.value = 3;
+                timeout.value = 30;
+                delay.value = 0;
+                
+                randomUa.checked = false;
+                tor.checked = false;
+                checkTor.checked = false;
+                randomize.checked = false;
+                tamper.value = '';
+                proxy.value = '';
+                proxyAuth.checked = false;
+                
+                verbose.checked = false;
+                quiet.checked = false;
+                batch.checked = false;
+                flushSession.checked = false;
+                outputDir.value = '/home/kali/sqlmap/';
+                session.value = '';
+                outputCsv.checked = false;
+                outputHtml.checked = false;
+                outputFilenameContainer.style.display = 'none';
+                outputFilename.value = '';
+                
+                customFlags.value = '';
+                
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            // Initial update
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

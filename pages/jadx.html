@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>jadx - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .jadx-panel,
+        .option-cluster {
+            background: rgba(15, 95, 168, 0.08);
+            border-left: 3px solid #00CFFF;
+        }
+        .tool-chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px;
+        }
+        .tool-chip {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid #1E88E5;
+            background: rgba(15,95,168,0.22);
+            color: #E6F0FA;
+            font-size: 0.82rem;
+            letter-spacing: 0.4px;
+        }
+        .tool-note {
+            margin-top: 12px;
+            color: #9CC8F3;
+            font-size: 0.95rem;
+        }
+        .insight-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+        .insight-card {
+            background: rgba(10,31,51,0.85);
+            border: 1px solid #0F5FA8;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .insight-card .eyebrow {
+            color: #2A6FAF;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 8px;
+        }
+        .insight-card .value {
+            color: #E6F0FA;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            line-height: 1.45;
+        }
+        .preset-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .preset-btn {
+            background: rgba(15,95,168,0.18);
+            color: #E6F0FA;
+            border: 1px solid #1E88E5;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.92rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .preset-btn:hover {
+            transform: translateY(-2px);
+            border-color: #00CFFF;
+            background: rgba(15,95,168,0.30);
+        }
+        .section-topline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .section-topline .section-title {
+            margin-bottom: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .cluster-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .mini-btn {
+            background: transparent;
+            color: #9CC8F3;
+            border: 1px solid #1E88E5;
+            padding: 7px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+        }
+        .mini-btn:hover {
+            color: #00CFFF;
+            border-color: #00CFFF;
+        }
+        .cluster-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 14px;
+        }
+        .option-card {
+            background: rgba(10,31,51,0.45);
+            border: 1px solid rgba(30,136,229,0.35);
+            border-radius: 10px;
+            padding: 12px;
+        }
+        .option-card:hover {
+            border-color: #00CFFF;
+        }
+        .option-card .checkbox-item {
+            background: transparent;
+            border: none;
+            padding: 0;
+            align-items: flex-start;
+        }
+        .option-card .checkbox-item:hover {
+            transform: none;
+            background: transparent;
+        }
+        .value-wrap {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed rgba(30,136,229,0.45);
+        }
+        .value-wrap .input-field {
+            padding: 12px 14px;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 768px) {
+            .section-topline {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .cluster-actions {
+                width: 100%;
+            }
+            .mini-btn {
+                flex: 1;
+            }
+            .cluster-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=reverse-engineering">Reverse Engineering</a>
+            <span class="separator">›</span>
+            <span class="current">jadx</span>
+        </div>
+
+        <div class="tool-header">
+            <h1>JADX</h1>
+            <p>Dex to Java decompiler</p>
+            <div class="tool-chip-row"><span class="tool-chip">Decompiler</span><span class="tool-chip">Java Sources</span><span class="tool-chip">Resource Export</span></div>
+            
+        </div>
+
+        <div class="section jadx-panel">
+            <div class="section-title"><span>☕</span> OPERATOR SNAPSHOT</div>
+            <div class="insight-grid">
+                <div class="insight-card">
+                    <div class="eyebrow">Primary Focus</div>
+                    <div class="value">Decompiler</div>
+                </div>
+                <div class="insight-card">
+                    <div class="eyebrow">Quick Start</div>
+                    <div class="value">Full APK Decompile</div>
+                </div>
+                <div class="insight-card">
+                    <div class="eyebrow">Output Base</div>
+                    <div class="value">/home/kali/reversing/</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title"><span>📌</span> TARGET SPECIFICATION</div>
+            <div class="input-group">
+                <label class="input-label">APK, DEX, or JAR file</label>
+                <input type="text" class="input-field" id="target" placeholder="/home/kali/apks/sample.apk">
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title"><span>⚙️</span> QUICK PRESETS</div>
+            <div class="preset-row"><button type="button" class="preset-btn" data-preset="Full APK Decompile"><span>📦</span>Full APK Decompile</button><button type="button" class="preset-btn" data-preset="Source Only"><span>📄</span>Source Only</button><button type="button" class="preset-btn" data-preset="Single Class Inspect"><span>🧬</span>Single Class Inspect</button></div>
+        </div>
+
+        
+        <div class="section option-cluster" id="section-input">
+            <div class="section-topline">
+                <div class="section-title"><span>☕</span> INPUT &amp; PROJECT</div>
+                <div class="cluster-actions"><button type="button" class="mini-btn select-all">All</button><button type="button" class="mini-btn clear-all">Clear</button></div>
+            </div>
+            <div class="cluster-grid">
+                
+        <div class="option-card" data-section="input" data-flag="-d">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="input" data-flag="-d" data-has-value="true">
+                <span class="checkbox-label">Output Directory</span>
+                <span class="checkbox-flag">-d</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="input" data-flag="-d" placeholder="Enter value..." value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="input" data-flag="-j">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="input" data-flag="-j" data-has-value="true">
+                <span class="checkbox-label">Threads</span>
+                <span class="checkbox-flag">-j</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="input" data-flag="-j" placeholder="Enter value..." value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="input" data-flag="--show-bad-code">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="input" data-flag="--show-bad-code" >
+                <span class="checkbox-label">Show Bad Code</span>
+                <span class="checkbox-flag">--show-bad-code</span>
+            </label>
+            
+        </div>
+    
+        <div class="option-card" data-section="input" data-flag="--no-res">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="input" data-flag="--no-res" >
+                <span class="checkbox-label">Skip Resources</span>
+                <span class="checkbox-flag">--no-res</span>
+            </label>
+            
+        </div>
+    
+        <div class="option-card" data-section="input" data-flag="--no-src">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="input" data-flag="--no-src" >
+                <span class="checkbox-label">Skip Sources</span>
+                <span class="checkbox-flag">--no-src</span>
+            </label>
+            
+        </div>
+    
+            </div>
+        </div>
+    
+        <div class="section option-cluster" id="section-decompile">
+            <div class="section-topline">
+                <div class="section-title"><span>🧠</span> DECOMPILATION TUNING</div>
+                <div class="cluster-actions"><button type="button" class="mini-btn select-all">All</button><button type="button" class="mini-btn clear-all">Clear</button></div>
+            </div>
+            <div class="cluster-grid">
+                
+        <div class="option-card" data-section="decompile" data-flag="--deobf">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="decompile" data-flag="--deobf" >
+                <span class="checkbox-label">Enable Deobfuscation</span>
+                <span class="checkbox-flag">--deobf</span>
+            </label>
+            
+        </div>
+    
+        <div class="option-card" data-section="decompile" data-flag="--deobf-min">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="decompile" data-flag="--deobf-min" data-has-value="true">
+                <span class="checkbox-label">Deobf Min Length</span>
+                <span class="checkbox-flag">--deobf-min</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="decompile" data-flag="--deobf-min" placeholder="Enter value..." value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="decompile" data-flag="--deobf-max">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="decompile" data-flag="--deobf-max" data-has-value="true">
+                <span class="checkbox-label">Deobf Max Length</span>
+                <span class="checkbox-flag">--deobf-max</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="decompile" data-flag="--deobf-max" placeholder="Enter value..." value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="decompile" data-flag="--rename-flags">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="decompile" data-flag="--rename-flags" data-has-value="true">
+                <span class="checkbox-label">Rename Flags</span>
+                <span class="checkbox-flag">--rename-flags</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="decompile" data-flag="--rename-flags" placeholder="Enter value..." value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="decompile" data-flag="--export-gradle">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="decompile" data-flag="--export-gradle" >
+                <span class="checkbox-label">Export As Gradle Project</span>
+                <span class="checkbox-flag">--export-gradle</span>
+            </label>
+            
+        </div>
+    
+            </div>
+        </div>
+    
+        <div class="section option-cluster" id="section-review">
+            <div class="section-topline">
+                <div class="section-title"><span>🔎</span> REVIEW &amp; SEARCH</div>
+                <div class="cluster-actions"><button type="button" class="mini-btn select-all">All</button><button type="button" class="mini-btn clear-all">Clear</button></div>
+            </div>
+            <div class="cluster-grid">
+                
+        <div class="option-card" data-section="review" data-flag="--fs-case-sensitive">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="review" data-flag="--fs-case-sensitive" >
+                <span class="checkbox-label">Case Sensitive FS</span>
+                <span class="checkbox-flag">--fs-case-sensitive</span>
+            </label>
+            
+        </div>
+    
+        <div class="option-card" data-section="review" data-flag="--comments-level">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="review" data-flag="--comments-level" data-has-value="true">
+                <span class="checkbox-label">Comments Level</span>
+                <span class="checkbox-flag">--comments-level</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="review" data-flag="--comments-level" placeholder="Enter value..." value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="review" data-flag="--log-level">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="review" data-flag="--log-level" data-has-value="true">
+                <span class="checkbox-label">Log Level</span>
+                <span class="checkbox-flag">--log-level</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="review" data-flag="--log-level" placeholder="Enter value..." value="">
+            </div>
+        
+        </div>
+    
+        <div class="option-card" data-section="review" data-flag="--single-class">
+            <label class="checkbox-item" data-tooltip="">
+                <input type="checkbox" class="option-checkbox" data-section="review" data-flag="--single-class" data-has-value="true">
+                <span class="checkbox-label">Single Class Output</span>
+                <span class="checkbox-flag">--single-class</span>
+            </label>
+            
+            <div class="value-wrap" style="display:none;">
+                <input type="text" class="input-field value-input" data-section="review" data-flag="--single-class" placeholder="Enter value..." value="">
+            </div>
+        
+        </div>
+    
+            </div>
+        </div>
+    
+
+        <div class="section">
+            <div class="section-title"><span>📁</span> OUTPUT CONFIGURATION</div>
+            <div class="output-row">
+                <div class="input-group">
+                    <label class="input-label">Output Path</label>
+                    <input type="text" class="input-field" id="outputPath" value="/home/kali/reversing/">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Filename</label>
+                    <input type="text" class="input-field" id="outputFile" placeholder="jadx_session">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">File Type</label>
+                    <select class="file-type-select" id="fileType">
+                        <option value=".txt">.txt (Text)</option>
+<option value=".json">.json (JSON)</option>
+<option value=".csv">.csv (CSV)</option>
+<option value=".log">.log (Log)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title"><span>⚡</span> CUSTOM OPTIONS</div>
+            <div class="input-group">
+                <label class="input-label">Additional flags (space separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="--extra-flag --another-flag">
+            </div>
+        </div>
+
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Command name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Command</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">jadx</div>
+            <div class="command-info" id="commandInfo">No options selected - will run default command</div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand"><span>📋</span> COPY COMMAND</button>
+            <button class="btn btn-secondary" id="clearAll"><span>🗑️</span> CLEAR ALL</button>
+        </div>
+
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/command-builder.js"></script>
+    <script src="../js/utils.js"></script>
+    <script>
+        const pageConfig = {"command": "jadx", "targetLabel": "APK, DEX, or JAR file", "targetPlaceholder": "/home/kali/apks/sample.apk", "outputPath": "/home/kali/reversing/", "tags": ["Decompiler", "Java Sources", "Resource Export"], "sections": [{"key": "input", "title": "INPUT & PROJECT", "icon": "\u2615", "options": [{"flag": "-d", "name": "Output Directory", "description": "", "hasValue": true, "placeholder": "Enter value..."}, {"flag": "-j", "name": "Threads", "description": "", "hasValue": true, "placeholder": "Enter value..."}, {"flag": "--show-bad-code", "name": "Show Bad Code", "description": ""}, {"flag": "--no-res", "name": "Skip Resources", "description": ""}, {"flag": "--no-src", "name": "Skip Sources", "description": ""}]}, {"key": "decompile", "title": "DECOMPILATION TUNING", "icon": "\ud83e\udde0", "options": [{"flag": "--deobf", "name": "Enable Deobfuscation", "description": ""}, {"flag": "--deobf-min", "name": "Deobf Min Length", "description": "", "hasValue": true, "placeholder": "Enter value..."}, {"flag": "--deobf-max", "name": "Deobf Max Length", "description": "", "hasValue": true, "placeholder": "Enter value..."}, {"flag": "--rename-flags", "name": "Rename Flags", "description": "", "hasValue": true, "placeholder": "Enter value..."}, {"flag": "--export-gradle", "name": "Export As Gradle Project", "description": ""}]}, {"key": "review", "title": "REVIEW & SEARCH", "icon": "\ud83d\udd0e", "options": [{"flag": "--fs-case-sensitive", "name": "Case Sensitive FS", "description": ""}, {"flag": "--comments-level", "name": "Comments Level", "description": "", "hasValue": true, "placeholder": "Enter value..."}, {"flag": "--log-level", "name": "Log Level", "description": "", "hasValue": true, "placeholder": "Enter value..."}, {"flag": "--single-class", "name": "Single Class Output", "description": "", "hasValue": true, "placeholder": "Enter value..."}]}], "presets": [{"name": "Full APK Decompile", "icon": "\ud83d\udce6", "selections": [["input", "-d", "jadx_out"], ["decompile", "--deobf", null], ["decompile", "--export-gradle", null]]}, {"name": "Source Only", "icon": "\ud83d\udcc4", "selections": [["input", "-d", "jadx_src"], ["input", "--no-res", null], ["review", "--log-level", "warn"]]}, {"name": "Single Class Inspect", "icon": "\ud83e\uddec", "selections": [["review", "--single-class", "com.example.MainActivity"], ["input", "-d", "single_class"], ["decompile", "--rename-flags", "all"]]}]};
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const builder = new CommandBuilder(pageConfig.command, { options: {} });
+            const targetInput = document.getElementById('target');
+            const outputPath = document.getElementById('outputPath');
+            const outputFile = document.getElementById('outputFile');
+            const fileType = document.getElementById('fileType');
+            const customFlags = document.getElementById('customFlags');
+
+            function collectSelectedOptions() {
+                const selected = {};
+                document.querySelectorAll('.option-checkbox').forEach(cb => {
+                    if (!cb.checked) return;
+                    const section = cb.dataset.section;
+                    const flag = cb.dataset.flag;
+                    const hasValue = cb.dataset.hasValue === 'true';
+                    if (!selected[section]) selected[section] = [];
+                    const item = { flag, hasValue };
+                    if (hasValue) {
+                        const input = document.querySelector(`.value-input[data-section="${section}"][data-flag="${CSS.escape(flag)}"]`);
+                        if (input && input.value.trim()) {
+                            item.value = input.value.trim();
+                        }
+                    }
+                    selected[section].push(item);
+                });
+                return selected;
+            }
+
+            function updateCommand() {
+                builder.setTarget(targetInput.value || '');
+                builder.setOutput(outputPath.value || pageConfig.outputPath, outputFile.value || '', fileType.value || '.txt');
+                builder.setCustomFlags(customFlags.value || '');
+                builder.selectedOptions = collectSelectedOptions();
+                document.getElementById('commandPreview').textContent = builder.generateCommand();
+                const selectedCount = Object.values(builder.selectedOptions).reduce((n, arr) => n + arr.length, 0);
+                let info = builder.generateExplanation();
+                if (selectedCount > 0) {
+                    info += ` • Presets available: ${pageConfig.presets.length}`;
+                }
+                document.getElementById('commandInfo').textContent = info;
+            }
+
+            function snapshotState() {
+                const inputs = {};
+                document.querySelectorAll('.value-input').forEach(input => {
+                    inputs[`${input.dataset.section}::${input.dataset.flag}`] = input.value;
+                });
+                const checks = {};
+                document.querySelectorAll('.option-checkbox').forEach(cb => {
+                    checks[`${cb.dataset.section}::${cb.dataset.flag}`] = cb.checked;
+                });
+                return {
+                    target: targetInput.value,
+                    outputPath: outputPath.value,
+                    outputFile: outputFile.value,
+                    fileType: fileType.value,
+                    customFlags: customFlags.value,
+                    inputs,
+                    checks
+                };
+            }
+
+            function loadSnapshot(state) {
+                targetInput.value = state.target || '';
+                outputPath.value = state.outputPath || pageConfig.outputPath;
+                outputFile.value = state.outputFile || '';
+                fileType.value = state.fileType || fileType.value;
+                customFlags.value = state.customFlags || '';
+
+                document.querySelectorAll('.option-checkbox').forEach(cb => {
+                    const key = `${cb.dataset.section}::${cb.dataset.flag}`;
+                    cb.checked = !!(state.checks && state.checks[key]);
+                    const wrap = cb.closest('.option-card').querySelector('.value-wrap');
+                    if (wrap) wrap.style.display = cb.checked ? 'block' : 'none';
+                });
+                document.querySelectorAll('.value-input').forEach(input => {
+                    const key = `${input.dataset.section}::${input.dataset.flag}`;
+                    input.value = state.inputs && state.inputs[key] ? state.inputs[key] : (input.defaultValue || '');
+                });
+                updateCommand();
+            }
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved[pageConfig.command]) saved[pageConfig.command] = [];
+                const existingIndex = saved[pageConfig.command].findIndex(item => item.name === name);
+                const entry = {
+                    name,
+                    command: builder.generateCommand(),
+                    state: snapshotState(),
+                    timestamp: new Date().toISOString()
+                };
+                if (existingIndex >= 0) saved[pageConfig.command][existingIndex] = entry;
+                else saved[pageConfig.command].push(entry);
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved[pageConfig.command] || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved[pageConfig.command] && saved[pageConfig.command][index]) {
+                    saved[pageConfig.command].splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function updateSavedCommandsList() {
+                const container = document.getElementById('savedCommandsList');
+                const saved = loadSavedCommands();
+                if (!saved.length) {
+                    container.style.display = 'none';
+                    container.innerHTML = '';
+                    return;
+                }
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (e.target.classList.contains('delete-saved')) return;
+                        const index = parseInt(item.dataset.index, 10);
+                        loadSnapshot(saved[index].state);
+                        Utils.showNotification(`Loaded: ${saved[index].name}`, 'success');
+                    });
+                });
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteSavedCommand(parseInt(btn.dataset.index, 10));
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            function applyPreset(name) {
+                const preset = pageConfig.presets.find(item => item.name === name);
+                if (!preset) return;
+                document.querySelectorAll('.option-checkbox').forEach(cb => {
+                    cb.checked = false;
+                    const wrap = cb.closest('.option-card').querySelector('.value-wrap');
+                    if (wrap) wrap.style.display = 'none';
+                });
+                preset.selections.forEach(([section, flag, value]) => {
+                    const checkbox = document.querySelector(`.option-checkbox[data-section="${section}"][data-flag="${CSS.escape(flag)}"]`);
+                    if (!checkbox) return;
+                    checkbox.checked = true;
+                    const wrap = checkbox.closest('.option-card').querySelector('.value-wrap');
+                    if (wrap) {
+                        wrap.style.display = 'block';
+                        const input = wrap.querySelector('.value-input');
+                        if (input && value !== null && value !== undefined) input.value = value;
+                    }
+                });
+                updateCommand();
+                Utils.showNotification(`Preset applied: ${name}`, 'success');
+            }
+
+            document.querySelectorAll('.option-checkbox').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    const wrap = cb.closest('.option-card').querySelector('.value-wrap');
+                    if (wrap) wrap.style.display = cb.checked ? 'block' : 'none';
+                    updateCommand();
+                });
+            });
+            document.querySelectorAll('.value-input').forEach(input => input.addEventListener('input', updateCommand));
+            [targetInput, outputPath, outputFile, fileType, customFlags].forEach(el => el.addEventListener('input', updateCommand));
+            fileType.addEventListener('change', updateCommand);
+
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
+            });
+
+            document.querySelectorAll('.option-cluster').forEach(sectionEl => {
+                const allBtn = sectionEl.querySelector('.select-all');
+                const clearBtn = sectionEl.querySelector('.clear-all');
+                allBtn?.addEventListener('click', () => {
+                    sectionEl.querySelectorAll('.option-checkbox').forEach(cb => {
+                        cb.checked = true;
+                        const wrap = cb.closest('.option-card').querySelector('.value-wrap');
+                        if (wrap) wrap.style.display = 'block';
+                    });
+                    updateCommand();
+                });
+                clearBtn?.addEventListener('click', () => {
+                    sectionEl.querySelectorAll('.option-checkbox').forEach(cb => {
+                        cb.checked = false;
+                        const wrap = cb.closest('.option-card').querySelector('.value-wrap');
+                        if (wrap) wrap.style.display = 'none';
+                    });
+                    updateCommand();
+                });
+            });
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value.trim();
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this command', 'warning');
+                    return;
+                }
+                saveCommand(name);
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+                Utils.showNotification('✅ Command saved!', 'success');
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', updateSavedCommandsList);
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const ok = await builder.copyToClipboard();
+                Utils.showNotification(ok ? '✅ Command copied to clipboard!' : '❌ Failed to copy command', ok ? 'success' : 'error');
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                targetInput.value = '';
+                outputPath.value = pageConfig.outputPath;
+                outputFile.value = '';
+                customFlags.value = '';
+                document.querySelectorAll('.option-checkbox').forEach(cb => {
+                    cb.checked = false;
+                    const wrap = cb.closest('.option-card').querySelector('.value-wrap');
+                    if (wrap) wrap.style.display = 'none';
+                });
+                document.querySelectorAll('.value-input').forEach(input => {
+                    input.value = input.defaultValue || '';
+                });
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

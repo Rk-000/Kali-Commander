@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WPScan - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles specific to WPScan */
+        .wpscan-option-group {
+            background: rgba(15, 95, 168, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid #00CFFF;
+        }
+        .wpscan-option-title {
+            color: #00CFFF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .enumeration-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .enum-item {
+            background: rgba(15, 95, 168, 0.1);
+            border: 1px solid #0F5FA8;
+            border-radius: 6px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .enum-item:hover {
+            background: rgba(15, 95, 168, 0.3);
+            border-color: #1E88E5;
+        }
+        .enum-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #00CFFF;
+        }
+        .enum-item label {
+            flex: 1;
+            cursor: pointer;
+            color: #E6F0FA;
+            font-size: 0.9rem;
+        }
+        .api-token-input {
+            background: linear-gradient(135deg, rgba(15, 95, 168, 0.2), rgba(0, 207, 255, 0.1));
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            border: 1px solid #1E88E5;
+        }
+        .detection-mode {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=vulnerability-analysis">Vulnerability Analysis</a>
+            <span class="separator">›</span>
+            <span class="current">WPScan</span>
+        </div>
+
+        <!-- Tool Header -->
+        <div class="tool-header">
+            <h1>WPSCAN</h1>
+            <p>WordPress Security Scanner - Enumerate WordPress vulnerabilities, themes, plugins, and users</p>
+        </div>
+
+        <!-- Target Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🎯</span> TARGET CONFIGURATION
+            </div>
+
+            <div class="wpscan-option-group">
+                <div class="wpscan-option-title">
+                    <span>🌐</span> TARGET URL
+                </div>
+                <div class="input-group">
+                    <label class="input-label">WordPress Site URL</label>
+                    <input type="url" class="input-field" id="url" placeholder="https://example.com" value="">
+                    <small style="color: #2A6FAF;">Include http:// or https://</small>
+                </div>
+            </div>
+
+            <div class="wpscan-option-group">
+                <div class="wpscan-option-title">
+                    <span>🔌</span> CONNECTION OPTIONS
+                </div>
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Request Timeout</label>
+                        <input type="number" class="input-field" id="timeout" value="60" min="1" max="300">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Connection Timeout</label>
+                        <input type="number" class="input-field" id="connect_timeout" value="30" min="1" max="120">
+                    </div>
+                </div>
+
+                <div class="checkbox-grid" style="margin-top: 15px;">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="disable_tls_checks">
+                        <label class="checkbox-label" for="disable_tls_checks">Disable TLS Checks</label>
+                        <span class="checkbox-flag">--disable-tls-checks</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔑</span> WPVULNDB API
+            </div>
+
+            <div class="api-token-input">
+                <div class="wpscan-option-title">
+                    <span>🛡️</span> VULNERABILITY DATABASE
+                </div>
+                <div class="input-group">
+                    <label class="input-label">WPVulnDB API Token</label>
+                    <input type="password" class="input-field" id="api_token" placeholder="Enter your API token">
+                    <small style="color: #2A6FAF;">Get a free token at https://wpvulndb.com/signup</small>
+                </div>
+                <div class="checkbox-item" style="margin-top: 15px;">
+                    <input type="checkbox" id="api_token_disable">
+                    <label class="checkbox-label" for="api_token_disable">Disable API Calls</label>
+                    <span class="checkbox-flag">--no-api</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enumeration Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>📋</span> ENUMERATION OPTIONS
+            </div>
+
+            <div class="wpscan-option-group">
+                <div class="wpscan-option-title">
+                    <span>🔍</span> ENUMERATION TYPES
+                </div>
+                
+                <div class="enumeration-options">
+                    <div class="enum-item">
+                        <input type="checkbox" id="enum_vp" checked>
+                        <label for="enum_vp">Vulnerable Plugins</label>
+                    </div>
+                    <div class="enum-item">
+                        <input type="checkbox" id="enum_ap" checked>
+                        <label for="enum_ap">All Plugins</label>
+                    </div>
+                    <div class="enum-item">
+                        <input type="checkbox" id="enum_p">
+                        <label for="enum_p">Popular Plugins</label>
+                    </div>
+                    <div class="enum-item">
+                        <input type="checkbox" id="enum_vt" checked>
+                        <label for="enum_vt">Vulnerable Themes</label>
+                    </div>
+                    <div class="enum-item">
+                        <input type="checkbox" id="enum_at" checked>
+                        <label for="enum_at">All Themes</label>
+                    </div>
+                    <div class="enum-item">
+                        <input type="checkbox" id="enum_t">
+                        <label for="enum_t">Popular Themes</label>
+                    </div>
+                    <div class="enum-item">
+                        <input type="checkbox" id="enum_u" checked>
+                        <label for="enum_u">Users</label>
+                    </div>
+                    <div class="enum-item">
+                        <input type="checkbox" id="enum_m">
+                        <label for="enum_m">Media</label>
+                    </div>
+                    <div class="enum-item">
+                        <input type="checkbox" id="enum_cb">
+                        <label for="enum_cb">Config Backups</label>
+                    </div>
+                    <div class="enum-item">
+                        <input type="checkbox" id="enum_dbe">
+                        <label for="enum_dbe">DB Exports</label>
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-secondary" id="enum_all">Select All</button>
+                    <button class="btn btn-secondary" id="enum_none" style="margin-left: 10px;">Clear All</button>
+                    <button class="btn btn-secondary" id="enum_default" style="margin-left: 10px;">Default (vp,vt,u)</button>
+                </div>
+            </div>
+
+            <div class="wpscan-option-group">
+                <div class="wpscan-option-title">
+                    <span>⚡</span> ENUMERATION SETTINGS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Plugins Version Detection</label>
+                    <select class="file-type-select" id="plugins_detection">
+                        <option value="mixed">Mixed (default)</option>
+                        <option value="passive">Passive</option>
+                        <option value="aggressive">Aggressive</option>
+                    </select>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Themes Version Detection</label>
+                    <select class="file-type-select" id="themes_detection">
+                        <option value="mixed">Mixed (default)</option>
+                        <option value="passive">Passive</option>
+                        <option value="aggressive">Aggressive</option>
+                    </select>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Exclude Content Based</label>
+                    <input type="text" class="input-field" id="exclude_content" placeholder="regex pattern">
+                    <small>Exclude responses matching regex</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Enumeration / Brute Force -->
+        <div class="section">
+            <div class="section-title">
+                <span>👥</span> USER ENUMERATION & ATTACKS
+            </div>
+
+            <div class="wpscan-option-group">
+                <div class="wpscan-option-title">
+                    <span>🔢</span> USER ID RANGE
+                </div>
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Start ID</label>
+                        <input type="number" class="input-field" id="user_start" value="1" min="1">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">End ID</label>
+                        <input type="number" class="input-field" id="user_end" value="10" min="1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="wpscan-option-group">
+                <div class="wpscan-option-title">
+                    <span>🔨</span> BRUTE FORCE ATTACKS
+                </div>
+
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="passwords_attack">
+                        <label class="checkbox-label" for="passwords_attack">Password Attack</label>
+                        <span class="checkbox-flag">--passwords</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="multicall_attack">
+                        <label class="checkbox-label" for="multicall_attack">XML-RPC Multicall</label>
+                        <span class="checkbox-flag">--multicall-max-passwords</span>
+                    </div>
+                </div>
+
+                <div id="password_options" style="display: none; margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Password List</label>
+                        <input type="text" class="input-field" id="password_list" value="/usr/share/wordlists/rockyou.txt">
+                    </div>
+                    
+                    <div class="input-group" style="margin-top: 15px;">
+                        <label class="input-label">Usernames List</label>
+                        <input type="text" class="input-field" id="usernames_list" placeholder="/path/to/usernames.txt">
+                    </div>
+
+                    <div class="output-row" style="margin-top: 15px;">
+                        <div class="input-group">
+                            <label class="input-label">Login URI</label>
+                            <input type="text" class="input-field" id="login_uri" value="/wp-login.php">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Max Passwords per Request</label>
+                            <input type="number" class="input-field" id="multicall_max" value="500" min="1" max="2000">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Proxy Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🌐</span> PROXY CONFIGURATION
+            </div>
+
+            <div class="wpscan-option-group">
+                <div class="wpscan-option-title">
+                    <span>🔄</span> PROXY SETTINGS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Proxy URL</label>
+                    <input type="text" class="input-field" id="proxy" placeholder="http://127.0.0.1:8080">
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Proxy Username</label>
+                        <input type="text" class="input-field" id="proxy_user">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Proxy Password</label>
+                        <input type="password" class="input-field" id="proxy_pass">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HTTP Authentication -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔐</span> HTTP AUTHENTICATION
+            </div>
+
+            <div class="wpscan-option-group">
+                <div class="wpscan-option-title">
+                    <span>👤</span> BASIC AUTH
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Username</label>
+                        <input type="text" class="input-field" id="auth_user">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Password</label>
+                        <input type="password" class="input-field" id="auth_pass">
+                    </div>
+                </div>
+            </div>
+
+            <div class="wpscan-option-group">
+                <div class="wpscan-option-title">
+                    <span>🍪</span> COOKIE AUTHENTICATION
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Cookie String</label>
+                    <input type="text" class="input-field" id="cookie" placeholder="wordpress_logged_in=hash">
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📊</span> OUTPUT CONFIGURATION
+            </div>
+
+            <div class="wpscan-option-group">
+                <div class="wpscan-option-title">
+                    <span>📁</span> REPORT FORMATS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_cli">
+                        <label class="checkbox-label" for="output_cli">CLI Output</label>
+                        <span class="checkbox-flag">(default)</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_json">
+                        <label class="checkbox-label" for="output_json">JSON Report</label>
+                        <span class="checkbox-flag">-o</span>
+                    </div>
+                </div>
+
+                <div id="output_filename_container" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Output Filename</label>
+                    <input type="text" class="input-field" id="output_filename" placeholder="wpscan_report.json">
+                </div>
+            </div>
+
+            <div class="wpscan-option-group">
+                <div class="wpscan-option-title">
+                    <span>⚡</span> VERBOSITY
+                </div>
+                
+                <select class="file-type-select" id="verbosity">
+                    <option value="0">Normal</option>
+                    <option value="1">Verbose</option>
+                    <option value="2">Debug</option>
+                </select>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Output Path</label>
+                        <input type="text" class="input-field" id="outputPath" value="/home/kali/wpscan/">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">File Type</label>
+                        <select class="file-type-select" id="fileType">
+                            <option value=".json">.json</option>
+                            <option value=".txt">.txt</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CUSTOM OPTIONS
+            </div>
+            <div class="input-group">
+                <label class="input-label">Additional flags (space separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="--stealthy --random-user-agent">
+            </div>
+        </div>
+
+        <!-- Save/Load Panel -->
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Scan configuration name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Configuration</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+        
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <!-- Command Preview -->
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">wpscan</div>
+            <div class="command-info" id="commandInfo">No URL specified</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand">
+                <span>📋</span> COPY COMMAND
+            </button>
+            <button class="btn btn-secondary" id="clearAll">
+                <span>🗑️</span> CLEAR ALL
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ============ COMMAND BUILDER FOR WPSCAN ============
+            
+            // State
+            let state = {
+                url: '',
+                timeout: 60,
+                connect_timeout: 30,
+                disable_tls_checks: false,
+                api_token: '',
+                api_token_disable: false,
+                enum: {
+                    vp: true,   // vulnerable plugins
+                    ap: true,   // all plugins
+                    p: false,   // popular plugins
+                    vt: true,   // vulnerable themes
+                    at: true,   // all themes
+                    t: false,   // popular themes
+                    u: true,    // users
+                    m: false,   // media
+                    cb: false,  // config backups
+                    dbe: false  // db exports
+                },
+                plugins_detection: 'mixed',
+                themes_detection: 'mixed',
+                exclude_content: '',
+                user_start: 1,
+                user_end: 10,
+                passwords_attack: false,
+                multicall_attack: false,
+                password_list: '/usr/share/wordlists/rockyou.txt',
+                usernames_list: '',
+                login_uri: '/wp-login.php',
+                multicall_max: 500,
+                proxy: '',
+                proxy_user: '',
+                proxy_pass: '',
+                auth_user: '',
+                auth_pass: '',
+                cookie: '',
+                output: {
+                    cli: true,
+                    json: false,
+                    filename: ''
+                },
+                verbosity: '0',
+                outputPath: '/home/kali/wpscan/',
+                fileType: '.json',
+                customFlags: ''
+            };
+
+            // DOM Elements
+            const url = document.getElementById('url');
+            const timeout = document.getElementById('timeout');
+            const connectTimeout = document.getElementById('connect_timeout');
+            const disableTlsChecks = document.getElementById('disable_tls_checks');
+            const apiToken = document.getElementById('api_token');
+            const apiTokenDisable = document.getElementById('api_token_disable');
+            
+            // Enum checkboxes
+            const enumVp = document.getElementById('enum_vp');
+            const enumAp = document.getElementById('enum_ap');
+            const enumP = document.getElementById('enum_p');
+            const enumVt = document.getElementById('enum_vt');
+            const enumAt = document.getElementById('enum_at');
+            const enumT = document.getElementById('enum_t');
+            const enumU = document.getElementById('enum_u');
+            const enumM = document.getElementById('enum_m');
+            const enumCb = document.getElementById('enum_cb');
+            const enumDbe = document.getElementById('enum_dbe');
+            
+            const enumAll = document.getElementById('enum_all');
+            const enumNone = document.getElementById('enum_none');
+            const enumDefault = document.getElementById('enum_default');
+            
+            const pluginsDetection = document.getElementById('plugins_detection');
+            const themesDetection = document.getElementById('themes_detection');
+            const excludeContent = document.getElementById('exclude_content');
+            
+            const userStart = document.getElementById('user_start');
+            const userEnd = document.getElementById('user_end');
+            const passwordsAttack = document.getElementById('passwords_attack');
+            const multicallAttack = document.getElementById('multicall_attack');
+            const passwordOptions = document.getElementById('password_options');
+            const passwordList = document.getElementById('password_list');
+            const usernamesList = document.getElementById('usernames_list');
+            const loginUri = document.getElementById('login_uri');
+            const multicallMax = document.getElementById('multicall_max');
+            
+            const proxy = document.getElementById('proxy');
+            const proxyUser = document.getElementById('proxy_user');
+            const proxyPass = document.getElementById('proxy_pass');
+            const authUser = document.getElementById('auth_user');
+            const authPass = document.getElementById('auth_pass');
+            const cookie = document.getElementById('cookie');
+            
+            const outputCli = document.getElementById('output_cli');
+            const outputJson = document.getElementById('output_json');
+            const outputFilename = document.getElementById('output_filename');
+            const outputFilenameContainer = document.getElementById('output_filename_container');
+            const verbosity = document.getElementById('verbosity');
+            const outputPath = document.getElementById('outputPath');
+            const fileType = document.getElementById('fileType');
+            
+            const customFlags = document.getElementById('customFlags');
+
+            // ============ EVENT LISTENERS ============
+
+            // Target
+            url.addEventListener('input', (e) => { state.url = e.target.value; updateCommand(); });
+            timeout.addEventListener('input', (e) => { state.timeout = parseInt(e.target.value) || 60; updateCommand(); });
+            connectTimeout.addEventListener('input', (e) => { state.connect_timeout = parseInt(e.target.value) || 30; updateCommand(); });
+            disableTlsChecks.addEventListener('change', (e) => { state.disable_tls_checks = e.target.checked; updateCommand(); });
+
+            // API
+            apiToken.addEventListener('input', (e) => { state.api_token = e.target.value; updateCommand(); });
+            apiTokenDisable.addEventListener('change', (e) => { state.api_token_disable = e.target.checked; updateCommand(); });
+
+            // Enumeration
+            function updateEnumFromCheckboxes() {
+                state.enum.vp = enumVp.checked;
+                state.enum.ap = enumAp.checked;
+                state.enum.p = enumP.checked;
+                state.enum.vt = enumVt.checked;
+                state.enum.at = enumAt.checked;
+                state.enum.t = enumT.checked;
+                state.enum.u = enumU.checked;
+                state.enum.m = enumM.checked;
+                state.enum.cb = enumCb.checked;
+                state.enum.dbe = enumDbe.checked;
+                updateCommand();
+            }
+
+            enumVp.addEventListener('change', updateEnumFromCheckboxes);
+            enumAp.addEventListener('change', updateEnumFromCheckboxes);
+            enumP.addEventListener('change', updateEnumFromCheckboxes);
+            enumVt.addEventListener('change', updateEnumFromCheckboxes);
+            enumAt.addEventListener('change', updateEnumFromCheckboxes);
+            enumT.addEventListener('change', updateEnumFromCheckboxes);
+            enumU.addEventListener('change', updateEnumFromCheckboxes);
+            enumM.addEventListener('change', updateEnumFromCheckboxes);
+            enumCb.addEventListener('change', updateEnumFromCheckboxes);
+            enumDbe.addEventListener('change', updateEnumFromCheckboxes);
+
+            enumAll.addEventListener('click', () => {
+                [enumVp, enumAp, enumP, enumVt, enumAt, enumT, enumU, enumM, enumCb, enumDbe]
+                    .forEach(cb => cb.checked = true);
+                updateEnumFromCheckboxes();
+            });
+
+            enumNone.addEventListener('click', () => {
+                [enumVp, enumAp, enumP, enumVt, enumAt, enumT, enumU, enumM, enumCb, enumDbe]
+                    .forEach(cb => cb.checked = false);
+                updateEnumFromCheckboxes();
+            });
+
+            enumDefault.addEventListener('click', () => {
+                enumNone.click();
+                enumVp.checked = true;
+                enumVt.checked = true;
+                enumU.checked = true;
+                updateEnumFromCheckboxes();
+            });
+
+            pluginsDetection.addEventListener('change', (e) => { state.plugins_detection = e.target.value; updateCommand(); });
+            themesDetection.addEventListener('change', (e) => { state.themes_detection = e.target.value; updateCommand(); });
+            excludeContent.addEventListener('input', (e) => { state.exclude_content = e.target.value; updateCommand(); });
+
+            // User enumeration
+            userStart.addEventListener('input', (e) => { state.user_start = parseInt(e.target.value) || 1; updateCommand(); });
+            userEnd.addEventListener('input', (e) => { state.user_end = parseInt(e.target.value) || 10; updateCommand(); });
+
+            // Password attack
+            passwordsAttack.addEventListener('change', (e) => { 
+                state.passwords_attack = e.target.checked;
+                passwordOptions.style.display = (state.passwords_attack || state.multicall_attack) ? 'block' : 'none';
+                updateCommand();
+            });
+            
+            multicallAttack.addEventListener('change', (e) => { 
+                state.multicall_attack = e.target.checked;
+                passwordOptions.style.display = (state.passwords_attack || state.multicall_attack) ? 'block' : 'none';
+                updateCommand();
+            });
+
+            passwordList.addEventListener('input', (e) => { state.password_list = e.target.value; updateCommand(); });
+            usernamesList.addEventListener('input', (e) => { state.usernames_list = e.target.value; updateCommand(); });
+            loginUri.addEventListener('input', (e) => { state.login_uri = e.target.value; updateCommand(); });
+            multicallMax.addEventListener('input', (e) => { state.multicall_max = parseInt(e.target.value) || 500; updateCommand(); });
+
+            // Proxy
+            proxy.addEventListener('input', (e) => { state.proxy = e.target.value; updateCommand(); });
+            proxyUser.addEventListener('input', (e) => { state.proxy_user = e.target.value; updateCommand(); });
+            proxyPass.addEventListener('input', (e) => { state.proxy_pass = e.target.value; updateCommand(); });
+
+            // HTTP Auth
+            authUser.addEventListener('input', (e) => { state.auth_user = e.target.value; updateCommand(); });
+            authPass.addEventListener('input', (e) => { state.auth_pass = e.target.value; updateCommand(); });
+            cookie.addEventListener('input', (e) => { state.cookie = e.target.value; updateCommand(); });
+
+            // Output
+            outputCli.addEventListener('change', (e) => { state.output.cli = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputJson.addEventListener('change', (e) => { state.output.json = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputFilename.addEventListener('input', (e) => { state.output.filename = e.target.value; updateCommand(); });
+            
+            verbosity.addEventListener('change', (e) => { state.verbosity = e.target.value; updateCommand(); });
+            outputPath.addEventListener('input', (e) => { state.outputPath = e.target.value; updateCommand(); });
+            fileType.addEventListener('change', (e) => { state.fileType = e.target.value; updateCommand(); });
+
+            function updateOutputVisibility() {
+                const anyOutput = state.output.json;
+                outputFilenameContainer.style.display = anyOutput ? 'block' : 'none';
+            }
+
+            // Custom flags
+            customFlags.addEventListener('input', (e) => { state.customFlags = e.target.value; updateCommand(); });
+
+            // ============ COMMAND GENERATION ============
+
+            function generateCommand() {
+                if (!state.url) {
+                    return 'wpscan --help (specify a URL with --url)';
+                }
+
+                let command = 'wpscan';
+                const parts = [];
+
+                // URL
+                parts.push(`--url ${state.url}`);
+
+                // Timeouts
+                if (state.timeout !== 60) {
+                    parts.push(`--request-timeout ${state.timeout}`);
+                }
+                if (state.connect_timeout !== 30) {
+                    parts.push(`--connect-timeout ${state.connect_timeout}`);
+                }
+
+                // TLS checks
+                if (state.disable_tls_checks) {
+                    parts.push('--disable-tls-checks');
+                }
+
+                // API Token
+                if (state.api_token && !state.api_token_disable) {
+                    parts.push(`--api-token ${state.api_token}`);
+                }
+                if (state.api_token_disable) {
+                    parts.push('--no-api');
+                }
+
+                // Enumeration
+                const enumParts = [];
+                if (state.enum.vp) enumParts.push('vp');
+                if (state.enum.ap) enumParts.push('ap');
+                if (state.enum.p) enumParts.push('p');
+                if (state.enum.vt) enumParts.push('vt');
+                if (state.enum.at) enumParts.push('at');
+                if (state.enum.t) enumParts.push('t');
+                if (state.enum.u) enumParts.push('u');
+                if (state.enum.m) enumParts.push('m');
+                if (state.enum.cb) enumParts.push('cb');
+                if (state.enum.dbe) enumParts.push('dbe');
+
+                if (enumParts.length > 0) {
+                    parts.push(`--enumerate ${enumParts.join(',')}`);
+                }
+
+                // Detection modes
+                if (state.plugins_detection !== 'mixed') {
+                    parts.push(`--plugins-detection ${state.plugins_detection}`);
+                }
+                if (state.themes_detection !== 'mixed') {
+                    parts.push(`--themes-detection ${state.themes_detection}`);
+                }
+
+                // Exclude content
+                if (state.exclude_content) {
+                    parts.push(`--exclude-content-based '${state.exclude_content}'`);
+                }
+
+                // User range
+                if (state.user_start !== 1 || state.user_end !== 10) {
+                    parts.push(`--enumerate u${state.user_start}-${state.user_end}`);
+                }
+
+                // Password attack
+                if (state.passwords_attack && state.password_list) {
+                    parts.push(`--passwords ${state.password_list}`);
+                    if (state.usernames_list) {
+                        parts.push(`--usernames ${state.usernames_list}`);
+                    }
+                    if (state.login_uri !== '/wp-login.php') {
+                        parts.push(`--login-uri ${state.login_uri}`);
+                    }
+                }
+
+                // Multicall
+                if (state.multicall_attack) {
+                    parts.push(`--multicall-max-passwords ${state.multicall_max}`);
+                }
+
+                // Proxy
+                if (state.proxy) {
+                    let proxyStr = state.proxy;
+                    if (state.proxy_user && state.proxy_pass) {
+                        proxyStr = `http://${state.proxy_user}:${state.proxy_pass}@${state.proxy.replace('http://', '')}`;
+                    }
+                    parts.push(`--proxy ${proxyStr}`);
+                }
+
+                // HTTP Auth
+                if (state.auth_user && state.auth_pass) {
+                    parts.push(`--basic-auth ${state.auth_user}:${state.auth_pass}`);
+                }
+
+                // Cookie
+                if (state.cookie) {
+                    parts.push(`--cookie '${state.cookie}'`);
+                }
+
+                // Output
+                if (state.output.json && state.output.filename) {
+                    parts.push(`-o ${state.outputPath}${state.output.filename}${state.fileType}`);
+                    parts.push('--format json');
+                }
+
+                // Verbosity
+                if (state.verbosity === '1') parts.push('-v');
+                if (state.verbosity === '2') parts.push('-v -v');
+
+                // Custom flags
+                if (state.customFlags) {
+                    const customParts = state.customFlags.trim().split(/\s+/);
+                    customParts.forEach(part => parts.push(part));
+                }
+
+                return command + ' ' + parts.join(' ');
+            }
+
+            function generateExplanation() {
+                const explanations = [];
+                
+                if (state.url) explanations.push(`Target: ${state.url}`);
+                
+                const enumCount = Object.values(state.enum).filter(Boolean).length;
+                if (enumCount > 0) explanations.push(`Enumerating ${enumCount} item types`);
+                
+                if (state.passwords_attack) explanations.push('Password attack enabled');
+                if (state.api_token && !state.api_token_disable) explanations.push('Using WPVulnDB API');
+                
+                const hasProxy = state.proxy || state.proxy_user || state.proxy_pass;
+                if (hasProxy) explanations.push('Using proxy');
+                
+                if (state.output.json) explanations.push('JSON output');
+                
+                return explanations.length > 0 
+                    ? `Scan includes: ${explanations.join(' • ')}`
+                    : 'No scan options selected';
+            }
+
+            function updateCommand() {
+                document.getElementById('commandPreview').textContent = generateCommand();
+                document.getElementById('commandInfo').textContent = generateExplanation();
+            }
+
+            // ============ SAVE/LOAD FUNCTIONS ============
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved.wpscan) saved.wpscan = [];
+                
+                saved.wpscan.push({
+                    name: name,
+                    state: { ...state },
+                    timestamp: new Date().toISOString()
+                });
+                
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved.wpscan || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved.wpscan && saved.wpscan[index]) {
+                    saved.wpscan.splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function loadStateIntoSavedCommands(savedState) {
+                // Restore state
+                state = JSON.parse(JSON.stringify(savedState));
+                
+                // Update UI
+                url.value = state.url || '';
+                timeout.value = state.timeout || 60;
+                connectTimeout.value = state.connect_timeout || 30;
+                disableTlsChecks.checked = state.disable_tls_checks || false;
+                apiToken.value = state.api_token || '';
+                apiTokenDisable.checked = state.api_token_disable || false;
+                
+                // Enum
+                enumVp.checked = state.enum.vp || false;
+                enumAp.checked = state.enum.ap || false;
+                enumP.checked = state.enum.p || false;
+                enumVt.checked = state.enum.vt || false;
+                enumAt.checked = state.enum.at || false;
+                enumT.checked = state.enum.t || false;
+                enumU.checked = state.enum.u || false;
+                enumM.checked = state.enum.m || false;
+                enumCb.checked = state.enum.cb || false;
+                enumDbe.checked = state.enum.dbe || false;
+                
+                pluginsDetection.value = state.plugins_detection || 'mixed';
+                themesDetection.value = state.themes_detection || 'mixed';
+                excludeContent.value = state.exclude_content || '';
+                
+                userStart.value = state.user_start || 1;
+                userEnd.value = state.user_end || 10;
+                
+                passwordsAttack.checked = state.passwords_attack || false;
+                multicallAttack.checked = state.multicall_attack || false;
+                passwordOptions.style.display = (state.passwords_attack || state.multicall_attack) ? 'block' : 'none';
+                passwordList.value = state.password_list || '/usr/share/wordlists/rockyou.txt';
+                usernamesList.value = state.usernames_list || '';
+                loginUri.value = state.login_uri || '/wp-login.php';
+                multicallMax.value = state.multicall_max || 500;
+                
+                proxy.value = state.proxy || '';
+                proxyUser.value = state.proxy_user || '';
+                proxyPass.value = state.proxy_pass || '';
+                authUser.value = state.auth_user || '';
+                authPass.value = state.auth_pass || '';
+                cookie.value = state.cookie || '';
+                
+                outputCli.checked = state.output.cli !== false;
+                outputJson.checked = state.output.json || false;
+                outputFilename.value = state.output.filename || '';
+                updateOutputVisibility();
+                
+                verbosity.value = state.verbosity || '0';
+                outputPath.value = state.outputPath || '/home/kali/wpscan/';
+                fileType.value = state.fileType || '.json';
+                
+                customFlags.value = state.customFlags || '';
+                
+                updateCommand();
+            }
+
+            function updateSavedCommandsList() {
+                const saved = loadSavedCommands();
+                const container = document.getElementById('savedCommandsList');
+                
+                if (saved.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-saved')) {
+                            const index = item.dataset.index;
+                            const cmd = saved[index];
+                            loadStateIntoSavedCommands(cmd.state);
+                            Utils.showNotification(`Loaded: ${cmd.name}`, 'success');
+                        }
+                    });
+                });
+                
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = btn.dataset.index;
+                        deleteSavedCommand(index);
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            // ============ BUTTON HANDLERS ============
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value;
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this configuration', 'warning');
+                    return;
+                }
+                
+                saveCommand(name);
+                Utils.showNotification('✅ Configuration saved!', 'success');
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', () => {
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const command = generateCommand();
+                try {
+                    await navigator.clipboard.writeText(command);
+                    Utils.showNotification('✅ Command copied to clipboard!', 'success');
+                } catch (err) {
+                    Utils.showNotification('❌ Failed to copy command', 'error');
+                }
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                // Reset state
+                state = {
+                    url: '', timeout: 60, connect_timeout: 30, disable_tls_checks: false,
+                    api_token: '', api_token_disable: false,
+                    enum: { vp: true, ap: true, p: false, vt: true, at: true, t: false, u: true, m: false, cb: false, dbe: false },
+                    plugins_detection: 'mixed', themes_detection: 'mixed', exclude_content: '',
+                    user_start: 1, user_end: 10,
+                    passwords_attack: false, multicall_attack: false,
+                    password_list: '/usr/share/wordlists/rockyou.txt', usernames_list: '',
+                    login_uri: '/wp-login.php', multicall_max: 500,
+                    proxy: '', proxy_user: '', proxy_pass: '',
+                    auth_user: '', auth_pass: '', cookie: '',
+                    output: { cli: true, json: false, filename: '' },
+                    verbosity: '0', outputPath: '/home/kali/wpscan/', fileType: '.json',
+                    customFlags: ''
+                };
+                
+                // Reset UI
+                url.value = '';
+                timeout.value = 60;
+                connectTimeout.value = 30;
+                disableTlsChecks.checked = false;
+                apiToken.value = '';
+                apiTokenDisable.checked = false;
+                
+                enumDefault.click();
+                
+                pluginsDetection.value = 'mixed';
+                themesDetection.value = 'mixed';
+                excludeContent.value = '';
+                
+                userStart.value = 1;
+                userEnd.value = 10;
+                
+                passwordsAttack.checked = false;
+                multicallAttack.checked = false;
+                passwordOptions.style.display = 'none';
+                passwordList.value = '/usr/share/wordlists/rockyou.txt';
+                usernamesList.value = '';
+                loginUri.value = '/wp-login.php';
+                multicallMax.value = 500;
+                
+                proxy.value = '';
+                proxyUser.value = '';
+                proxyPass.value = '';
+                authUser.value = '';
+                authPass.value = '';
+                cookie.value = '';
+                
+                outputCli.checked = true;
+                outputJson.checked = false;
+                outputFilenameContainer.style.display = 'none';
+                outputFilename.value = '';
+                
+                verbosity.value = '0';
+                outputPath.value = '/home/kali/wpscan/';
+                fileType.value = '.json';
+                
+                customFlags.value = '';
+                
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            // Initial update
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

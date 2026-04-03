@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nikto - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles specific to Nikto */
+        .nikto-option-group {
+            background: rgba(15, 95, 168, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid #00CFFF;
+        }
+        .nikto-option-title {
+            color: #00CFFF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tuning-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .tuning-item {
+            background: rgba(15, 95, 168, 0.1);
+            border: 1px solid #0F5FA8;
+            border-radius: 6px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .tuning-item:hover {
+            background: rgba(15, 95, 168, 0.3);
+            border-color: #1E88E5;
+        }
+        .tuning-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #00CFFF;
+        }
+        .tuning-item label {
+            flex: 1;
+            cursor: pointer;
+            color: #E6F0FA;
+            font-size: 0.9rem;
+        }
+        .db-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=vulnerability-analysis">Vulnerability Analysis</a>
+            <span class="separator">›</span>
+            <span class="current">Nikto</span>
+        </div>
+
+        <!-- Tool Header -->
+        <div class="tool-header">
+            <h1>NIKTO</h1>
+            <p>Web Server Scanner - Tests web servers for dangerous files, outdated software, and misconfigurations</p>
+        </div>
+
+        <!-- Target Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🎯</span> TARGET CONFIGURATION
+            </div>
+
+            <div class="nikto-option-group">
+                <div class="nikto-option-title">
+                    <span>🌐</span> HOST SPECIFICATION
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Target Host</label>
+                    <input type="text" class="input-field" id="host" placeholder="example.com or 192.168.1.1" value="">
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Port</label>
+                        <input type="number" class="input-field" id="port" value="80" min="1" max="65535">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">SSL Port</label>
+                        <input type="number" class="input-field" id="ssl_port" value="443" min="1" max="65535">
+                    </div>
+                </div>
+
+                <div class="checkbox-grid" style="margin-top: 15px;">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="ssl">
+                        <label class="checkbox-label" for="ssl">Force SSL Mode</label>
+                        <span class="checkbox-flag">-ssl</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="nossl">
+                        <label class="checkbox-label" for="nossl">Disable SSL</label>
+                        <span class="checkbox-flag">-nossl</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nikto-option-group">
+                <div class="nikto-option-title">
+                    <span>📂</span> PATH/VIRTUAL HOST
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Root Path</label>
+                    <input type="text" class="input-field" id="root" placeholder="/" value="/">
+                </div>
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Virtual Host</label>
+                    <input type="text" class="input-field" id="vhost" placeholder="virtual.host.com">
+                    <small style="color: #2A6FAF;">Use this hostname for Host header</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scan Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚙️</span> SCAN CONFIGURATION
+            </div>
+
+            <div class="nikto-option-group">
+                <div class="nikto-option-title">
+                    <span>📋</span> SCAN OPTIONS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="generic">
+                        <label class="checkbox-label" for="generic">Generic (non-ssl)</label>
+                        <span class="checkbox-flag">-g</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="mutate">
+                        <label class="checkbox-label" for="mutate">Mutate (guess subdomains)</label>
+                        <span class="checkbox-flag">-mutate</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="list_plugins">
+                        <label class="checkbox-label" for="list_plugins">List Available Plugins</label>
+                        <span class="checkbox-flag">-list-plugins</span>
+                    </div>
+                </div>
+
+                <div id="mutate_options" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Mutate Options (comma-separated)</label>
+                    <select class="file-type-select" id="mutate_type" multiple size="3">
+                        <option value="1">1 - Test all files/dirs</option>
+                        <option value="2">2 - Guess for password files</option>
+                        <option value="3">3 - Enumerate user names</option>
+                        <option value="4">4 - Guess subdomains</option>
+                    </select>
+                    <small style="color: #2A6FAF;">Hold Ctrl/Cmd to select multiple</small>
+                </div>
+            </div>
+
+            <div class="nikto-option-group">
+                <div class="nikto-option-title">
+                    <span>⚡</span> PERFORMANCE
+                </div>
+                
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Max Time (seconds)</label>
+                        <input type="number" class="input-field" id="maxtime" value="0" min="0" step="1">
+                        <small>0 = unlimited</small>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Delay (seconds)</label>
+                        <input type="number" class="input-field" id="delay" value="0" min="0" max="60" step="0.5">
+                    </div>
+                </div>
+
+                <div class="output-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label class="input-label">Timeout (seconds)</label>
+                        <input type="number" class="input-field" id="timeout" value="10" min="1" max="120">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Max Attempts</label>
+                        <input type="number" class="input-field" id="max_attempts" value="1" min="1" max="5">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tuning Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>🎛️</span> TUNING OPTIONS
+            </div>
+
+            <div class="nikto-option-group">
+                <div class="nikto-option-title">
+                    <span>🔍</span> TEST TYPES
+                </div>
+                
+                <div class="tuning-options">
+                    <div class="tuning-item">
+                        <input type="checkbox" id="tune_file" value="1">
+                        <label for="tune_file">Interesting File</label>
+                    </div>
+                    <div class="tuning-item">
+                        <input type="checkbox" id="tune_misconfig" value="2">
+                        <label for="tune_misconfig">Misconfiguration</label>
+                    </div>
+                    <div class="tuning-item">
+                        <input type="checkbox" id="tune_info" value="3">
+                        <label for="tune_info">Information Disclosure</label>
+                    </div>
+                    <div class="tuning-item">
+                        <input type="checkbox" id="tune_injection" value="4">
+                        <label for="tune_injection">Injection (XSS/SQL)</label>
+                    </div>
+                    <div class="tuning-item">
+                        <input type="checkbox" id="tune_remote" value="5">
+                        <label for="tune_remote">Remote File Retrieval</label>
+                    </div>
+                    <div class="tuning-item">
+                        <input type="checkbox" id="tune_dos" value="6">
+                        <label for="tune_dos">Denial of Service</label>
+                    </div>
+                    <div class="tuning-item">
+                        <input type="checkbox" id="tune_remote2" value="7">
+                        <label for="tune_remote2">Remote File Retrieval (2)</label>
+                    </div>
+                    <div class="tuning-item">
+                        <input type="checkbox" id="tune_cmd" value="8">
+                        <label for="tune_cmd">Command Execution</label>
+                    </div>
+                    <div class="tuning-item">
+                        <input type="checkbox" id="tune_sqli" value="9">
+                        <label for="tune_sqli">SQL Injection</label>
+                    </div>
+                    <div class="tuning-item">
+                        <input type="checkbox" id="tune_auth" value="a">
+                        <label for="tune_auth">Authentication Bypass</label>
+                    </div>
+                    <div class="tuning-item">
+                        <input type="checkbox" id="tune_soft" value="b">
+                        <label for="tune_soft">Software Identification</label>
+                    </div>
+                    <div class="tuning-item">
+                        <input type="checkbox" id="tune_remote_shell" value="c">
+                        <label for="tune_remote_shell">Remote Shell</label>
+                    </div>
+                    <div class="tuning-item">
+                        <input type="checkbox" id="tune_admin" value="d">
+                        <label for="tune_admin">Admin Console</label>
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-secondary" id="tune_all">Select All</button>
+                    <button class="btn btn-secondary" id="tune_none" style="margin-left: 10px;">Clear All</button>
+                    <button class="btn btn-secondary" id="tune_default" style="margin-left: 10px;">Default (1,3,5)</button>
+                </div>
+            </div>
+
+            <div class="nikto-option-group">
+                <div class="nikto-option-title">
+                    <span>🚫</span> EXCLUDE TESTS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Skip Tests (comma-separated IDs)</label>
+                    <input type="text" class="input-field" id="skip_tests" placeholder="e.g., 1,2,3">
+                </div>
+            </div>
+        </div>
+
+        <!-- Database and Plugins -->
+        <div class="section">
+            <div class="section-title">
+                <span>🗄️</span> DATABASE & PLUGINS
+            </div>
+
+            <div class="nikto-option-group">
+                <div class="nikto-option-title">
+                    <span>📚</span> DATABASE OPTIONS
+                </div>
+                
+                <div class="db-options">
+                    <div style="flex: 2;">
+                        <label class="input-label">Custom Database File</label>
+                        <input type="text" class="input-field" id="db_file" placeholder="/usr/share/nikto/databases/db_tests">
+                    </div>
+                    <div style="flex: 1; display: flex; align-items: center; gap: 10px; margin-top: 20px;">
+                        <input type="checkbox" id="update_db">
+                        <label for="update_db">Update Databases</label>
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <label class="input-label">Plugins to Run</label>
+                    <input type="text" class="input-field" id="plugins" placeholder="apache_expect_xss, apache_users">
+                    <small style="color: #2A6FAF;">Comma-separated plugin names</small>
+                </div>
+            </div>
+
+            <div class="nikto-option-group">
+                <div class="nikto-option-title">
+                    <span>🌍</span> USER AGENTS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Custom User Agent</label>
+                    <input type="text" class="input-field" id="useragent" placeholder="Mozilla/5.0 (compatible; Nikto)">
+                </div>
+                
+                <div class="checkbox-item" style="margin-top: 15px;">
+                    <input type="checkbox" id="random_agent">
+                    <label class="checkbox-label" for="random_agent">Random User Agent</label>
+                    <span class="checkbox-flag">-useragent random</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Authentication -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔐</span> AUTHENTICATION
+            </div>
+
+            <div class="nikto-option-group">
+                <div class="nikto-option-title">
+                    <span>👤</span> HTTP AUTHENTICATION
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Username:Password</label>
+                    <input type="text" class="input-field" id="auth" placeholder="admin:password">
+                </div>
+                
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Authentication Type</label>
+                    <select class="file-type-select" id="auth_type">
+                        <option value="basic">Basic</option>
+                        <option value="digest">Digest</option>
+                        <option value="ntlm">NTLM</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="nikto-option-group">
+                <div class="nikto-option-title">
+                    <span>🍪</span> COOKIES
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Cookie Data</label>
+                    <input type="text" class="input-field" id="cookie" placeholder="name=value; name2=value2">
+                </div>
+            </div>
+
+            <div class="nikto-option-group">
+                <div class="nikto-option-title">
+                    <span>🔑</span> CERTIFICATE
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Client Certificate</label>
+                    <input type="text" class="input-field" id="cert" placeholder="/path/to/cert.pem">
+                </div>
+                
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Certificate Key</label>
+                    <input type="text" class="input-field" id="key" placeholder="/path/to/key.pem">
+                </div>
+            </div>
+        </div>
+
+        <!-- Proxy Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>🌐</span> PROXY CONFIGURATION
+            </div>
+
+            <div class="nikto-option-group">
+                <div class="nikto-option-title">
+                    <span>🔄</span> PROXY SETTINGS
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Proxy URL</label>
+                    <input type="text" class="input-field" id="proxy" placeholder="http://proxy:8080">
+                </div>
+                
+                <div class="input-group" style="margin-top: 15px;">
+                    <label class="input-label">Proxy Authentication</label>
+                    <input type="text" class="input-field" id="proxy_auth" placeholder="username:password">
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📊</span> OUTPUT CONFIGURATION
+            </div>
+
+            <div class="nikto-option-group">
+                <div class="nikto-option-title">
+                    <span>📁</span> REPORT FORMATS
+                </div>
+                
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_txt">
+                        <label class="checkbox-label" for="output_txt">Text Report</label>
+                        <span class="checkbox-flag">-o</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_html">
+                        <label class="checkbox-label" for="output_html">HTML Report</label>
+                        <span class="checkbox-flag">-o -Format html</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_csv">
+                        <label class="checkbox-label" for="output_csv">CSV Report</label>
+                        <span class="checkbox-flag">-o -Format csv</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="output_xml">
+                        <label class="checkbox-label" for="output_xml">XML Report</label>
+                        <span class="checkbox-flag">-o -Format xml</span>
+                    </div>
+                </div>
+
+                <div id="output_filename_container" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Output Filename</label>
+                    <input type="text" class="input-field" id="output_filename" placeholder="nikto_scan">
+                </div>
+            </div>
+
+            <div class="nikto-option-group">
+                <div class="nikto-option-title">
+                    <span>⚡</span> VERBOSITY
+                </div>
+                
+                <select class="file-type-select" id="verbosity">
+                    <option value="0">Normal</option>
+                    <option value="1">Verbose</option>
+                    <option value="2">Very Verbose</option>
+                    <option value="3">Debug</option>
+                </select>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <div class="output-row">
+                    <div class="input-group">
+                        <label class="input-label">Output Path</label>
+                        <input type="text" class="input-field" id="outputPath" value="/home/kali/nikto/">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">File Type</label>
+                        <select class="file-type-select" id="fileType">
+                            <option value=".txt">.txt</option>
+                            <option value=".html">.html</option>
+                            <option value=".csv">.csv</option>
+                            <option value=".xml">.xml</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CUSTOM OPTIONS
+            </div>
+            <div class="input-group">
+                <label class="input-label">Additional flags (space separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="-no404 -single">
+            </div>
+        </div>
+
+        <!-- Save/Load Panel -->
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Scan configuration name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Configuration</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+        
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <!-- Command Preview -->
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">nikto</div>
+            <div class="command-info" id="commandInfo">No target specified</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand">
+                <span>📋</span> COPY COMMAND
+            </button>
+            <button class="btn btn-secondary" id="clearAll">
+                <span>🗑️</span> CLEAR ALL
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ============ COMMAND BUILDER FOR NIKTO ============
+            
+            // State
+            let state = {
+                host: '',
+                port: 80,
+                ssl_port: 443,
+                ssl: false,
+                nossl: false,
+                root: '/',
+                vhost: '',
+                generic: false,
+                mutate: false,
+                mutate_types: [],
+                list_plugins: false,
+                maxtime: 0,
+                delay: 0,
+                timeout: 10,
+                max_attempts: 1,
+                tuning: [],
+                skip_tests: '',
+                db_file: '',
+                update_db: false,
+                plugins: '',
+                useragent: '',
+                random_agent: false,
+                auth: '',
+                auth_type: 'basic',
+                cookie: '',
+                cert: '',
+                key: '',
+                proxy: '',
+                proxy_auth: '',
+                output: {
+                    txt: false,
+                    html: false,
+                    csv: false,
+                    xml: false,
+                    filename: ''
+                },
+                verbosity: '0',
+                outputPath: '/home/kali/nikto/',
+                fileType: '.txt',
+                customFlags: ''
+            };
+
+            // DOM Elements
+            const host = document.getElementById('host');
+            const port = document.getElementById('port');
+            const sslPort = document.getElementById('ssl_port');
+            const ssl = document.getElementById('ssl');
+            const nossl = document.getElementById('nossl');
+            const root = document.getElementById('root');
+            const vhost = document.getElementById('vhost');
+            const generic = document.getElementById('generic');
+            const mutate = document.getElementById('mutate');
+            const mutateOptions = document.getElementById('mutate_options');
+            const mutateType = document.getElementById('mutate_type');
+            const listPlugins = document.getElementById('list_plugins');
+            const maxtime = document.getElementById('maxtime');
+            const delay = document.getElementById('delay');
+            const timeout = document.getElementById('timeout');
+            const maxAttempts = document.getElementById('max_attempts');
+            
+            // Tuning checkboxes
+            const tuneFile = document.getElementById('tune_file');
+            const tuneMisconfig = document.getElementById('tune_misconfig');
+            const tuneInfo = document.getElementById('tune_info');
+            const tuneInjection = document.getElementById('tune_injection');
+            const tuneRemote = document.getElementById('tune_remote');
+            const tuneDos = document.getElementById('tune_dos');
+            const tuneRemote2 = document.getElementById('tune_remote2');
+            const tuneCmd = document.getElementById('tune_cmd');
+            const tuneSqli = document.getElementById('tune_sqli');
+            const tuneAuth = document.getElementById('tune_auth');
+            const tuneSoft = document.getElementById('tune_soft');
+            const tuneRemoteShell = document.getElementById('tune_remote_shell');
+            const tuneAdmin = document.getElementById('tune_admin');
+            
+            const tuneAll = document.getElementById('tune_all');
+            const tuneNone = document.getElementById('tune_none');
+            const tuneDefault = document.getElementById('tune_default');
+            
+            const skipTests = document.getElementById('skip_tests');
+            const dbFile = document.getElementById('db_file');
+            const updateDb = document.getElementById('update_db');
+            const plugins = document.getElementById('plugins');
+            const useragent = document.getElementById('useragent');
+            const randomAgent = document.getElementById('random_agent');
+            const auth = document.getElementById('auth');
+            const authType = document.getElementById('auth_type');
+            const cookie = document.getElementById('cookie');
+            const cert = document.getElementById('cert');
+            const key = document.getElementById('key');
+            const proxy = document.getElementById('proxy');
+            const proxyAuth = document.getElementById('proxy_auth');
+            
+            // Output
+            const outputTxt = document.getElementById('output_txt');
+            const outputHtml = document.getElementById('output_html');
+            const outputCsv = document.getElementById('output_csv');
+            const outputXml = document.getElementById('output_xml');
+            const outputFilename = document.getElementById('output_filename');
+            const outputFilenameContainer = document.getElementById('output_filename_container');
+            const verbosity = document.getElementById('verbosity');
+            const outputPath = document.getElementById('outputPath');
+            const fileType = document.getElementById('fileType');
+            
+            // Custom flags
+            const customFlags = document.getElementById('customFlags');
+
+            // ============ EVENT LISTENERS ============
+
+            // Target
+            host.addEventListener('input', (e) => { state.host = e.target.value; updateCommand(); });
+            port.addEventListener('input', (e) => { state.port = parseInt(e.target.value) || 80; updateCommand(); });
+            sslPort.addEventListener('input', (e) => { state.ssl_port = parseInt(e.target.value) || 443; updateCommand(); });
+            ssl.addEventListener('change', (e) => { state.ssl = e.target.checked; if(e.target.checked) state.nossl = false; updateCommand(); });
+            nossl.addEventListener('change', (e) => { state.nossl = e.target.checked; if(e.target.checked) state.ssl = false; updateCommand(); });
+            root.addEventListener('input', (e) => { state.root = e.target.value || '/'; updateCommand(); });
+            vhost.addEventListener('input', (e) => { state.vhost = e.target.value; updateCommand(); });
+
+            // Scan options
+            generic.addEventListener('change', (e) => { state.generic = e.target.checked; updateCommand(); });
+            
+            mutate.addEventListener('change', (e) => {
+                state.mutate = e.target.checked;
+                mutateOptions.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+            
+            Array.from(mutateType.options).forEach(option => {
+                option.addEventListener('click', () => {
+                    if (mutate.checked) {
+                        state.mutate_types = Array.from(mutateType.selectedOptions).map(opt => opt.value);
+                        updateCommand();
+                    }
+                });
+            });
+            
+            listPlugins.addEventListener('change', (e) => { state.list_plugins = e.target.checked; updateCommand(); });
+            
+            maxtime.addEventListener('input', (e) => { state.maxtime = parseInt(e.target.value) || 0; updateCommand(); });
+            delay.addEventListener('input', (e) => { state.delay = parseFloat(e.target.value) || 0; updateCommand(); });
+            timeout.addEventListener('input', (e) => { state.timeout = parseInt(e.target.value) || 10; updateCommand(); });
+            maxAttempts.addEventListener('input', (e) => { state.max_attempts = parseInt(e.target.value) || 1; updateCommand(); });
+
+            // Tuning
+            function updateTuningFromCheckboxes() {
+                state.tuning = [];
+                if (tuneFile.checked) state.tuning.push('1');
+                if (tuneMisconfig.checked) state.tuning.push('2');
+                if (tuneInfo.checked) state.tuning.push('3');
+                if (tuneInjection.checked) state.tuning.push('4');
+                if (tuneRemote.checked) state.tuning.push('5');
+                if (tuneDos.checked) state.tuning.push('6');
+                if (tuneRemote2.checked) state.tuning.push('7');
+                if (tuneCmd.checked) state.tuning.push('8');
+                if (tuneSqli.checked) state.tuning.push('9');
+                if (tuneAuth.checked) state.tuning.push('a');
+                if (tuneSoft.checked) state.tuning.push('b');
+                if (tuneRemoteShell.checked) state.tuning.push('c');
+                if (tuneAdmin.checked) state.tuning.push('d');
+                updateCommand();
+            }
+
+            tuneFile.addEventListener('change', updateTuningFromCheckboxes);
+            tuneMisconfig.addEventListener('change', updateTuningFromCheckboxes);
+            tuneInfo.addEventListener('change', updateTuningFromCheckboxes);
+            tuneInjection.addEventListener('change', updateTuningFromCheckboxes);
+            tuneRemote.addEventListener('change', updateTuningFromCheckboxes);
+            tuneDos.addEventListener('change', updateTuningFromCheckboxes);
+            tuneRemote2.addEventListener('change', updateTuningFromCheckboxes);
+            tuneCmd.addEventListener('change', updateTuningFromCheckboxes);
+            tuneSqli.addEventListener('change', updateTuningFromCheckboxes);
+            tuneAuth.addEventListener('change', updateTuningFromCheckboxes);
+            tuneSoft.addEventListener('change', updateTuningFromCheckboxes);
+            tuneRemoteShell.addEventListener('change', updateTuningFromCheckboxes);
+            tuneAdmin.addEventListener('change', updateTuningFromCheckboxes);
+
+            tuneAll.addEventListener('click', () => {
+                [tuneFile, tuneMisconfig, tuneInfo, tuneInjection, tuneRemote, tuneDos, 
+                 tuneRemote2, tuneCmd, tuneSqli, tuneAuth, tuneSoft, tuneRemoteShell, tuneAdmin]
+                    .forEach(cb => cb.checked = true);
+                updateTuningFromCheckboxes();
+            });
+
+            tuneNone.addEventListener('click', () => {
+                [tuneFile, tuneMisconfig, tuneInfo, tuneInjection, tuneRemote, tuneDos, 
+                 tuneRemote2, tuneCmd, tuneSqli, tuneAuth, tuneSoft, tuneRemoteShell, tuneAdmin]
+                    .forEach(cb => cb.checked = false);
+                updateTuningFromCheckboxes();
+            });
+
+            tuneDefault.addEventListener('click', () => {
+                tuneNone.click();
+                tuneFile.checked = true;  // 1
+                tuneInfo.checked = true;   // 3
+                tuneRemote.checked = true;  // 5
+                updateTuningFromCheckboxes();
+            });
+
+            skipTests.addEventListener('input', (e) => { state.skip_tests = e.target.value; updateCommand(); });
+
+            // Database
+            dbFile.addEventListener('input', (e) => { state.db_file = e.target.value; updateCommand(); });
+            updateDb.addEventListener('change', (e) => { state.update_db = e.target.checked; updateCommand(); });
+            plugins.addEventListener('input', (e) => { state.plugins = e.target.value; updateCommand(); });
+            useragent.addEventListener('input', (e) => { state.useragent = e.target.value; updateCommand(); });
+            randomAgent.addEventListener('change', (e) => { state.random_agent = e.target.checked; updateCommand(); });
+
+            // Authentication
+            auth.addEventListener('input', (e) => { state.auth = e.target.value; updateCommand(); });
+            authType.addEventListener('change', (e) => { state.auth_type = e.target.value; updateCommand(); });
+            cookie.addEventListener('input', (e) => { state.cookie = e.target.value; updateCommand(); });
+            cert.addEventListener('input', (e) => { state.cert = e.target.value; updateCommand(); });
+            key.addEventListener('input', (e) => { state.key = e.target.value; updateCommand(); });
+
+            // Proxy
+            proxy.addEventListener('input', (e) => { state.proxy = e.target.value; updateCommand(); });
+            proxyAuth.addEventListener('input', (e) => { state.proxy_auth = e.target.value; updateCommand(); });
+
+            // Output
+            outputTxt.addEventListener('change', (e) => { state.output.txt = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputHtml.addEventListener('change', (e) => { state.output.html = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputCsv.addEventListener('change', (e) => { state.output.csv = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputXml.addEventListener('change', (e) => { state.output.xml = e.target.checked; updateOutputVisibility(); updateCommand(); });
+            outputFilename.addEventListener('input', (e) => { state.output.filename = e.target.value; updateCommand(); });
+            
+            verbosity.addEventListener('change', (e) => { state.verbosity = e.target.value; updateCommand(); });
+            outputPath.addEventListener('input', (e) => { state.outputPath = e.target.value; updateCommand(); });
+            fileType.addEventListener('change', (e) => { state.fileType = e.target.value; updateCommand(); });
+
+            function updateOutputVisibility() {
+                const anyOutput = state.output.txt || state.output.html || state.output.csv || state.output.xml;
+                outputFilenameContainer.style.display = anyOutput ? 'block' : 'none';
+            }
+
+            // Custom flags
+            customFlags.addEventListener('input', (e) => { state.customFlags = e.target.value; updateCommand(); });
+
+            // ============ COMMAND GENERATION ============
+
+            function generateCommand() {
+                if (!state.host) {
+                    return 'nikto -help (specify a target with -h)';
+                }
+
+                let command = 'nikto';
+                const parts = [];
+
+                // Host
+                parts.push(`-h ${state.host}`);
+
+                // Port
+                if (state.port !== 80 || state.ssl) {
+                    parts.push(`-p ${state.port}`);
+                }
+
+                // SSL
+                if (state.ssl) parts.push('-ssl');
+                if (state.nossl) parts.push('-nossl');
+
+                // Root path
+                if (state.root && state.root !== '/') {
+                    parts.push(`-root ${state.root}`);
+                }
+
+                // Virtual host
+                if (state.vhost) {
+                    parts.push(`-vhost ${state.vhost}`);
+                }
+
+                // Generic
+                if (state.generic) parts.push('-g');
+
+                // Mutate
+                if (state.mutate && state.mutate_types.length > 0) {
+                    parts.push(`-mutate ${state.mutate_types.join('')}`);
+                }
+
+                // List plugins
+                if (state.list_plugins) parts.push('-list-plugins');
+
+                // Performance
+                if (state.maxtime > 0) parts.push(`-maxtime ${state.maxtime}`);
+                if (state.delay > 0) parts.push(`-delay ${state.delay}`);
+                if (state.timeout !== 10) parts.push(`-timeout ${state.timeout}`);
+                if (state.max_attempts > 1) parts.push(`-max-attempts ${state.max_attempts}`);
+
+                // Tuning
+                if (state.tuning.length > 0) {
+                    parts.push(`-Tuning ${state.tuning.join('')}`);
+                }
+
+                // Skip tests
+                if (state.skip_tests) {
+                    parts.push(`-SkipTests ${state.skip_tests}`);
+                }
+
+                // Database
+                if (state.db_file) {
+                    parts.push(`-db ${state.db_file}`);
+                }
+                if (state.update_db) {
+                    parts.push('-update');
+                }
+                if (state.plugins) {
+                    parts.push(`-Plugins ${state.plugins}`);
+                }
+
+                // User agent
+                if (state.useragent) {
+                    parts.push(`-useragent "${state.useragent}"`);
+                } else if (state.random_agent) {
+                    parts.push('-useragent random');
+                }
+
+                // Authentication
+                if (state.auth) {
+                    parts.push(`-id ${state.auth}`);
+                    if (state.auth_type !== 'basic') {
+                        parts.push(`-auth-type ${state.auth_type}`);
+                    }
+                }
+
+                // Cookies
+                if (state.cookie) {
+                    parts.push(`-cookie "${state.cookie}"`);
+                }
+
+                // Certificate
+                if (state.cert) {
+                    parts.push(`-cert ${state.cert}`);
+                }
+                if (state.key) {
+                    parts.push(`-key ${state.key}`);
+                }
+
+                // Proxy
+                if (state.proxy) {
+                    parts.push(`-useproxy ${state.proxy}`);
+                }
+                if (state.proxy_auth) {
+                    parts.push(`-proxy-auth ${state.proxy_auth}`);
+                }
+
+                // Output
+                if (state.output.filename) {
+                    if (state.output.txt) {
+                        parts.push(`-o ${state.outputPath}${state.output.filename}${state.fileType}`);
+                    } else if (state.output.html) {
+                        parts.push(`-o ${state.outputPath}${state.output.filename}.html -Format html`);
+                    } else if (state.output.csv) {
+                        parts.push(`-o ${state.outputPath}${state.output.filename}.csv -Format csv`);
+                    } else if (state.output.xml) {
+                        parts.push(`-o ${state.outputPath}${state.output.filename}.xml -Format xml`);
+                    }
+                }
+
+                // Verbosity
+                if (state.verbosity === '1') parts.push('-v');
+                if (state.verbosity === '2') parts.push('-v -v');
+                if (state.verbosity === '3') parts.push('-v -v -v');
+
+                // Custom flags
+                if (state.customFlags) {
+                    const customParts = state.customFlags.trim().split(/\s+/);
+                    customParts.forEach(part => parts.push(part));
+                }
+
+                return command + ' ' + parts.join(' ');
+            }
+
+            function generateExplanation() {
+                const explanations = [];
+                
+                if (state.host) explanations.push(`Target: ${state.host}:${state.port}`);
+                if (state.ssl) explanations.push('SSL enabled');
+                
+                if (state.tuning.length > 0) {
+                    const tuningCount = state.tuning.length;
+                    explanations.push(`${tuningCount} test types`);
+                }
+                
+                if (state.mutate) explanations.push('Mutation enabled');
+                
+                if (state.auth) explanations.push('Authentication set');
+                if (state.proxy) explanations.push('Using proxy');
+                
+                const outputFormats = [];
+                if (state.output.txt) outputFormats.push('TXT');
+                if (state.output.html) outputFormats.push('HTML');
+                if (state.output.csv) outputFormats.push('CSV');
+                if (state.output.xml) outputFormats.push('XML');
+                
+                if (outputFormats.length > 0) {
+                    explanations.push(`Reports: ${outputFormats.join(', ')}`);
+                }
+                
+                return explanations.length > 0 
+                    ? `Scan includes: ${explanations.join(' • ')}`
+                    : 'No scan options selected';
+            }
+
+            function updateCommand() {
+                document.getElementById('commandPreview').textContent = generateCommand();
+                document.getElementById('commandInfo').textContent = generateExplanation();
+            }
+
+            // ============ SAVE/LOAD FUNCTIONS ============
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved.nikto) saved.nikto = [];
+                
+                saved.nikto.push({
+                    name: name,
+                    state: { ...state },
+                    timestamp: new Date().toISOString()
+                });
+                
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved.nikto || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved.nikto && saved.nikto[index]) {
+                    saved.nikto.splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function loadStateIntoSavedCommands(savedState) {
+                // Restore state
+                state = JSON.parse(JSON.stringify(savedState));
+                
+                // Update UI
+                host.value = state.host || '';
+                port.value = state.port || 80;
+                sslPort.value = state.ssl_port || 443;
+                ssl.checked = state.ssl || false;
+                nossl.checked = state.nossl || false;
+                root.value = state.root || '/';
+                vhost.value = state.vhost || '';
+                generic.checked = state.generic || false;
+                mutate.checked = state.mutate || false;
+                mutateOptions.style.display = state.mutate ? 'block' : 'none';
+                listPlugins.checked = state.list_plugins || false;
+                maxtime.value = state.maxtime || 0;
+                delay.value = state.delay || 0;
+                timeout.value = state.timeout || 10;
+                maxAttempts.value = state.max_attempts || 1;
+                
+                // Tuning
+                const tuningMap = {
+                    '1': tuneFile, '2': tuneMisconfig, '3': tuneInfo, '4': tuneInjection,
+                    '5': tuneRemote, '6': tuneDos, '7': tuneRemote2, '8': tuneCmd,
+                    '9': tuneSqli, 'a': tuneAuth, 'b': tuneSoft, 'c': tuneRemoteShell, 'd': tuneAdmin
+                };
+                
+                Object.keys(tuningMap).forEach(key => {
+                    tuningMap[key].checked = state.tuning ? state.tuning.includes(key) : false;
+                });
+                
+                skipTests.value = state.skip_tests || '';
+                dbFile.value = state.db_file || '';
+                updateDb.checked = state.update_db || false;
+                plugins.value = state.plugins || '';
+                useragent.value = state.useragent || '';
+                randomAgent.checked = state.random_agent || false;
+                auth.value = state.auth || '';
+                authType.value = state.auth_type || 'basic';
+                cookie.value = state.cookie || '';
+                cert.value = state.cert || '';
+                key.value = state.key || '';
+                proxy.value = state.proxy || '';
+                proxyAuth.value = state.proxy_auth || '';
+                
+                // Output
+                outputTxt.checked = state.output.txt || false;
+                outputHtml.checked = state.output.html || false;
+                outputCsv.checked = state.output.csv || false;
+                outputXml.checked = state.output.xml || false;
+                outputFilename.value = state.output.filename || '';
+                updateOutputVisibility();
+                
+                verbosity.value = state.verbosity || '0';
+                outputPath.value = state.outputPath || '/home/kali/nikto/';
+                fileType.value = state.fileType || '.txt';
+                
+                customFlags.value = state.customFlags || '';
+                
+                updateCommand();
+            }
+
+            function updateSavedCommandsList() {
+                const saved = loadSavedCommands();
+                const container = document.getElementById('savedCommandsList');
+                
+                if (saved.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-saved')) {
+                            const index = item.dataset.index;
+                            const cmd = saved[index];
+                            loadStateIntoSavedCommands(cmd.state);
+                            Utils.showNotification(`Loaded: ${cmd.name}`, 'success');
+                        }
+                    });
+                });
+                
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = btn.dataset.index;
+                        deleteSavedCommand(index);
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            // ============ BUTTON HANDLERS ============
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value;
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this configuration', 'warning');
+                    return;
+                }
+                
+                saveCommand(name);
+                Utils.showNotification('✅ Configuration saved!', 'success');
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', () => {
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const command = generateCommand();
+                try {
+                    await navigator.clipboard.writeText(command);
+                    Utils.showNotification('✅ Command copied to clipboard!', 'success');
+                } catch (err) {
+                    Utils.showNotification('❌ Failed to copy command', 'error');
+                }
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                // Reset state
+                state = {
+                    host: '', port: 80, ssl_port: 443, ssl: false, nossl: false,
+                    root: '/', vhost: '', generic: false, mutate: false, mutate_types: [],
+                    list_plugins: false, maxtime: 0, delay: 0, timeout: 10, max_attempts: 1,
+                    tuning: [], skip_tests: '', db_file: '', update_db: false, plugins: '',
+                    useragent: '', random_agent: false, auth: '', auth_type: 'basic',
+                    cookie: '', cert: '', key: '', proxy: '', proxy_auth: '',
+                    output: { txt: false, html: false, csv: false, xml: false, filename: '' },
+                    verbosity: '0', outputPath: '/home/kali/nikto/', fileType: '.txt',
+                    customFlags: ''
+                };
+                
+                // Reset UI
+                host.value = '';
+                port.value = 80;
+                sslPort.value = 443;
+                ssl.checked = false;
+                nossl.checked = false;
+                root.value = '/';
+                vhost.value = '';
+                generic.checked = false;
+                mutate.checked = false;
+                mutateOptions.style.display = 'none';
+                listPlugins.checked = false;
+                maxtime.value = 0;
+                delay.value = 0;
+                timeout.value = 10;
+                maxAttempts.value = 1;
+                
+                tuneNone.click();
+                
+                skipTests.value = '';
+                dbFile.value = '';
+                updateDb.checked = false;
+                plugins.value = '';
+                useragent.value = '';
+                randomAgent.checked = false;
+                auth.value = '';
+                authType.value = 'basic';
+                cookie.value = '';
+                cert.value = '';
+                key.value = '';
+                proxy.value = '';
+                proxyAuth.value = '';
+                
+                outputTxt.checked = false;
+                outputHtml.checked = false;
+                outputCsv.checked = false;
+                outputXml.checked = false;
+                outputFilenameContainer.style.display = 'none';
+                outputFilename.value = '';
+                
+                verbosity.value = '0';
+                outputPath.value = '/home/kali/nikto/';
+                fileType.value = '.txt';
+                
+                customFlags.value = '';
+                
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            // Initial update
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

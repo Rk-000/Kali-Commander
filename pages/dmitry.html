@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dmitry - Kali Commander</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tool-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles specific to Dmitry */
+        .option-group {
+            background: rgba(15, 95, 168, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid #1E88E5;
+        }
+        .option-title {
+            color: #00CFFF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .port-range-input {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container tool-page">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <a href="../index.html?category=information-gathering">Information Gathering</a>
+            <span class="separator">›</span>
+            <span class="current">Dmitry</span>
+        </div>
+
+        <!-- Tool Header -->
+        <div class="tool-header">
+            <h1>DMITRY</h1>
+            <p>Deepmagic Information Gathering Tool - TCP port scanning, whois lookups, and more</p>
+        </div>
+
+        <!-- Target Input -->
+        <div class="section">
+            <div class="section-title">
+                <span>📌</span> TARGET SPECIFICATION
+            </div>
+            <div class="input-group">
+                <label class="input-label">Target (IP or domain)</label>
+                <input type="text" class="input-field" id="target" placeholder="example.com or 192.168.1.1" value="">
+                <small style="color: #2A6FAF; margin-top: 5px; display: block;">Enter the target domain or IP address to gather information about</small>
+            </div>
+        </div>
+
+        <!-- Whois Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔍</span> WHOIS LOOKUP OPTIONS
+            </div>
+            
+            <div class="option-group">
+                <div class="option-title">
+                    <span>🌐</span> WHOIS OPTIONS
+                </div>
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="option_whois">
+                        <label class="checkbox-label" for="option_whois">Perform Whois Lookup</label>
+                        <span class="checkbox-flag">-w</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="option_whois_domain">
+                        <label class="checkbox-label" for="option_whois_domain">Whois for Domain (legacy)</label>
+                        <span class="checkbox-flag">-d</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="option_whois_ip">
+                        <label class="checkbox-label" for="option_whois_ip">Whois for IP Address</label>
+                        <span class="checkbox-flag">-i</span>
+                    </div>
+                </div>
+                <small style="color: #2A6FAF; margin-top: 5px; display: block;">-w performs whois lookup, -d is domain whois, -i is IP whois</small>
+            </div>
+        </div>
+
+        <!-- Network Information -->
+        <div class="section">
+            <div class="section-title">
+                <span>🌐</span> NETWORK INFORMATION
+            </div>
+            
+            <div class="option-group">
+                <div class="option-title">
+                    <span>📡</span> NETWORK OPTIONS
+                </div>
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="option_netcraft">
+                        <label class="checkbox-label" for="option_netcraft">Retrieve Netcraft.com Info</label>
+                        <span class="checkbox-flag">-n</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="option_subdomains">
+                        <label class="checkbox-label" for="option_subdomains">Search for Subdomains</label>
+                        <span class="checkbox-flag">-s</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="option_emails">
+                        <label class="checkbox-label" for="option_emails">Search for Email Addresses</label>
+                        <span class="checkbox-flag">-e</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Port Scanning -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔌</span> PORT SCANNING
+            </div>
+            
+            <div class="option-group">
+                <div class="option-title">
+                    <span>🔓</span> TCP PORT SCAN
+                </div>
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="option_tcp_scan">
+                        <label class="checkbox-label" for="option_tcp_scan">Perform TCP Port Scan</label>
+                        <span class="checkbox-flag">-p</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="option_tcp_ports">
+                        <label class="checkbox-label" for="option_tcp_ports">Custom TCP Port Range</label>
+                        <span class="checkbox-flag">-p with range</span>
+                    </div>
+                </div>
+                
+                <div id="port-range-container" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Port Range</label>
+                    <div class="port-range-input">
+                        <input type="number" class="input-field" id="port_start" placeholder="Start port" value="1" min="1" max="65535">
+                        <input type="number" class="input-field" id="port_end" placeholder="End port" value="1024" min="1" max="65535">
+                    </div>
+                    <small style="color: #2A6FAF; margin-top: 5px; display: block;">Default: 1-1024 (well-known ports)</small>
+                </div>
+            </div>
+            
+            <div class="option-group">
+                <div class="option-title">
+                    <span>⏱️</span> SCAN TIMING
+                </div>
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="option_timing">
+                        <label class="checkbox-label" for="option_timing">Use Custom Timeout</label>
+                        <span class="checkbox-flag">-t</span>
+                    </div>
+                </div>
+                
+                <div id="timeout-container" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Timeout (seconds)</label>
+                    <input type="number" class="input-field" id="timeout_value" value="5" min="1" max="60" step="1">
+                    <small style="color: #2A6FAF; margin-top: 5px; display: block;">Maximum wait time for responses (default: 5s)</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>📁</span> OUTPUT OPTIONS
+            </div>
+            
+            <div class="option-group">
+                <div class="option-title">
+                    <span>💾</span> SAVE RESULTS
+                </div>
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="option_output">
+                        <label class="checkbox-label" for="option_output">Save Output to File</label>
+                        <span class="checkbox-flag">-o</span>
+                    </div>
+                </div>
+                
+                <div id="output-filename-container" style="display: none; margin-top: 15px;">
+                    <label class="input-label">Output filename</label>
+                    <input type="text" class="input-field" id="output_filename" placeholder="dmitry_results.txt">
+                    <small style="color: #2A6FAF; margin-top: 5px; display: block;">Results will be saved with this filename</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <span>📂</span> OUTPUT CONFIGURATION
+            </div>
+            <div class="output-row">
+                <div class="input-group">
+                    <label class="input-label">Output Path</label>
+                    <input type="text" class="input-field" id="outputPath" value="/home/kali/recon/">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Filename</label>
+                    <input type="text" class="input-field" id="outputFile" placeholder="dmitry_scan">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">File Type</label>
+                    <select class="file-type-select" id="fileType">
+                        <option value=".txt">.txt (Text)</option>
+                        <option value=".log">.log (Log)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Options -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> CUSTOM OPTIONS
+            </div>
+            <div class="input-group">
+                <label class="input-label">Additional flags (space separated)</label>
+                <input type="text" class="input-field" id="customFlags" placeholder="--verbose --no-color">
+            </div>
+        </div>
+
+        <!-- Save/Load Panel -->
+        <div class="save-panel">
+            <input type="text" class="input-field" id="saveName" placeholder="Command name" style="flex: 2;">
+            <button class="btn btn-primary" id="saveCommand">💾 Save Command</button>
+            <button class="btn btn-secondary" id="loadCommands">📋 Load Saved</button>
+        </div>
+        
+        <div id="savedCommandsList" class="saved-commands" style="display: none;"></div>
+
+        <!-- Command Preview -->
+        <div class="command-preview">
+            <div class="command-text" id="commandPreview">dmitry</div>
+            <div class="command-info" id="commandInfo">No options selected</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="copyCommand">
+                <span>📋</span> COPY COMMAND
+            </button>
+            <button class="btn btn-secondary" id="clearAll">
+                <span>🗑️</span> CLEAR ALL
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2023 <a href="https://sites.google.com/view/rownokahmedkhan" target="_blank" class="footer-link">Rownok Ahmed Khan</a>. All Rights Reserved.</p>
+            <p class="footer-small">Unauthorized use or duplication of content without permission is prohibited.</p>
+            <p class="footer-small">
+                <a href="https://drive.google.com/file/d/1jmpTc1OPtCUOXlIjBrmm-DyWZdxqXjfs/view" target="_blank" class="footer-link">
+                    Legal Information · License · Terms
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ============ COMMAND BUILDER FOR DMITRY ============
+            
+            // State
+            let state = {
+                target: '',
+                whois: false,
+                whois_domain: false,
+                whois_ip: false,
+                netcraft: false,
+                subdomains: false,
+                emails: false,
+                tcp_scan: false,
+                tcp_ports_custom: false,
+                port_start: 1,
+                port_end: 1024,
+                timing: false,
+                timeout: 5,
+                output: false,
+                output_filename: '',
+                outputPath: '/home/kali/recon/',
+                outputFile: '',
+                fileType: '.txt',
+                customFlags: ''
+            };
+
+            // DOM Elements
+            const targetInput = document.getElementById('target');
+            
+            // Option checkboxes
+            const whoisCheckbox = document.getElementById('option_whois');
+            const whoisDomainCheckbox = document.getElementById('option_whois_domain');
+            const whoisIpCheckbox = document.getElementById('option_whois_ip');
+            const netcraftCheckbox = document.getElementById('option_netcraft');
+            const subdomainsCheckbox = document.getElementById('option_subdomains');
+            const emailsCheckbox = document.getElementById('option_emails');
+            const tcpScanCheckbox = document.getElementById('option_tcp_scan');
+            const tcpPortsCustomCheckbox = document.getElementById('option_tcp_ports');
+            const timingCheckbox = document.getElementById('option_timing');
+            const outputCheckbox = document.getElementById('option_output');
+            
+            // Custom containers
+            const portRangeContainer = document.getElementById('port-range-container');
+            const timeoutContainer = document.getElementById('timeout-container');
+            const outputFilenameContainer = document.getElementById('output-filename-container');
+            
+            // Custom inputs
+            const portStart = document.getElementById('port_start');
+            const portEnd = document.getElementById('port_end');
+            const timeoutValue = document.getElementById('timeout_value');
+            const outputFilename = document.getElementById('output_filename');
+            
+            // Output configuration
+            const outputPath = document.getElementById('outputPath');
+            const outputFile = document.getElementById('outputFile');
+            const fileType = document.getElementById('fileType');
+            
+            // Custom flags
+            const customFlags = document.getElementById('customFlags');
+
+            // ============ EVENT LISTENERS ============
+
+            // Target input
+            targetInput.addEventListener('input', (e) => {
+                state.target = e.target.value;
+                updateCommand();
+            });
+
+            // Whois options
+            whoisCheckbox.addEventListener('change', (e) => {
+                state.whois = e.target.checked;
+                updateCommand();
+            });
+
+            whoisDomainCheckbox.addEventListener('change', (e) => {
+                state.whois_domain = e.target.checked;
+                updateCommand();
+            });
+
+            whoisIpCheckbox.addEventListener('change', (e) => {
+                state.whois_ip = e.target.checked;
+                updateCommand();
+            });
+
+            // Network options
+            netcraftCheckbox.addEventListener('change', (e) => {
+                state.netcraft = e.target.checked;
+                updateCommand();
+            });
+
+            subdomainsCheckbox.addEventListener('change', (e) => {
+                state.subdomains = e.target.checked;
+                updateCommand();
+            });
+
+            emailsCheckbox.addEventListener('change', (e) => {
+                state.emails = e.target.checked;
+                updateCommand();
+            });
+
+            // TCP scan options
+            tcpScanCheckbox.addEventListener('change', (e) => {
+                state.tcp_scan = e.target.checked;
+                if (!e.target.checked) {
+                    state.tcp_ports_custom = false;
+                    tcpPortsCustomCheckbox.checked = false;
+                    portRangeContainer.style.display = 'none';
+                }
+                updateCommand();
+            });
+
+            tcpPortsCustomCheckbox.addEventListener('change', (e) => {
+                state.tcp_ports_custom = e.target.checked;
+                portRangeContainer.style.display = e.target.checked ? 'block' : 'none';
+                if (e.target.checked && !state.tcp_scan) {
+                    state.tcp_scan = true;
+                    tcpScanCheckbox.checked = true;
+                }
+                updateCommand();
+            });
+
+            portStart.addEventListener('input', (e) => {
+                state.port_start = parseInt(e.target.value) || 1;
+                updateCommand();
+            });
+
+            portEnd.addEventListener('input', (e) => {
+                state.port_end = parseInt(e.target.value) || 1024;
+                updateCommand();
+            });
+
+            // Timing options
+            timingCheckbox.addEventListener('change', (e) => {
+                state.timing = e.target.checked;
+                timeoutContainer.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+
+            timeoutValue.addEventListener('input', (e) => {
+                state.timeout = parseInt(e.target.value) || 5;
+                updateCommand();
+            });
+
+            // Output options
+            outputCheckbox.addEventListener('change', (e) => {
+                state.output = e.target.checked;
+                outputFilenameContainer.style.display = e.target.checked ? 'block' : 'none';
+                updateCommand();
+            });
+
+            outputFilename.addEventListener('input', (e) => {
+                state.output_filename = e.target.value;
+                updateCommand();
+            });
+
+            // Output configuration
+            outputPath.addEventListener('input', (e) => {
+                state.outputPath = e.target.value;
+                updateCommand();
+            });
+
+            outputFile.addEventListener('input', (e) => {
+                state.outputFile = e.target.value;
+                updateCommand();
+            });
+
+            fileType.addEventListener('change', (e) => {
+                state.fileType = e.target.value;
+                updateCommand();
+            });
+
+            // Custom flags
+            customFlags.addEventListener('input', (e) => {
+                state.customFlags = e.target.value;
+                updateCommand();
+            });
+
+            // ============ COMMAND GENERATION ============
+
+            function generateCommand() {
+                let command = 'dmitry';
+                const parts = [];
+
+                // Add target (must be last for dmitry)
+                const targetValue = state.target;
+
+                // Process options in correct order (dmitry requires flags before target)
+                
+                // Whois options
+                if (state.whois) parts.push('-w');
+                if (state.whois_domain) parts.push('-d');
+                if (state.whois_ip) parts.push('-i');
+                
+                // Network options
+                if (state.netcraft) parts.push('-n');
+                if (state.subdomains) parts.push('-s');
+                if (state.emails) parts.push('-e');
+                
+                // TCP scan options
+                if (state.tcp_scan) {
+                    if (state.tcp_ports_custom) {
+                        // Custom port range
+                        parts.push(`-p ${state.port_start}-${state.port_end}`);
+                    } else {
+                        parts.push('-p');
+                    }
+                }
+                
+                // Timing option
+                if (state.timing) {
+                    parts.push(`-t ${state.timeout}`);
+                }
+                
+                // Output option
+                if (state.output && state.output_filename) {
+                    parts.push(`-o ${state.output_filename}`);
+                } else if (state.output) {
+                    parts.push('-o');
+                }
+
+                // Add custom flags
+                if (state.customFlags) {
+                    const customParts = state.customFlags.trim().split(/\s+/);
+                    customParts.forEach(part => parts.push(part));
+                }
+
+                // Add target (always last)
+                if (targetValue) {
+                    parts.push(targetValue);
+                }
+
+                // Build command
+                if (parts.length > 0) {
+                    command += ' ' + parts.join(' ');
+                }
+
+                return command;
+            }
+
+            function generateExplanation() {
+                const explanations = [];
+                
+                if (state.target) explanations.push(`Target: ${state.target}`);
+                
+                const options = [];
+                if (state.whois) options.push('Whois');
+                if (state.whois_domain) options.push('Domain Whois');
+                if (state.whois_ip) options.push('IP Whois');
+                if (state.netcraft) options.push('Netcraft');
+                if (state.subdomains) options.push('Subdomains');
+                if (state.emails) options.push('Emails');
+                if (state.tcp_scan) {
+                    if (state.tcp_ports_custom) {
+                        options.push(`TCP Scan (ports ${state.port_start}-${state.port_end})`);
+                    } else {
+                        options.push('TCP Scan (default ports 1-1024)');
+                    }
+                }
+                
+                if (options.length > 0) {
+                    explanations.push(`Options: ${options.join(', ')}`);
+                }
+                
+                if (state.timing) explanations.push(`Timeout: ${state.timeout}s`);
+                if (state.output) explanations.push(`Save to: ${state.output_filename || 'default'}`);
+                
+                return explanations.length > 0 
+                    ? `Command includes: ${explanations.join(' • ')}`
+                    : 'No options selected - will run default dmitry';
+            }
+
+            function updateCommand() {
+                document.getElementById('commandPreview').textContent = generateCommand();
+                document.getElementById('commandInfo').textContent = generateExplanation();
+            }
+
+            // ============ SAVE/LOAD FUNCTIONS ============
+
+            function saveCommand(name) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (!saved.dmitry) saved.dmitry = [];
+                
+                saved.dmitry.push({
+                    name: name,
+                    state: { ...state },
+                    timestamp: new Date().toISOString()
+                });
+                
+                localStorage.setItem('savedCommands', JSON.stringify(saved));
+            }
+
+            function loadSavedCommands() {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                return saved.dmitry || [];
+            }
+
+            function deleteSavedCommand(index) {
+                const saved = JSON.parse(localStorage.getItem('savedCommands') || '{}');
+                if (saved.dmitry && saved.dmitry[index]) {
+                    saved.dmitry.splice(index, 1);
+                    localStorage.setItem('savedCommands', JSON.stringify(saved));
+                }
+            }
+
+            function loadStateIntoSavedCommands(savedState) {
+                // Restore state
+                state = { ...savedState };
+                
+                // Update UI
+                targetInput.value = state.target || '';
+                
+                // Whois checkboxes
+                whoisCheckbox.checked = state.whois || false;
+                whoisDomainCheckbox.checked = state.whois_domain || false;
+                whoisIpCheckbox.checked = state.whois_ip || false;
+                
+                // Network checkboxes
+                netcraftCheckbox.checked = state.netcraft || false;
+                subdomainsCheckbox.checked = state.subdomains || false;
+                emailsCheckbox.checked = state.emails || false;
+                
+                // TCP scan
+                tcpScanCheckbox.checked = state.tcp_scan || false;
+                tcpPortsCustomCheckbox.checked = state.tcp_ports_custom || false;
+                portRangeContainer.style.display = state.tcp_ports_custom ? 'block' : 'none';
+                portStart.value = state.port_start || 1;
+                portEnd.value = state.port_end || 1024;
+                
+                // Timing
+                timingCheckbox.checked = state.timing || false;
+                timeoutContainer.style.display = state.timing ? 'block' : 'none';
+                timeoutValue.value = state.timeout || 5;
+                
+                // Output
+                outputCheckbox.checked = state.output || false;
+                outputFilenameContainer.style.display = state.output ? 'block' : 'none';
+                outputFilename.value = state.output_filename || '';
+                
+                // Output config
+                outputPath.value = state.outputPath || '/home/kali/recon/';
+                outputFile.value = state.outputFile || '';
+                fileType.value = state.fileType || '.txt';
+                
+                // Custom flags
+                customFlags.value = state.customFlags || '';
+                
+                updateCommand();
+            }
+
+            function updateSavedCommandsList() {
+                const saved = loadSavedCommands();
+                const container = document.getElementById('savedCommandsList');
+                
+                if (saved.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                container.innerHTML = saved.map((cmd, index) => `
+                    <div class="saved-command-item" data-index="${index}">
+                        <div style="flex: 1;">
+                            <div class="saved-command-name">${cmd.name}</div>
+                            <div class="saved-command-preview">${new Date(cmd.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <span class="delete-saved" data-index="${index}">🗑️</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                // Add click listeners
+                container.querySelectorAll('.saved-command-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-saved')) {
+                            const index = item.dataset.index;
+                            const cmd = saved[index];
+                            loadStateIntoSavedCommands(cmd.state);
+                            Utils.showNotification(`Loaded: ${cmd.name}`, 'success');
+                        }
+                    });
+                });
+                
+                // Delete buttons
+                container.querySelectorAll('.delete-saved').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = btn.dataset.index;
+                        deleteSavedCommand(index);
+                        updateSavedCommandsList();
+                        Utils.showNotification('Command deleted', 'info');
+                    });
+                });
+            }
+
+            // ============ BUTTON HANDLERS ============
+
+            document.getElementById('saveCommand').addEventListener('click', () => {
+                const name = document.getElementById('saveName').value;
+                if (!name) {
+                    Utils.showNotification('Please enter a name for this command', 'warning');
+                    return;
+                }
+                
+                saveCommand(name);
+                Utils.showNotification('✅ Command saved!', 'success');
+                document.getElementById('saveName').value = '';
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('loadCommands').addEventListener('click', () => {
+                updateSavedCommandsList();
+            });
+
+            document.getElementById('copyCommand').addEventListener('click', async () => {
+                const command = generateCommand();
+                try {
+                    await navigator.clipboard.writeText(command);
+                    Utils.showNotification('✅ Command copied to clipboard!', 'success');
+                } catch (err) {
+                    Utils.showNotification('❌ Failed to copy command', 'error');
+                }
+            });
+
+            document.getElementById('clearAll').addEventListener('click', () => {
+                // Reset state
+                state = {
+                    target: '',
+                    whois: false,
+                    whois_domain: false,
+                    whois_ip: false,
+                    netcraft: false,
+                    subdomains: false,
+                    emails: false,
+                    tcp_scan: false,
+                    tcp_ports_custom: false,
+                    port_start: 1,
+                    port_end: 1024,
+                    timing: false,
+                    timeout: 5,
+                    output: false,
+                    output_filename: '',
+                    outputPath: '/home/kali/recon/',
+                    outputFile: '',
+                    fileType: '.txt',
+                    customFlags: ''
+                };
+                
+                // Reset UI
+                targetInput.value = '';
+                
+                whoisCheckbox.checked = false;
+                whoisDomainCheckbox.checked = false;
+                whoisIpCheckbox.checked = false;
+                
+                netcraftCheckbox.checked = false;
+                subdomainsCheckbox.checked = false;
+                emailsCheckbox.checked = false;
+                
+                tcpScanCheckbox.checked = false;
+                tcpPortsCustomCheckbox.checked = false;
+                portRangeContainer.style.display = 'none';
+                portStart.value = 1;
+                portEnd.value = 1024;
+                
+                timingCheckbox.checked = false;
+                timeoutContainer.style.display = 'none';
+                timeoutValue.value = 5;
+                
+                outputCheckbox.checked = false;
+                outputFilenameContainer.style.display = 'none';
+                outputFilename.value = '';
+                
+                outputPath.value = '/home/kali/recon/';
+                outputFile.value = '';
+                fileType.value = '.txt';
+                
+                customFlags.value = '';
+                
+                updateCommand();
+                Utils.showNotification('All options cleared', 'info');
+            });
+
+            // Initial update
+            updateCommand();
+        });
+    </script>
+</body>
+</html>
